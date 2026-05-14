@@ -1,0 +1,22 @@
+{
+	"name": "lamafab - Algebra & Lean 4",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"leanprover.lean4",
+				"Anthropic.claude-code"
+			],
+			"settings": {
+				"lean4.serverEnv": {
+					"PATH": "${containerEnv:PATH}"
+				}
+			}
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"remoteUser": "vscode"
+}
