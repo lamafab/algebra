@@ -44,19 +44,29 @@ example (a b : ℤ) : Ideal.Quotient.mk (I5) a = Ideal.Quotient.mk (I5) b ↔ a 
 
 -- Reduction: integers wrap mod 5
 example : π5 7 = π5 2 := by
-  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨1, by ring⟩
+  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨1, by ring⟩
+
 example : π5 12 = π5 2 := by
-  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨2, by ring⟩
+  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨2, by ring⟩
+
 example : π5 (-3) = π5 2 := by
-  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨-1, by ring⟩
+  rw [Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨-1, by ring⟩
 
 -- Arithmetic: + and · respect the projection
 example : π5 2 + π5 3 = π5 0 := by
-  rw [← map_add, Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨1, by ring⟩
+  rw [← map_add, Ideal.Quotient.eq, Ideal.mem_span_singleton];
+  exact ⟨1, by ring⟩
+
 example : π5 2 * π5 3 = π5 1 := by
-  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨1, by ring⟩
+  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨1, by ring⟩
+
 example : π5 4 * π5 4 = π5 1 := by
-  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨3, by ring⟩
+  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨3, by ring⟩
 
 -- Inverses (read off the multiplications above):
 --   [1]⁻¹ = [1],  [2]⁻¹ = [3],  [3]⁻¹ = [2],  [4]⁻¹ = [4]
@@ -76,11 +86,16 @@ private abbrev π6 : ℤ →+* (ℤ ⧸ I6) := Ideal.Quotient.mk _
 
 -- [2] · [3] = [6] = [0]   yet [2] and [3] are nonzero
 example : π6 2 * π6 3 = π6 0 := by
-  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]; exact ⟨1, by ring⟩
+  rw [← map_mul, Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  exact ⟨1, by ring⟩
+
 example : π6 2 ≠ π6 0 := by
-  rw [Ne, Ideal.Quotient.eq, Ideal.mem_span_singleton]; decide
+  rw [Ne, Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  decide
+
 example : π6 3 ≠ π6 0 := by
-  rw [Ne, Ideal.Quotient.eq, Ideal.mem_span_singleton]; decide
+  rw [Ne, Ideal.Quotient.eq, Ideal.mem_span_singleton]
+  decide
 
 --   ℤ/(5)   prime → maximal → field  (no zero divisors)
 --   ℤ/(6)   composite → just a ring  (zero divisors, no cancellation)
@@ -100,7 +115,7 @@ instance : Fact (Nat.Prime 3) := ⟨by decide⟩
 local notation "𝔽₃" => ZMod 3
 open Polynomial
 
--- p(X) = X² + 1 has no roots in 𝔽₃:  p(0)=1, p(1)=2, p(2)=2 — all nonzero.
+-- p(X) = X² + 1 has no roots in 𝔽₃: p(0)=1, p(1)=2, p(2)=2 — all nonzero.
 -- Mathlib turns "no roots" into irreducibility for degree ≤ 3 polynomials.
 
 noncomputable abbrev p3 : 𝔽₃[X] := X^2 + 1
@@ -176,7 +191,9 @@ noncomputable example :
 -- -1 — that's i. Every element is a + b·[X], which is a + b·i.
 
 example : ∀ x : ℝ, eval x ((X^2 + 1 : ℝ[X])) ≠ 0 := by
-  intro x; simp only [eval_add, eval_pow, eval_X, eval_one]; positivity
+  intro x
+  simp only [eval_add, eval_pow, eval_X, eval_one]
+  positivity
 
 -- (Mathlib defines `Complex` as primitive pairs (re, im) — we don't formalize
 -- the iso here. The recipe is the same as GF(9):
@@ -203,7 +220,9 @@ example : ∀ x : ℝ, eval x ((X^2 + 1 : ℝ[X])) ≠ 0 := by
 -- The cast hom ℤ → ZMod 5 kills (5), so it factors through ℤ ⧸ (5):
 example : (ℤ ⧸ I5) →+* ZMod 5 :=
   Ideal.Quotient.lift I5 (Int.castRingHom (ZMod 5)) (fun _ ha => by
-    rw [← RingHom.mem_ker, ZMod.ker_intCastRingHom]; exact ha)
+    rw [← RingHom.mem_ker, ZMod.ker_intCastRingHom]
+    exact ha
+  )
 
 -- The full picture:
 --   mk    : R   → R ⧸ I        (into the quotient)
