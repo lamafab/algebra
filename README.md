@@ -27,3 +27,5 @@ lake build
 ```
 
 The Mathlib revision is pinned in [lakefile.toml](lakefile.toml).
+
+![Structures](assets/structures.png)
