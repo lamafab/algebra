@@ -133,7 +133,7 @@ example : IsCyclic (ZMod 5)ˣ :=
 -- Theorem: ker φ is always an ideal. Conversely, every ideal is the kernel
 -- of some hom (the projection R → R/I from §6). So ideals = kernels.
 --
--- Classic example: reduction mod n.   φ : ℤ → ℤ/nℤ,   ker φ = nℤ.
+-- Classic example: reduction mod n. φ : ℤ → ℤ/nℤ, ker φ = nℤ.
 
 example : ℤ →+* ZMod 5 := Int.castRingHom (ZMod 5)
 example : (Int.castRingHom (ZMod 5)) 5 = 0 := by decide
@@ -145,9 +145,9 @@ example : Ideal ℤ := RingHom.ker (Int.castRingHom (ZMod 5))
 -- Section 6: Quotient rings — the construction
 -- ============================================================================
 --
--- Given an ideal I ⊆ R, form R/I by declaring  a ~ b  ⟺  a - b ∈ I.
+-- Given an ideal I ⊆ R, form R/I by declaring a ~ b ⟺ a - b ∈ I.
 -- The cosets [a] = a + I form a new ring, and I literally becomes the new
--- zero:  [a] = 0  ⟺  a ∈ I.
+-- zero: [a] = 0 ⟺ a ∈ I.
 --
 -- Examples:
 --   ℤ / (5)               = 𝔽₅     (integers mod 5)
@@ -210,7 +210,7 @@ noncomputable example : Field (ℤ ⧸ Ideal.span ({5} : Set ℤ)) :=
 
 -- Why "maximal ⟹ field": take nonzero [a] ∈ R/M, so a ∉ M. Then M + (a)
 -- strictly contains M, so by maximality M + (a) = R. Hence 1 = m + r·a, and
--- mod M this gives [r][a] = 1. So [a] is invertible. (Bézout in disguise.)
+-- mod M this gives [r][a] = 1. So [a] is invertible (Bézout in disguise.)
 
 -- ----------------------------------------------------------------------------
 -- The cousin: prime ideals
