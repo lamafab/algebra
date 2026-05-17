@@ -11,8 +11,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Cyclic](Algebra/Group/Cyclic.lean): cyclic groups and their connection to ℤ/nℤ
   - [Ring](Algebra/Ring/)
     - [Polynomials](Algebra/Ring/Polynomials.lean): polynomial rings, working over 𝔽₃[X]
-    - [Ideals](Algebra/Ring/Ideals.lean): ideals, kernels, and the prime/maximal hierarchy
-    - [Quotients](Algebra/Ring/Quotients.lean): quotient rings R⧸I, from ℤ/(5) to GF(9) and ℂ
+    - [Ideals](Algebra/Ring/Ideals.lean): ideals, kernels, quotients, and the prime/maximal hierarchy
   - [Field](Algebra/Field/)
     - [Galois](Algebra/Field/Galois.lean): finite fields GF(pⁿ) and their structure
 - [Crypto](Crypto/): cryptographic schemes built on the above
