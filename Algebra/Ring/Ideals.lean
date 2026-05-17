@@ -31,7 +31,7 @@ example : (3 : ZMod 5) - (8 : ZMod 5) = (0 : ZMod 5) := by decide
 --      a ∈ I, r ∈ R  ⟹  r * a ∈ I
 --
 -- The absorbing property is the key one — it's what distinguishes an ideal
--- from a subring. The canonical example: multiples of n in ℤ.
+-- from a subring.
 
 -- The set of multiples of 3 in ℤ, written (3) or 3ℤ:
 example : Ideal ℤ := Ideal.span {3}
@@ -77,7 +77,7 @@ example : (42 : ℤ) ∈ (⊤ : Ideal ℤ) := trivial
 example (I : Ideal ℤ) (h : (1 : ℤ) ∈ I) : I = ⊤ :=
   (Ideal.eq_top_iff_one I).mpr h
 
--- Algebraic mirror of density: quotient size.  |ℤ/(n)| = n.
+-- Algebraic mirror of density: quotient size |ℤ/(n)| = n.
 -- Sparser ideal → bigger quotient (more cosets). The construction is in §6.
 example : Fintype.card (ZMod 6) = 6 := by decide
 example : Fintype.card (ZMod 2) = 2 := by decide
@@ -115,24 +115,27 @@ example : Ideal.span ({1} : Set ℤ) = ⊤ := by simp
 -- Section 4: Units
 -- ============================================================================
 --
--- An element u ∈ R is a UNIT if it has a multiplicative inverse.
--- Equivalently: (u) = R, the principal ideal of u is the whole ring.
--- The set of units forms a group Rˣ under multiplication.
+-- An element u ∈ R is a UNIT if it has a multiplicative inverse u⁻¹ ∈ R.
 --
--- This generalizes "1 ∈ I ⟹ I = R" from §2: any unit in I forces I = R.
+-- Units detect when a principal ideal is the whole ring:
+--   u is a unit  ⟺  (u) = R  ⟺  1 ∈ (u)
+--
+-- More generally, an ideal I contains a unit ⟺ I = R. This is why
+-- ideals "see" non-units: they can be proper precisely because they
+-- avoid the units. (Recall §2: 1 ∈ I ⟹ I = R; units are how 1 sneaks in.)
+--
+-- The units of R form a group Rˣ under multiplication.
 
-example : IsUnit (1 : ℤ) := isUnit_one
+example : IsUnit (1 : ℤ)   := isUnit_one
 example : ¬ IsUnit (2 : ℤ) := by rw [Int.isUnit_iff]; decide
-example (x : ℚ) (hx : x ≠ 0) : IsUnit x := hx.isUnit
 
-example : Fintype.card (ZMod 5)ˣ = 4 := by decide   -- 𝔽₅ \ {0}
-example : Fintype.card (ZMod 6)ˣ = 2 := by decide   -- {1, 5}, coprime to 6
+-- ℤ has only two units: 1 and -1. Despite ℤ being infinite, ℤˣ ≅ ℤ/2ℤ.
+example : Fintype.card ℤˣ = 2 := by decide
 
--- The unit group of any FINITE FIELD is cyclic (deep theorem; see Cyclic.lean).
--- (ℤ/Nℤ)ˣ has order φ(N) — the group RSA lives in.
-example : IsCyclic (ZMod 5)ˣ :=
-  haveI : Fact (Nat.Prime 5) := ⟨by decide⟩
-  inferInstance
+-- (ℤ/Nℤ)ˣ consists of residues coprime to N, so |(ℤ/Nℤ)ˣ| = φ(N),
+-- Euler's totient function.
+example : Fintype.card (ZMod 6)ˣ = 2 := by decide -- φ(6) = 2 units: {1, 5}
+example : Fintype.card (ZMod 9)ˣ = 6 := by decide -- φ(9) = 6 units: {1,2,4,5,7,8}
 
 -- ============================================================================
 -- Section 5: Kernels
