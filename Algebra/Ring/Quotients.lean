@@ -161,7 +161,7 @@ example : Fintype.card GF9 = 9 := by
 --
 -- The bridge between ideals-as-kernels (Ideals.lean §5) and quotients:
 --
---   For any ring hom φ : R → S,    R / ker(φ)  ≅  image(φ)
+--   For any ring hom φ : R → S, R / ker(φ) ≅ image(φ)
 --
 -- Mathlib: `RingHom.quotientKerEquivOfSurjective` (surjective case),
 --          `RingHom.quotientKerEquivRange`        (general).
@@ -171,7 +171,7 @@ example : Function.Surjective (Int.castRingHom (ZMod 5)) := ZMod.intCast_surject
 example : RingHom.ker (Int.castRingHom (ZMod 5)) = Ideal.span ({(5 : ℤ)} : Set ℤ) :=
   ZMod.ker_intCastRingHom 5
 
--- First Iso then hands us  ℤ / (5)  ≅  ZMod 5  for free:
+-- First Iso then hands us ℤ / (5) ≅ ZMod 5 for free:
 noncomputable example :
     (ℤ ⧸ RingHom.ker (Int.castRingHom (ZMod 5))) ≃+* ZMod 5 :=
   RingHom.quotientKerEquivOfSurjective ZMod.intCast_surjective
