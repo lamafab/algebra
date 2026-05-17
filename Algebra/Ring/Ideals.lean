@@ -8,8 +8,18 @@ import Mathlib.Tactic
 -- ============================================================================
 --
 -- Ideals are to rings what normal subgroups are to groups:
---   - Normal subgroup N ◁ G  ⟹  quotient group  G/N
---   - Ideal         I ⊆ R   ⟹  quotient ring   R/I
+--   - Normal subgroup N ◁ G ⟹ quotient group G/N
+--   - Ideal           I ◁ R ⟹ quotient ring  R/I
+--
+-- The idea: take the ring R and declare that everything in I is now considered
+-- to be zero. Once we declare I = 0, two elements a, b ∈ R become "the same"
+-- whenever their difference lies in I:
+--   a ≃ b ⟺ a − b ∈ I
+
+-- For example: in ℤ/5ℤ, also written as ℤ/(5), every multiple of 5 is zero,
+-- so 3 and 8 represent the same element.
+example : (3 : ZMod 5) = (8 : ZMod 5) := by decide
+example : (3 : ZMod 5) - (8 : ZMod 5) = (0 : ZMod 5) := by decide
 
 -- ============================================================================
 -- Section 1: What is an ideal?
