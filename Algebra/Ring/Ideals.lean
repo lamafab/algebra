@@ -192,11 +192,12 @@ example : Ideal ℤ := RingHom.ker (Int.castRingHom (ZMod 5))
 --
 -- For an ideal I, the relation a ~ b ⟺ a - b ∈ I is automatically an
 -- equivalence relation (0 ∈ I, I closed under negation, I closed under +).
--- The cosets [a] = a + I form a new ring, and I literally becomes the new
+-- The classes take the concrete form [a] = a + I = { a + i : i ∈ I },
+-- called COSETS. They form a new ring, and I literally becomes the new
 -- zero: [a] = 0 ⟺ a ∈ I. (In particular, [0] is the class equal to I itself.)
 --
 -- Mathlib's API:
---   R ⧸ I                the quotient ring (\quot for ⧸)
+--   R ⧸ I                the quotient ring
 --   Ideal.Quotient.mk I  projection R → R ⧸ I,  a ↦ [a]
 --   Ideal.Quotient.eq    [a] = [b] ⟺ a - b ∈ I
 
