@@ -287,7 +287,7 @@ example : π6 3 ≠ π6 0 := by
 --   M is MAXIMAL if M ≠ R and no ideal squeezes strictly between M and R.
 --     Theorem: R/M is a field ⟺ M is maximal.
 --
---   P is PRIME if P ≠ R and  a·b ∈ P ⟹ a ∈ P or b ∈ P.
+--   P is PRIME if P ≠ R and a·b ∈ P ⟹ a ∈ P or b ∈ P.
 --     Theorem: R/P is an integral domain ⟺ P is prime.
 --
 -- ----------------------------------------------------------------------------
@@ -306,7 +306,7 @@ example : π6 3 ≠ π6 0 := by
 --       (8)    (27)
 --        ⋮     ⋮
 --
--- In ℤ:  (n) is maximal ⟺ n is prime.
+-- In ℤ: (n) is maximal ⟺ n is prime.
 --
 -- So ℤ has INFINITELY MANY maximal ideals — one for every prime — and each
 -- gives a different field quotient:
