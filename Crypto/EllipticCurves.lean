@@ -84,21 +84,24 @@ instance : E.IsElliptic := ⟨by decide⟩
 -- (QuadraticResidues.lean gives the general theory of which elements of
 -- 𝔽ₚ are squares — Euler's criterion and the Legendre symbol.)
 
--- x = 0:  rhs = 0³ + 0 + 1 = 1.  Squares: ±1 = {1, 4}.   ⟹ (0,1), (0,4)
+-- x = 0: rhs = 0³ + 0 + 1 = 1. Squares: ±1 = {1, 4}. ⟹ (0,1), (0,4)
 example : (1 : 𝔽₅) ^ 2 = (0 : 𝔽₅) ^ 3 + 0 + 1 := by decide
 example : (4 : 𝔽₅) ^ 2 = (0 : 𝔽₅) ^ 3 + 0 + 1 := by decide
 
--- x = 1:  rhs = 1 + 1 + 1 = 3.   Not a square — no points.
+-- x = 1: rhs = 1 + 1 + 1 = 3. Not a square — no points (no solution).
 example : ¬ ∃ y : 𝔽₅, y ^ 2 = (1 : 𝔽₅) ^ 3 + 1 + 1 := by decide
 
--- x = 2:  rhs = 8 + 2 + 1 = 11 ≡ 1.  ⟹ (2,1), (2,4)
+-- x = 2: rhs = 8 + 2 + 1 = 11 ≡ 1. ⟹ (2,1), (2,4)
 example : (1 : 𝔽₅) ^ 2 = (2 : 𝔽₅) ^ 3 + 2 + 1 := by decide
+example : (4 : 𝔽₅) ^ 2 = (2 : 𝔽₅) ^ 3 + 2 + 1 := by decide
 
--- x = 3:  rhs = 27 + 3 + 1 = 31 ≡ 1.  ⟹ (3,1), (3,4)
+-- x = 3: rhs = 27 + 3 + 1 = 31 ≡ 1. ⟹ (3,1), (3,4)
 example : (1 : 𝔽₅) ^ 2 = (3 : 𝔽₅) ^ 3 + 3 + 1 := by decide
+example : (4 : 𝔽₅) ^ 2 = (3 : 𝔽₅) ^ 3 + 3 + 1 := by decide
 
--- x = 4:  rhs = 64 + 4 + 1 = 69 ≡ 4.  ⟹ (4,2), (4,3)
+-- x = 4: rhs = 64 + 4 + 1 = 69 ≡ 4. ⟹ (4,2), (4,3)
 example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
+example : (3 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 
 -- Total: 8 affine points, plus the point at infinity O (introduced in §4):
 --
@@ -127,11 +130,11 @@ example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 --    ──────────────────╲──⋮───────────────────── x-axis
 --                       ╲ ⋮(reflect)
 --                        \⋮
---                         * -R = third intersection
+--                         * -R' = third intersection (on curve)
 --
 -- Three special cases:
 --   (a) Q = P: the "chord" degenerates to the TANGENT at P. Same recipe,
---       same picture — used to compute 2P (DOUBLING).
+--       same picture — used to compute 2P (DOUBLING, §5).
 --   (b) Q = -P: the line through P and -P is vertical, hits no third affine
 --       point, so we declare R = O, the POINT AT INFINITY. This makes O the
 --       group identity by fiat.
@@ -139,8 +142,6 @@ example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 --       by zero; geometrically the tangent is vertical.)
 --       TODO: Remove this point?
 --   (c) Negation: -(x, y) = (x, -y) — reflection across the x-axis.
---
--- TODO: add note about x₁ = x₂ case that forces P = Q.
 --
 -- ----------------------------------------------------------------------------
 -- The formulas
