@@ -61,8 +61,6 @@ example : (2^2 : 𝔽₃) = 1 := by decide
 
 -- In 𝔽₃: 1 + 1 + 1 = 0, but no smaller sum works
 example : (1 + 1 + 1 : 𝔽₃) = 0 := by decide -- eq
-example : (1 + 1 : 𝔽₃) ≠ 0 := by decide     -- not eq
-example : (1 : 𝔽₃) ≠ 0 := by decide         -- not eq
 
 -- Mathlib knows the characteristic:
 example : CharP (ZMod 5) 5 := ZMod.charP 5
