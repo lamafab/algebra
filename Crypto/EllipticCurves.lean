@@ -118,17 +118,16 @@ example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 -- with the curve at a third point R', then REFLECT across the x-axis to get
 -- P + Q := R = -R'.
 --
---            *  P
---           ╱ ╲
---          ╱   ╲
---      ───────────────  E
---        ╱       ╲
---      *Q         ╲
---                  * R' = third intersection
---                  |
---                  | reflect across x-axis
---                  ↓
---                  * R = P + Q
+--              P *
+--                 ╲
+--                  ╲
+--                   ╲     * R = P + Q   (below x-axis if R' above)
+--                    * Q  ⋮
+--                     ╲   ⋮
+--    ──────────────────╲──⋮───────────────────── x-axis
+--                       ╲ ⋮(reflect)
+--                        \⋮
+--                         * -R = third intersection
 --
 -- Three special cases:
 --   (a) Q = P: the "chord" degenerates to the TANGENT at P. Same recipe,
@@ -136,7 +135,12 @@ example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 --   (b) Q = -P: the line through P and -P is vertical, hits no third affine
 --       point, so we declare R = O, the POINT AT INFINITY. This makes O the
 --       group identity by fiat.
+--   (b') if y₁ = 0 then P = -P, so 2P = O. (Tangent formula would divide
+--       by zero; geometrically the tangent is vertical.)
+--       TODO: Remove this point?
 --   (c) Negation: -(x, y) = (x, -y) — reflection across the x-axis.
+--
+-- TODO: add note about x₁ = x₂ case that forces P = Q.
 --
 -- ----------------------------------------------------------------------------
 -- The formulas
@@ -152,6 +156,8 @@ example : (2 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 --
 -- Then P + Q = (x₃, y₃). Both branches DIVIDE — which is why we need a
 -- field. (Ideals.lean §9: 𝔽ₚ is a field exactly because (p) is maximal.)
+--
+-- TODO: mention Edwards and Montgomery curves as alternatives.
 
 -- ============================================================================
 -- Section 5: A worked addition in E(𝔽₅)
