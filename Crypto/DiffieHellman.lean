@@ -9,7 +9,9 @@ import Mathlib.Tactic
 -- Setup: cyclic group G with generator g.
 -- Protocol: Alice sends g^a, Bob sends g^b, both compute g^(a·b).
 --
--- Correctness: (g^b)^a = g^(b·a) = g^(a·b) = (g^a)^b.
+-- Correctness:
+--   (g^b)^a = g^(b·a) = g^(a·b) = (g^a)^b.
+--
 -- Same identity as RSA's (m^e)^d, used differently:  RSA recovers a
 -- message; DH agrees on a secret. Free algebra — `pow_mul` + ℕ-commutativity.
 
