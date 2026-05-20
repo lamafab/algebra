@@ -251,7 +251,7 @@ example : (ℤ ⧸ I5) ≃+* ZMod 5 := Int.quotientSpanNatEquivZMod 5
 -- Section 8: When the quotient ISN'T a field — ℤ/(6)
 -- ============================================================================
 --
--- (6) ⊆ ℤ is not maximal — and not even prime as an ideal: 2 · 3 = 6 ∈ (6)
+-- (6) ⊆ ℤ is not maximal (§9) — and not even prime as an ideal: 2 · 3 = 6 ∈ (6)
 -- but neither 2 nor 3 is. So ℤ/(6) is just a ring, with zero divisors:
 
 private abbrev I6 : Ideal ℤ := Ideal.span {(6 : ℤ)}
