@@ -14,6 +14,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Ideals](Algebra/Ring/Ideals.lean): ideals, kernels, quotients, and the prime/maximal hierarchy
   - [Field](Algebra/Field/)
     - [Galois](Algebra/Field/Galois.lean): finite fields GF(pⁿ) and their structure
+    - [QuadraticResidues](Algebra/Field/QuadraticResidues.lean): squares in 𝔽ₚ, Euler's criterion, and the Legendre symbol
 - [Crypto](Crypto/): cryptographic schemes built on the above
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
