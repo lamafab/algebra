@@ -156,3 +156,181 @@ example : xor  exampleH {0, 1} {1, 2} = ({0, 2}  : Finset (Fin 4)) := by decide
 example : xnor exampleH {0, 1} {1, 2} = ({1}     : Finset (Fin 4)) := by decide
 
 end Hypergraph.Gate
+
+-- TODO: Create file on "modular arithmetic over hypergraphs in HFHE"
+
+-- ## modular arithmetic operations
+
+-- addition:
+--   (a + b) mod n
+-- where a and b are integers, and n is the modulus.
+
+
+-- remainder calculation:
+--   x mod n
+-- where x is an integer, and n is the modulus.
+
+-- ## homomorphic addition of encrypted numbers
+
+-- encrypted addition:
+--   (c1, c2, n) = (c1 * c2) mod (n * n)
+-- where c1 and c2 are encrypted numbers, and n is the modulus.
+
+-- ## encryption and decryption operations
+
+-- encryption:
+--   (m, (n, g)) = (g^m * r^n) mod (n * n)
+-- where m is the message, (n, g) is the public key, and r is a
+-- random value.
+
+-- decryption:
+--   (c, (n, _), (λ, µ)) = ((c^{λ} - 1)/n) * µ mod n
+-- where c is the encrypted message, (n, _) is the public key,
+-- and (λ, μ) is the private key.
+
+-- ## type analysis for hyperedge operation (OCaml)
+
+-- > this is useful for ensuring the correctness of operations
+-- > on hypergraphs and preventing type-related errors in the code.
+
+-- determine the type of a hyperedge operation, which can be int,
+-- uint or func based on the analysis performed.
+
+/-
+```
+open Octra.Z
+
+module Variable = struct
+  type t = string
+  module Map = struct
+    include Map.Make(String)
+    let of_list bindings =
+        List.fold_left (fun acc (k,v) -> add k v acc) empty bindings
+  end
+end
+
+module TypeExpr = struct
+  type t = IntType | UnitType | ArrType of t * t
+
+  let rec eq t1 t2 =
+    match t1, t2 with
+    | UnitType, UnitType -> true
+    | IntType, IntType -> true
+    | ArrType(l1, r1), ArrType(l2, r2) -> eq l1 l2 && eq r1 r2
+    | _ -> false
+end
+
+module Expression = struct
+  type t =
+    | VarExpr of Variable.t
+    | AbsExpr of Variable.t * t
+    | AppExpr of t * t
+    | AnnExpr of t * TypeExpr.t
+    | IntExpr of int
+    | UnitExpr
+
+  let rec synthesize expression ~env =
+    match expression with
+    | UnitExpr -> Some(TypeExpr.UnitType)
+    | IntExpr _ -> Some(TypeExpr.IntType)
+    | VarExpr var -> Variable.Map.find_opt var env
+    | AnnExpr(e, ty) ->
+        let env' = Variable.Map.empty in
+        check e ~env:env' ~against:ty
+    | AppExpr(e1, e2) ->
+        (match synthesize e1 ~env with
+        | Some TypeExpr.ArrType(a, b) ->
+            (match check e2 ~env ~against:a with
+            | Some _ -> Some b
+            | _ -> None)
+        | _ -> None)
+    | AbsExpr(x, e) ->
+        let env' = Variable.Map.add x (TypeExpr.UnitType) env in
+        (match synthesize e ~env:env' with
+        | Some ty -> Some (TypeExpr.ArrType(TypeExpr.UnitType, ty))
+        | _  -> None)
+
+  and check expression ~env ~against =
+    match expression, against with
+    | e, ty ->
+        (match synthesize e ~env with
+        | Some ty' when TypeExpr.eq ty' against -> Some ty
+        | _ -> None)
+end
+
+type vertex = int
+type hyperedge = { vertices: vertex list; weight: Z.t }
+type hypergraph = hyperedge list
+
+let encrypt m (n, g) =
+  let lower = Z.one in
+  let upper = Z.pred n in
+  let diff = Z.sub upper lower in
+  let r = Z.add lower (Z.rem (Z.of_int (Random.State.bits (Random.get_state ()))) diff) in
+  let gm = Z.powm g m (Z.mul n n) in
+  let rn = Z.powm r n (Z.mul n n) in
+  Z.rem (Z.mul gm rn) (Z.mul n n)
+
+let decrypt c (n, _) (lambda, mu) =
+  let cl = Z.powm c lambda (Z.mul n n) in
+  let l x = Z.div (Z.sub x Z.one) n in
+  Z.rem (Z.mul (l cl) mu) n
+
+let encrypted_add c1 c2 n =
+  Z.rem (Z.mul c1 c2) (Z.mul n n)
+
+let generate_keys () =
+  let p = Z.of_int 61 in
+  let q = Z.of_int 53 in
+  let n = Z.mul p q in
+  let lambda = Z.lcm (Z.pred p) (Z.pred q) in
+  let g = Z.succ n in
+  let mu = Z.invert lambda n in
+  ((n, g), (lambda, mu))
+
+let create_hyperedge m public_key =
+  [encrypt m public_key]
+
+let add_hyperedges he1 he2 public_key =
+  if List.length he1 <> 1 || List.length he2 <> 1 then
+    failwith "Hyperedges must contain only one encrypted number each"
+  else
+    let c1 = List.hd he1 in
+    let c2 = List.hd he2 in
+    let n = fst public_key in
+    [encrypted_add c1 c2 n]
+
+let analyze_hypergraph_operation a_hyperedge b_hyperedge =
+  let open Expression in
+  let env = Variable.Map.of_list [("encrypted_add", TypeExpr.ArrType(TypeExpr.IntType, TypeExpr.ArrType(TypeExpr.IntType, TypeExpr.IntType)))] in
+  let add_expr = VarExpr "encrypted_add" in
+  let a_expr = IntExpr 0 in
+  let b_expr = IntExpr 1 in
+  let operation_expr = AppExpr(AppExpr(add_expr, a_expr), b_expr) in
+  match synthesize operation_expr ~env with
+  | Some ty -> Printf.printf "Type of hyperedge operation: %s\n" (match ty with
+                                                                  | TypeExpr.IntType -> "Integer"
+                                                                  | TypeExpr.UnitType -> "Unit"
+                                                                  | TypeExpr.ArrType(_, _) -> "Function")
+  | None -> Printf.printf "Type of hyperedge operation could not be determined\n"
+
+let () =
+  Random.self_init ();
+  let public_key, private_key = generate_keys () in
+  let a = Z.of_int 111 in
+  let b = Z.of_int 222 in
+
+  let a_hyperedge = create_hyperedge a public_key in
+  let b_hyperedge = create_hyperedge b public_key in
+
+  let sum_hyperedge = add_hyperedges a_hyperedge b_hyperedge public_key in
+  let decrypted_sum_hyperedge = List.map (fun c -> decrypt c public_key private_key) sum_hyperedge in
+
+  Printf.printf "Encrypted Hyperedge A: %s\n" (Z.to_string (List.hd a_hyperedge));
+  Printf.printf "Encrypted Hyperedge B: %s\n" (Z.to_string (List.hd b_hyperedge));
+  Printf.printf "Encrypted Sum Hyperedge: %s\n" (Z.to_string (List.hd sum_hyperedge));
+  Printf.printf "Decrypted Sum Hyperedge: %s\n" (Z.to_string (List.hd decrypted_sum_hyperedge));
+
+  analyze_hypergraph_operation [List.hd a_hyperedge] [List.hd b_hyperedge];
+```
+-/
