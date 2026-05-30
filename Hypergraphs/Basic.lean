@@ -65,7 +65,35 @@ def Incident (v : V) (e : Finset V) : Prop := e ∈ H.edges ∧ v ∈ e
 def degree (v : V) : ℕ := (H.edges.filter (fun e => v ∈ e)).card
 
 -- ============================================================================
--- Section 4: Adjacency and neighbourhoods
+-- Section 4: Active and inactive vertices
+-- ============================================================================
+--
+-- Read a hyperedge `e` as the set of vertices it *activates*: vertex `v` is
+-- ACTIVE in `e` when `v ∈ e`. Relative to `H`, the INACTIVE vertices are the
+-- vertices of `H` that `e` omits — the complement `H.vertices \ e`. This
+-- inactive set is the bar `\overline{·}` used by the gates in LogicGates.lean.
+-- (Activity needs no `H`; inactivity does, since "not in `e`" is only
+-- meaningful relative to a fixed vertex set.)
+
+-- `v` is *active* in `e` when it belongs to `e`.
+def Active (e : Finset V) (v : V) : Prop := v ∈ e
+
+-- `v` is *inactive* in `e` (relative to `H`): a vertex of `H` not in `e`.
+def Inactive (e : Finset V) (v : V) : Prop := v ∈ H.vertices ∧ v ∉ e
+
+-- The hyperedge of vertices of `H` inactive in `e`: the complement H.vertices \ e.
+def inactive (e : Finset V) : Finset V := H.vertices \ e
+
+@[simp] theorem mem_inactive {e : Finset V} {v : V} :
+    v ∈ H.inactive e ↔ H.Inactive e v := by
+  simp only [inactive, Inactive, Finset.mem_sdiff]
+
+-- The inactive set is always a hyperedge of H (a subset of its vertices).
+theorem inactive_subset (e : Finset V) : H.inactive e ⊆ H.vertices :=
+  Finset.sdiff_subset
+
+-- ============================================================================
+-- Section 5: Adjacency and neighbourhoods
 -- ============================================================================
 
 -- Two vertices are *adjacent* when some single edge contains them both.
@@ -78,7 +106,7 @@ def neighbors (v : V) : Finset V :=
   (H.edges.filter (fun e => v ∈ e)).biUnion id \ {v}
 
 -- ============================================================================
--- Section 5: Rank and uniformity
+-- Section 6: Rank and uniformity
 -- ============================================================================
 --
 -- A graph is the case "every edge has size 2". The natural generalisation is
@@ -94,7 +122,7 @@ def rank : ℕ := H.edges.sup Finset.card
 abbrev IsUniform (k : ℕ) : Prop := ∀ e ∈ H.edges, e.card = k
 
 -- ============================================================================
--- Section 6: An operation — adding an edge
+-- Section 7: An operation — adding an edge
 -- ============================================================================
 --
 -- Operations on hypergraphs must respect the defining invariant E ⊆ 𝒫(V).
@@ -113,7 +141,7 @@ def addEdge (e : Finset V) (he : e ⊆ H.vertices) : Hypergraph V where
     · exact H.mem_vertices f h
 
 -- ============================================================================
--- Section 7: A worked example
+-- Section 8: A worked example
 -- ============================================================================
 --
 -- Take V = {0, 1, 2, 3} with three hyperedges:
@@ -154,7 +182,7 @@ example : example1.rank = 3 := by decide
 example : ¬ example1.IsUniform 2 := by decide
 
 -- ============================================================================
--- Section 8: The dual (in words)
+-- Section 9: The dual (in words)
 -- ============================================================================
 --
 -- Every hypergraph H = (V, E) has a *dual* H* obtained by swapping the roles
