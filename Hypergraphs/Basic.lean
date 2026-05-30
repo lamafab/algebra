@@ -12,7 +12,7 @@ import Mathlib.Tactic
 --
 -- Formally a (finite) hypergraph is a pair
 --
---     H = (V, E)        with   E ⊆ 𝒫(V)
+--     H = (V, E)    with   E ⊆ 𝒫(V)
 --
 -- where V is a finite set of *vertices* and E is a family of *hyperedges*,
 -- each hyperedge being a subset of V. An ordinary graph is exactly the
@@ -25,12 +25,13 @@ import Mathlib.Tactic
 -- Section 1: The structure
 -- ============================================================================
 
-/-- A finite hypergraph on a vertex type `V`: a finite set of vertices
-together with a finite family of hyperedges, each contained in the vertex
-set. The `mem_vertices` field records the defining condition `E ⊆ 𝒫(V)`. -/
+-- A finite hypergraph on a vertex type `V`: a finite set of vertices
+-- together with a finite family of hyperedges, each contained in the vertex
+-- set.
 structure Hypergraph (V : Type*) [DecidableEq V] where
   vertices     : Finset V
   edges        : Finset (Finset V)
+  -- Define the condition `E ⊆ 𝒫(V)`.
   mem_vertices : ∀ e ∈ edges, e ⊆ vertices
 
 namespace Hypergraph
@@ -41,10 +42,10 @@ variable {V : Type*} [DecidableEq V] (H : Hypergraph V)
 -- Section 2: Basic measures
 -- ============================================================================
 
-/-- The *order* of a hypergraph is its number of vertices, |V|. -/
+-- The *order* of a hypergraph is its number of vertices, |V|.
 def order : ℕ := H.vertices.card
 
-/-- The *size* of a hypergraph is its number of hyperedges, |E|. -/
+-- The *size* of a hypergraph is its number of hyperedges, |E|.
 def size : ℕ := H.edges.card
 
 -- ============================================================================
@@ -55,23 +56,24 @@ def size : ℕ := H.edges.card
 -- content of a hypergraph is captured by this incidence relation, which is
 -- often written as a 0/1 *incidence matrix* M with rows indexed by vertices,
 -- columns by edges, and M[v, e] = 1 ⇔ v ∈ e.
+-- TODO: Clarify this — or remove it.
 
-/-- `v` is incident to `e` when `e` is an edge of `H` containing `v`. -/
+-- `v` is *incident* to `e` when `e` is an edge of `H` containing `v`.
 def Incident (v : V) (e : Finset V) : Prop := e ∈ H.edges ∧ v ∈ e
 
-/-- The *degree* of a vertex is the number of edges incident to it. -/
+-- The *degree* of a vertex is the number of edges incident to it.
 def degree (v : V) : ℕ := (H.edges.filter (fun e => v ∈ e)).card
 
 -- ============================================================================
 -- Section 4: Adjacency and neighbourhoods
 -- ============================================================================
 
-/-- Two vertices are *adjacent* when some single edge contains them both.
-(`abbrev`, so it stays reducible and `decide` can see the underlying `∃`.) -/
+-- Two vertices are *adjacent* when some single edge contains them both.
+-- (`abbrev`, so it stays reducible and `decide` can see the underlying `∃`.)
 abbrev Adjacent (u v : V) : Prop := ∃ e ∈ H.edges, u ∈ e ∧ v ∈ e
 
-/-- The *neighbourhood* of `v`: all vertices sharing an edge with `v`,
-excluding `v` itself. -/
+-- The *neighbourhood* of `v`: all vertices sharing an edge with `v`,
+-- excluding `v` itself.
 def neighbors (v : V) : Finset V :=
   (H.edges.filter (fun e => v ∈ e)).biUnion id \ {v}
 
@@ -83,12 +85,12 @@ def neighbors (v : V) : Finset V :=
 -- a *k-uniform* hypergraph, in which every edge has size k. The *rank* is the
 -- size of the largest edge.
 
-/-- The *rank* of a hypergraph: the size of its largest edge (0 if empty). -/
+-- The *rank* of a hypergraph: the size of its largest edge (0 if empty).
 def rank : ℕ := H.edges.sup Finset.card
 
-/-- `H` is *k-uniform* when every edge has exactly `k` vertices.
-A `2`-uniform hypergraph is precisely an ordinary (loopless) graph.
-(`abbrev`, so it stays reducible and `decide` can see the underlying `∀`.) -/
+-- `H` is *k-uniform* when every edge has exactly `k` vertices. A `2`-uniform
+-- hypergraph is precisely an ordinary (loopless) graph. (`abbrev`, so it stays
+-- reducible and `decide` can see the underlying `∀`.)
 abbrev IsUniform (k : ℕ) : Prop := ∀ e ∈ H.edges, e.card = k
 
 -- ============================================================================
@@ -100,7 +102,7 @@ abbrev IsUniform (k : ℕ) : Prop := ∀ e ∈ H.edges, e.card = k
 -- set; the proof obligation is discharged once, here, rather than at every
 -- use site.
 
-/-- Insert a new hyperedge `e` (which must lie inside the vertex set). -/
+-- Insert a new hyperedge `e` (which must lie inside the vertex set).
 def addEdge (e : Finset V) (he : e ⊆ H.vertices) : Hypergraph V where
   vertices     := H.vertices
   edges        := insert e H.edges
