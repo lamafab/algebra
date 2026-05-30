@@ -23,31 +23,31 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 -- in which the bar \overline{·} is the complement within V — here `·ᶜ`.
 
 -- AND — the intersection of two hyperedges, active only where BOTH are active.
--- Octra:  e_{and}(H) = e₁(H) ∩ e₂(H)
+--     e_{and}(H) = e₁(H) ∩ e₂(H)
 def and  (e₁ e₂ : Finset V) : Finset V := e₁ ∩ e₂
 
 -- OR — the union of two hyperedges, active where AT LEAST ONE is active.
--- Octra:  e_{or}(H) = e₁(H) ∪ e₂(H)
+--     e_{or}(H) = e₁(H) ∪ e₂(H)
 def or   (e₁ e₂ : Finset V) : Finset V := e₁ ∪ e₂
 
 -- NOT — inverting a hyperedge: active exactly where the input is INACTIVE.
--- Octra:  e_{not}(H) = \overline{e(H)}
+--     e_{not}(H) = \overline{e(H)}
 def not  (e : Finset V)      : Finset V := eᶜ
 
 -- NAND — AND followed by NOT: active unless both inputs are active.
--- Octra:  e_{nand}(H) = \overline{e₁(H) ∩ e₂(H)}
+--     e_{nand}(H) = \overline{e₁(H) ∩ e₂(H)}
 def nand (e₁ e₂ : Finset V) : Finset V := (e₁ ∩ e₂)ᶜ
 
 -- NOR — OR followed by NOT: active only where neither input is active.
--- Octra:  e_{nor}(H) = \overline{e₁(H) ∪ e₂(H)}
+--     e_{nor}(H) = \overline{e₁(H) ∪ e₂(H)}
 def nor  (e₁ e₂ : Finset V) : Finset V := (e₁ ∪ e₂)ᶜ
 
 -- XOR — active where EXACTLY ONE input is active.
--- Octra:  e_{xor}(H) = (e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}
+--     e_{xor}(H) = (e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}
 def xor  (e₁ e₂ : Finset V) : Finset V := (e₁ ∪ e₂) ∩ (e₁ ∩ e₂)ᶜ
 
 -- XNOR — XOR followed by NOT: active where the two inputs AGREE.
--- Octra:  e_{xnor}(H) = \overline{(e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}}
+--     e_{xnor}(H) = \overline{(e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}}
 def xnor (e₁ e₂ : Finset V) : Finset V := ((e₁ ∪ e₂) ∩ (e₁ ∩ e₂)ᶜ)ᶜ
 
 -- ============================================================================
