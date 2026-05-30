@@ -21,6 +21,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
 - [Hypergraphs](Hypergraphs/): combinatorial structures generalising graphs
   - [Basic](Hypergraphs/Basic.lean): hypergraphs as (V, E), with incidence, degree, adjacency, rank, and uniformity
+  - [LogicGates](Hypergraphs/LogicGates.lean): logic gates on hyperedges as Boolean-algebra operations (AND, OR, NOT, NAND, NOR, XOR, XNOR)
 
 ## Build
 
