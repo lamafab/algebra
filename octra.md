@@ -54,27 +54,28 @@ Hypergraphs/
   Basic.lean          ✓ structure, incidence relation
   LogicGates.lean     ✓ boolean gates
   Random.lean         ▢ random k-uniform model: edge prob, H(n,m,k)
-  Incidence.lean      ◐ incidence matrix M ∈ 𝔽_q^{m×n}; bridge to codes
+  Incidence.lean      ✓ incidence matrix M ∈ 𝔽_q^{m×n}; bridge to codes (keystone #1)
   Threshold.lean      ▢ threshold / fractional-chromatic STATEMENTS (MIPT)
 
 Coding/                NEW — coding theory (the hardness substrate)
   LinearCode.lean     ◐ parity-check matrix, syndrome σ = H·x, Hamming weight
-  Syndrome.lean       ▢ syndrome map from a hypergraph; syndrome-decoding problem
-  LPN.lean            ▢ Learning Parity with Noise: distribution + hardness AXIOM
+  Syndrome.lean       ◐ syndrome map from a hypergraph; syndrome-decoding problem
+  LPN.lean            ◐ Learning Parity with Noise: distribution + hardness AXIOM
 
 Crypto/
   Rsa.lean            ✓ additive warmup / Euler discipline
   Paillier.lean       ✓ additive HE warmup (algebra proven, kernel deferred)
-  Field127.lean       ◐ 𝔽_p, p = 2¹²⁷−1 (Mersenne) field + lemmas
-  HFHE/                NEW — the scheme
-    Defs.lean         ▢ keygen / encrypt / decrypt over the syndrome structure
-    Noise.lean        ▢ noise measure + the "budget" invariant
-    Correctness.lean  ▢ Dec(Enc m) = m  under a noise bound
-    Homomorphism.lean ▢ ct_add / ct_sub / ct_mul correctness
+  Field127.lean       ✓ 𝔽_p, p = 2¹²⁷−1 (Mersenne), prime via Lucas–Lehmer
+  HFHE/                NEW — the scheme  (SPEC.md = ground truth, from the C++)
+    SPEC.md           ✓ extracted construction (Phase 0 done)
+    Defs.lean         ◐ Cipher DAG, decrypt (abstract mask R), encrypt1, cAdd
+    Noise.lean        ▢ edge-count / σ-density growth (NOT a correctness budget)
+    Correctness.lean  ✓ decrypt_correct (EXACT, keystone #2) + encrypt1_correct
+    Homomorphism.lean ▢ ct_add / ct_sub / ct_mul correctness (exact)
     Security.lean     ▢ IND-CPA ⟸ LPN  (a reduction, conditional theorem)
   PVAC/                NEW — verifiability (last)
-    Statement.lean    ▢ what "y = f(cts)" claims; soundness/completeness specs
-    Verify.lean       ▢ the verifier + its correctness
+    Statement.lean    ▢ what "y = f(cts)" claims; binding/soundness specs
+    Verify.lean       ▢ the verifier (recompute SHA-256 commit) + its correctness
 ```
 
 ## Phases
@@ -130,18 +131,27 @@ soundness/completeness). Most spec-dependent; do once the scheme is solid.
 
 ## The five keystone theorems (the joints)
 
-| # | Theorem | Joins | Target |
+| # | Theorem | Joins | Status |
 |---|---------|-------|--------|
-| 1 | `incidence` is a parity-check matrix (syndrome linear) | Hypergraph → Coding | **proven** |
-| 2 | `decrypt (encrypt m) = m` (EXACT, no β) | 𝔽_p + mask R → Scheme | **proven** (algebra) |
-| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | **proven** (exact) |
-| 4 | `LPN_hard → IND_CPA` | LPN → Scheme | **conditional** (reduction) |
-| 5 | random `H` at MIPT params ⟹ decoding hard | Threshold → LPN | **axiom/cited** |
+| 1 | `incidence` is a parity-check matrix (syndrome linear) | Hypergraph → Coding | ✓ **proven** (`Hypergraphs/Incidence.lean`) |
+| 2 | `decrypt (encrypt m) = m` (EXACT, no β) | 𝔽_p + mask R → Scheme | ✓ **proven** (`Crypto/HFHE/Correctness.lean`) |
+| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | ▢ next — provable (exact); add easy first |
+| 4 | `LPN_hard → IND_CPA` | LPN → Scheme | ▢ scaffold (a reduction) |
+| 5 | random `H` at MIPT params ⟹ decoding hard | Threshold → LPN | ▢ axiom/cited (MIPT) |
 
 **Discipline:** correctness ⇒ fully proved; hardness ⇒ axiomatized + cited;
 security ⇒ a reduction to the axioms. This is how cryptography is formalized.
 
-## Recommended first three steps
-1. Phase 0: write `Crypto/HFHE/SPEC.md` from the C++.
-2. Phase 1: flesh `Hypergraphs/Incidence.lean` (keystone #1) — small, builds on `Basic`.
-3. Phase 1a: flesh `Crypto/Field127.lean` — independent, unblocks Phase-3 arithmetic.
+## Progress & next steps
+
+**Done:** Phase 0 (`SPEC.md` from the C++) · keystone #1 (`Incidence`) · `Field127`
+(prime via Lucas–Lehmer) · keystone #2 (`Correctness.decrypt_correct`, exact, plus
+`encrypt1_correct` unconditional) · `Coding/*` semi-fleshed.
+
+**Next (any order):**
+1. **Keystone #3, additive half:** `Homomorphism.lean` — `decrypt (cAdd a b) =
+   decrypt a + decrypt b` (a `List.sum_append` proof, closeable now).
+2. **Discharge the `decrypt_correct` kernel:** model `synth` (K=8 signal split
+   `Σ sign·coef·g^idx = v − Σδ` + noise tuples) to prove the `kernel` hypothesis,
+   making correctness unconditional for the *real* encryption.
+3. **`ct_mul`:** the `(a0+gA)(b0+gB)` expansion with `R(prod a b) = R a · R b`.

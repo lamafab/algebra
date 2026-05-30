@@ -158,14 +158,28 @@ what's deferred, or a named `axiom`. Don't fake a proof.
 
 ## The Octra HFHE work specifically
 
-- Read [octra.md](../../../octra.md) and [Crypto/HFHE/SPEC.md](../../../Crypto/HFHE/SPEC.md).
-- Status: `Hypergraphs/Incidence.lean` (keystone #1) and `Crypto/Field127.lean`
-  are **proven**; `Coding/*` are semi-fleshed; `Crypto/HFHE/*` and `Crypto/PVAC/*`
-  are **typed-out comment scaffolds awaiting the spec** — do NOT invent the
-  construction; fill `SPEC.md` from the C++ PoC first, then write `HFHE/Defs.lean`.
-- `Paillier.lean` is the **discipline reference** for HFHE correctness: model the
-  scheme deterministically (noise/randomness as explicit args), prove correctness
-  as algebra under a noise bound, defer the number-theoretic kernel.
+- Read [octra.md](../../../octra.md) (roadmap) and
+  [Crypto/HFHE/SPEC.md](../../../Crypto/HFHE/SPEC.md) (**ground truth**, extracted
+  from the C++). The reference C++ is cloned at `pvac_hfhe_cpp/` (headers in
+  `include/pvac/`; MIPT papers in `refs/`).
+- **Key fact that shapes everything:** decryption is an **EXACT identity over 𝔽_p**,
+  not a noisy/rounding FHE. `decrypt c = c0 + Σ ±w·g^idx·R(layer)⁻¹`; the "noise"
+  cancels identically and LPN only hides the secret mask `R`. So there is **no
+  decryption noise budget** — correctness theorems are plain `=` in 𝔽, and
+  `Noise.lean` tracks evaluation growth (edge-count/σ-density), not correctness.
+- Status (keystones in octra.md):
+  - ✓ #1 `Hypergraphs/Incidence.lean`; ✓ `Crypto/Field127.lean` (Lucas–Lehmer).
+  - ✓ #2 `Crypto/HFHE/Defs.lean` (Cipher DAG, abstract mask `R`, `decrypt`,
+    `encrypt1`) + `Correctness.lean` (`decrypt_strip`, `decrypt_correct` exact,
+    `encrypt1_correct` unconditional).
+  - ◐ `Coding/*` semi-fleshed; ▢ `Homomorphism`/`Security`/`PVAC` scaffolds.
+- `Paillier.lean` is the **discipline reference**: model the scheme
+  deterministically (noise/mask as explicit args), prove correctness as algebra,
+  defer hardness to an axiom/kernel. HFHE follows it but is *easier* — exact `=`
+  instead of `Int.ModEq`. The HFHE `kernel` hypothesis (edges telescope to the
+  message) is the deferred analogue of Paillier's number-theoretic kernel.
+- Do NOT invent scheme internals — if something isn't in SPEC.md, read the C++ in
+  `pvac_hfhe_cpp/` (or extend SPEC.md) before formalizing it.
 
 ## Scope / safety
 
