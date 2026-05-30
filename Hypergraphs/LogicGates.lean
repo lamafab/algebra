@@ -133,6 +133,15 @@ theorem mem_xnor (e₁ e₂ : Finset V) (v : V) :
 -- Complements are taken within {0, 1, 2}, so vertex 3 never appears — unlike a
 -- whole-type complement, which would also drag in 3.
 
+-- First, see that the TYPE `Fin 4` has four inhabitants: its `univ` is {0,1,2,3}.
+-- So a *whole-type* complement (`ᶜ`, taken over `univ`) of {0,1} keeps vertex 3 —
+-- this is the spurious 3 we want to avoid:
+example : (Finset.univ : Finset (Fin 4)) = {0, 1, 2, 3} := by decide
+example : ({0, 1} : Finset (Fin 4))ᶜ     = {2, 3}       := by decide  -- drags in 3
+
+-- The hypergraph below fixes its universe to {0,1,2}, so `not exampleH {0,1}` is
+-- {2}, not {2,3}: vertex 3 is outside H and simply never enters the picture.
+
 def exampleH : Hypergraph (Fin 4) where
   vertices     := {0, 1, 2}
   edges        := {{0, 1}, {1, 2}}
