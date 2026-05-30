@@ -124,12 +124,12 @@ example : (3 : 𝔽₅) ^ 2 = (4 : 𝔽₅) ^ 3 + 4 + 1 := by decide
 --              P *
 --                 ╲
 --                  ╲
---                   ╲     * R = P + Q   (below x-axis if R' above)
+--                   ╲     * R = P + Q (below x-axis if R' above)
 --                    * Q  ⋮
 --                     ╲   ⋮
 --    ──────────────────╲──⋮───────────────────── x-axis
 --                       ╲ ⋮(reflect)
---                        \⋮
+--                        ╲⋮
 --                         * -R' = third intersection (on curve)
 --
 -- Three special cases:
