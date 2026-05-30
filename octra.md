@@ -71,7 +71,7 @@ Crypto/
     Defs.lean         ◐ Cipher DAG, decrypt (abstract mask R), encrypt1, cAdd
     Noise.lean        ▢ edge-count / σ-density growth (NOT a correctness budget)
     Correctness.lean  ✓ decrypt_correct (EXACT, keystone #2) + encrypt1_correct
-    Homomorphism.lean ▢ ct_add / ct_sub / ct_mul correctness (exact)
+    Homomorphism.lean ◐ decrypt_cAdd ✓ (additive, exact); ct_sub / ct_mul ▢
     Security.lean     ▢ IND-CPA ⟸ LPN  (a reduction, conditional theorem)
   PVAC/                NEW — verifiability (last)
     Statement.lean    ▢ what "y = f(cts)" claims; binding/soundness specs
@@ -135,7 +135,7 @@ soundness/completeness). Most spec-dependent; do once the scheme is solid.
 |---|---------|-------|--------|
 | 1 | `incidence` is a parity-check matrix (syndrome linear) | Hypergraph → Coding | ✓ **proven** (`Hypergraphs/Incidence.lean`) |
 | 2 | `decrypt (encrypt m) = m` (EXACT, no β) | 𝔽_p + mask R → Scheme | ✓ **proven** (`Crypto/HFHE/Correctness.lean`) |
-| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | ▢ next — provable (exact); add easy first |
+| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | ◐ **+ done** (`decrypt_cAdd`); −, × next |
 | 4 | `LPN_hard → IND_CPA` | LPN → Scheme | ▢ scaffold (a reduction) |
 | 5 | random `H` at MIPT params ⟹ decoding hard | Threshold → LPN | ▢ axiom/cited (MIPT) |
 
@@ -146,12 +146,21 @@ security ⇒ a reduction to the axioms. This is how cryptography is formalized.
 
 **Done:** Phase 0 (`SPEC.md` from the C++) · keystone #1 (`Incidence`) · `Field127`
 (prime via Lucas–Lehmer) · keystone #2 (`Correctness.decrypt_correct`, exact, plus
-`encrypt1_correct` unconditional) · `Coding/*` semi-fleshed.
+`encrypt1_correct` unconditional) · keystone #3 **additive** (`decrypt_cAdd`) ·
+`Coding/*` semi-fleshed. Security limits written up in [hardness.md](hardness.md).
 
-**Next (any order):**
-1. **Keystone #3, additive half:** `Homomorphism.lean` — `decrypt (cAdd a b) =
-   decrypt a + decrypt b` (a `List.sum_append` proof, closeable now).
-2. **Discharge the `decrypt_correct` kernel:** model `synth` (K=8 signal split
+### ▶ Resume here (next session)
+1. **Study the parameters** of the `Correctness.lean` theorems (each binder is now
+   commented). Then read **`Homomorphism.lean`** — `decrypt_cAdd` is a *worked
+   example* of `decrypt` + the parameters (`g`, `R`, `c`, `j`) in active use.
+2. **Keystone #3, subtraction:** define `cNeg`/`cSub` in `Defs.lean` (flip
+   `sign`/negate `w`, negate `c0`) and prove `decrypt_cSub` — same shape as
+   `decrypt_cAdd`, easy.
+3. **Discharge the `decrypt_correct` kernel:** model `synth` (K=8 signal split
    `Σ sign·coef·g^idx = v − Σδ` + noise tuples) to prove the `kernel` hypothesis,
    making correctness unconditional for the *real* encryption.
-3. **`ct_mul`:** the `(a0+gA)(b0+gB)` expansion with `R(prod a b) = R a · R b`.
+4. **`ct_mul` (the deep one):** define `cMul`, then prove the `(a0+gA)(b0+gB)`
+   expansion with `R(prod a b) = R a · R b`.
+
+(Security keystones #4/#5 are a different universe — see [hardness.md](hardness.md);
+not a near-term coding task.)

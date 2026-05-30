@@ -75,7 +75,8 @@ theorem encrypt1_correct
     (v : Fin S → F)        -- the plaintext
     (j : Fin S)            -- the slot being decrypted
     (hg : g ≠ 0)           -- carrier nonzero ⇒ `g ^ idx` invertible
-    (hR : R 0 j ≠ 0) :     -- layer-0 mask invertible
+    (hR : R 0 j ≠ 0)       -- layer-0 mask invertible
+  :
     decrypt g R (encrypt1 g R idx v) j = v j := by
   have hgi : (g ^ idx) ≠ 0 := pow_ne_zero _ hg
   unfold decrypt encrypt1
