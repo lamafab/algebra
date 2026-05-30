@@ -24,12 +24,12 @@ variable {V : Type*} [DecidableEq V]
 -- AND — the intersection of two hyperedges, creating a new hyperedge that is
 -- active only when both original hyperedges are active.
 --     e_{and}(H) = e₁(H) ∩ e₂(H)
-def and (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∩ e₂)
+def and (e₁ e₂ : Finset V) : Finset V := e₁ ∩ e₂
 
 -- OR — a union of hyperedges, where a new hyperedge is active if at least one
 -- of the original hyperedges is active.
 --     e_{or}(H) = e₁(H) ∪ e₂(H)
-def or (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∪ e₂)
+def or (e₁ e₂ : Finset V) : Finset V := e₁ ∪ e₂
 
 -- NOT — inverting a hyperedge: a new hyperedge becomes active when the original
 -- one is inactive.
