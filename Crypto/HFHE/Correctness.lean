@@ -23,10 +23,11 @@ variable {S : ℕ} {F : Type*} [Field F]
 /-- Mask cancellation through the edge sum.  If every edge's weight is the
     intended coefficient times its layer's mask, and every mask is nonzero, then
     decryption strips the masks exactly. -/
-theorem decrypt_strip (g : F) (R : ℕ → Fin S → F) (c : Cipher S F) (j : Fin S)
-    (coef : Edge S F → Fin S → F)
+theorem decrypt_strip (g : F) (R : ℕ → (Fin S → F)) (c : Cipher S F) (j : Fin S)
+    (coef : Edge S F → (Fin S → F))
     (hw : ∀ e ∈ c.edges, e.w j = coef e j * R e.layer j)
-    (hR : ∀ e ∈ c.edges, R e.layer j ≠ 0) :
+    (hR : ∀ e ∈ c.edges, R e.layer j ≠ 0)
+  :
     decrypt g R c j
       = c.c0 j + (c.edges.map fun e => sgn e.sign * coef e j * g ^ e.idx).sum := by
   unfold decrypt
@@ -43,18 +44,19 @@ theorem decrypt_strip (g : F) (R : ℕ → Fin S → F) (c : Cipher S F) (j : Fi
 /-- KEYSTONE #2 — exact decryption correctness.  Given the construction guarantee
     (`kernel`) that the mask-stripped edge sum telescopes to the message,
     decryption returns it exactly. -/
-theorem decrypt_correct (g : F) (R : ℕ → Fin S → F) (c : Cipher S F) (j : Fin S)
-    (coef : Edge S F → Fin S → F) (v : Fin S → F)
+theorem decrypt_correct (g : F) (R : ℕ → (Fin S → F)) (c : Cipher S F) (j : Fin S)
+    (coef : Edge S F → (Fin S → F)) (v : Fin S → F)
     (hw : ∀ e ∈ c.edges, e.w j = coef e j * R e.layer j)
     (hR : ∀ e ∈ c.edges, R e.layer j ≠ 0)
-    (kernel : c.c0 j + (c.edges.map fun e => sgn e.sign * coef e j * g ^ e.idx).sum = v j) :
+    (kernel : c.c0 j + (c.edges.map fun e => sgn e.sign * coef e j * g ^ e.idx).sum = v j)
+  :
     decrypt g R c j = v j := by
   rw [decrypt_strip g R c j coef hw hR, kernel]
 
 /-- The K=1 noise-free encryption decrypts exactly — a fully closed instance of
     keystone #2 (the single edge telescopes trivially, so no `kernel` hypothesis
     is needed). -/
-theorem encrypt1_correct (g : F) (R : ℕ → Fin S → F) (idx : ℕ) (v : Fin S → F)
+theorem encrypt1_correct (g : F) (R : ℕ → (Fin S → F)) (idx : ℕ) (v : Fin S → F)
     (j : Fin S) (hg : g ≠ 0) (hR : R 0 j ≠ 0) :
     decrypt g R (encrypt1 g R idx v) j = v j := by
   have hgi : (g ^ idx) ≠ 0 := pow_ne_zero _ hg

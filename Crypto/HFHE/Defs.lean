@@ -8,7 +8,7 @@ import Mathlib.Tactic
 --
 -- Grounded in Crypto/HFHE/SPEC.md (extracted from pvac_hfhe_cpp).  The scheme is
 -- NOT a noisy LWE/LPN FHE: decryption is an EXACT identity over a field 𝔽
--- (intended 𝔽_p, p = 2¹²⁷−1 — see Crypto/Field127.lean).  A ciphertext is a DAG
+-- (intended 𝔽ₚ, p = 2^127−1 — see Crypto/Field127.lean).  A ciphertext is a DAG
 -- of layers + edges; each edge contributes `±w·g^idx`; a per-layer secret mask
 -- `R` is divided out.  The "noise" cancels identically, so there is NO
 -- decryption noise budget.

@@ -27,6 +27,7 @@ variable {V : Type*} [DecidableEq V] (H : Hypergraph V)
 
 -- The index types: the edges and vertices of H as Fintypes (they are Finsets,
 -- so their subtypes are finite).
+
 /-- Rows of the incidence matrix: the hyperedges of `H`. -/
 abbrev EdgeIdx := {e // e ∈ H.edges}
 /-- Columns of the incidence matrix: the vertices of `H`. -/
