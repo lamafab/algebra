@@ -16,8 +16,8 @@ import Mathlib.Tactic
 --
 -- The whole thing rests on two facts about arithmetic mod n²:
 --
---   BINOMIAL    (1+n)^k ≡ 1 + k·n              (mod n²)   — pure algebra
---   CARMICHAEL  rⁿᐧλ   ≡ 1                     (mod n²)   — number theory
+--   BINOMIAL    (1+n)^k ≡ 1 + k·n     (mod n²)   — pure algebra
+--   CARMICHAEL  rⁿᐧλ   ≡ 1             (mod n²)   — number theory
 --
 -- This file proves the ALGEBRA that turns those two facts into decryption
 -- correctness — in particular it handles the awkward L(x) = (x-1)/n integer
@@ -116,11 +116,11 @@ namespace Paillier.Example
 
 abbrev p : ℕ   := 61
 abbrev q : ℕ   := 53
-abbrev n : ℕ   := p * q                  -- 3233   (public modulus)
-abbrev nn : ℕ  := n * n                  -- 10452289 = n²
+abbrev n : ℕ   := p * q                    -- 3233   (public modulus)
+abbrev nn : ℕ  := n * n                    -- 10452289 = n²
 abbrev lam : ℕ := Nat.lcm (p - 1) (q - 1)  -- 780    (Carmichael λ, SECRET)
-abbrev g : ℕ   := n + 1                  -- 3234   = 1 + n
-abbrev mu : ℕ  := 1173                   -- λ⁻¹ (mod n)
+abbrev g : ℕ   := n + 1                    -- 3234   = 1 + n
+abbrev mu : ℕ  := 1173                     -- λ⁻¹ (mod n)
 
 example : n = 3233            := by decide
 example : lam = 780           := by decide
