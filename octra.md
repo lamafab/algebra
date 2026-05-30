@@ -105,17 +105,24 @@ guess.
   set-up). `Paillier.lean` ✓ already done — the homomorphism-discipline reference.
 
 ### Phase 3 — The HFHE scheme (tracks meet — keystone)
-Reuse the Paillier discipline. Build in order:
-1. `Defs.lean` — `KeyPair`, `encrypt pk m noise`, `decrypt sk c` (noise explicit, no RNG).
-2. `Noise.lean` — noise measure + budget invariant `noise(ct) < β`.
-3. `Correctness.lean` — `decrypt sk (encrypt pk m e) = m` when `noise e < β` (**keystone #2**).
-4. `Homomorphism.lean` — `Dec(c₁∘c₂) = m₁∘m₂` for ∘∈{+,−,×}; `ct_mul` grows noise (**keystone #3**).
-5. `Security.lean` — `LPN_hard → IND_CPA` (**keystone #4**, a reduction).
+> Now grounded in [Crypto/HFHE/SPEC.md](Crypto/HFHE/SPEC.md) (extracted from the C++).
+> Key correction: **decryption is an EXACT identity over 𝔽_p — there is NO decryption
+> noise budget.** The ciphertext is a DAG of layers+edges; the secret is a per-layer
+> nonzero mask `R` (LPN-derived). Build in order:
+1. `Defs.lean` — `Cipher` as a DAG `{L : Layer[], E : Edge[], c0}`; `encrypt`, and
+   `decrypt sk c = c0 + Σ ±w·g^idx·R⁻¹`. Mask `R` abstract: `R l ≠ 0`, `R(prod a b)=R a·R b`.
+2. `Noise.lean` — NOT a correctness budget (there is none). Tracks edge-count / σ-density
+   growth for homomorphic evaluation (`edge_budget`, recrypt). Repurposed.
+3. `Correctness.lean` — `decrypt sk (encrypt pk m) = m` as an **exact** algebraic
+   telescoping identity (**keystone #2**) — like Paillier but with `=`, not `≡`.
+4. `Homomorphism.lean` — `Dec(c₁∘c₂) = m₁∘m₂` for ∘∈{+,−,×}: add = edge-list append,
+   mul = `(a0+gA)(b0+gB)` with PROD masks `R_pa·R_pb` (**keystone #3**). Exact.
+5. `Security.lean` — `LPN_hard → IND_CPA` (**keystone #4**, a reduction): LPN hides `R`.
 
 ### Phase 4 — Circuits / logic gates on ciphertexts
-Reframe [LogicGates.lean](Hypergraphs/LogicGates.lean): `ct_add`=XOR, `ct_mul`=AND ⇒
-functional completeness. Prove each gate's truth-table semantics *under
-encryption* with a **depth bound** from the noise budget. Corollary of Phase 3.
+Reframe [LogicGates.lean](Hypergraphs/LogicGates.lean): `ct_add`/`ct_mul` ⇒ functional
+completeness. Prove each gate's semantics *under encryption*. Evaluation is bounded by the
+edge-budget / σ-density (not a decryption-noise bound). Corollary of Phase 3.
 
 ### Phase 5 — PVAC (publicly verifiable), last
 `PVAC/Statement.lean` (specs as `Prop`), `PVAC/Verify.lean` (verifier +
@@ -126,8 +133,8 @@ soundness/completeness). Most spec-dependent; do once the scheme is solid.
 | # | Theorem | Joins | Target |
 |---|---------|-------|--------|
 | 1 | `incidence` is a parity-check matrix (syndrome linear) | Hypergraph → Coding | **proven** |
-| 2 | `decrypt (encrypt m e) = m` (noise `< β`) | 𝔽_p + Syndrome → Scheme | **proven** (algebra) |
-| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | **proven** (+ noise bound) |
+| 2 | `decrypt (encrypt m) = m` (EXACT, no β) | 𝔽_p + mask R → Scheme | **proven** (algebra) |
+| 3 | `Dec(c₁∘c₂) = m₁∘m₂`, ∘∈{+,−,×} | Scheme → Circuits | **proven** (exact) |
 | 4 | `LPN_hard → IND_CPA` | LPN → Scheme | **conditional** (reduction) |
 | 5 | random `H` at MIPT params ⟹ decoding hard | Threshold → LPN | **axiom/cited** |
 
