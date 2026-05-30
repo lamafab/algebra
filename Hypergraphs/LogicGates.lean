@@ -21,6 +21,8 @@ namespace Hypergraph.Gate
 
 variable {V : Type*} [DecidableEq V]
 
+-- Logic Gates implemented according to https://docs.octra.org/tech-docs/hfhe
+
 -- AND — the intersection of two hyperedges, creating a new hyperedge that is
 -- active only when both original hyperedges are active.
 --     e_{and}(H) = e₁(H) ∩ e₂(H)
@@ -69,7 +71,7 @@ variable (H : Hypergraph V)
 -- H.vertices unconditionally.)
 
 theorem and_subset  (e₁ e₂ : Finset V) : and H e₁ e₂  ⊆ H.vertices := H.active_subset _
-theorem or_subset   (e₁ e₂ : Finset V)  : or H e₁ e₂  ⊆ H.vertices := H.active_subset _
+theorem or_subset   (e₁ e₂ : Finset V) : or H e₁ e₂   ⊆ H.vertices := H.active_subset _
 theorem not_subset  (e : Finset V)     : not  H e     ⊆ H.vertices := H.inactive_subset _
 theorem nand_subset (e₁ e₂ : Finset V) : nand H e₁ e₂ ⊆ H.vertices := H.inactive_subset _
 theorem nor_subset  (e₁ e₂ : Finset V) : nor  H e₁ e₂ ⊆ H.vertices := H.inactive_subset _
