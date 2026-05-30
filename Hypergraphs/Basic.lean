@@ -92,6 +92,17 @@ def inactive (e : Finset V) : Finset V := H.vertices \ e
 theorem inactive_subset (e : Finset V) : H.inactive e ⊆ H.vertices :=
   Finset.sdiff_subset
 
+-- The hyperedge of vertices of `H` active in `e`: those of `H.vertices` lying in `e`.
+def active (e : Finset V) : Finset V := H.vertices ∩ e
+
+@[simp] theorem mem_active {e : Finset V} {v : V} :
+    v ∈ H.active e ↔ v ∈ H.vertices ∧ Active e v := by
+  simp only [active, Active, Finset.mem_inter]
+
+-- The active set is always a hyperedge of H (a subset of its vertices).
+theorem active_subset (e : Finset V) : H.active e ⊆ H.vertices :=
+  Finset.inter_subset_left
+
 -- ============================================================================
 -- Section 5: Adjacency and neighbourhoods
 -- ============================================================================

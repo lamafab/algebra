@@ -21,24 +21,39 @@ namespace Hypergraph.Gate
 
 variable {V : Type*} [DecidableEq V]
 
--- AND / OR are universe-independent: pure intersection / union of the inputs,
--- so they do not mention H.
+-- AND — the intersection of two hyperedges, creating a new hyperedge that is
+-- active only when both original hyperedges are active.
 --     e_{and}(H) = e₁(H) ∩ e₂(H)
-def and (e₁ e₂ : Finset V) : Finset V := e₁ ∩ e₂
---     e_{or}(H) = e₁(H) ∪ e₂(H)
-def or  (e₁ e₂ : Finset V) : Finset V := e₁ ∪ e₂
+def and (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∩ e₂)
 
--- The complement-based gates are taken WITHIN a fixed hypergraph H: the bar is
--- `H.inactive` (= H.vertices \ ·), the inactive-vertex set from Basic.lean.
+-- OR — a union of hyperedges, where a new hyperedge is active if at least one
+-- of the original hyperedges is active.
+--     e_{or}(H) = e₁(H) ∪ e₂(H)
+def or (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∪ e₂)
+
+-- NOT — inverting a hyperedge: a new hyperedge becomes active when the original
+-- one is inactive.
 --     e_{not}(H) = \overline{e(H)}
 def not  (H : Hypergraph V) (e : Finset V) : Finset V := H.inactive e
+
+-- NAND — a mix of and and not operations, with the nand hyperedge active when
+-- the and hyperedge is inactive.
 --     e_{nand}(H) = \overline{e₁(H) ∩ e₂(H)}
 def nand (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.inactive (e₁ ∩ e₂)
+
+-- NOR — the union of or and not activates the nor hyperedge when the or
+-- hyperedge is inactive.
 --     e_{nor}(H) = \overline{e₁(H) ∪ e₂(H)}
 def nor  (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.inactive (e₁ ∪ e₂)
+
+-- XOR — the combination of two hyperedges, `and` and `or`, is activated only
+-- when only one of the original hyperedges is active.
 --     e_{xor}(H) = (e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}
 def xor  (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V :=
   (e₁ ∪ e₂) ∩ H.inactive (e₁ ∩ e₂)
+
+-- XNOR — integration of xor and not operations, where the xnor hyperedge is
+-- active when the xor hyperedge becomes inactive.
 --     e_{xnor}(H) = \overline{(e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}}
 def xnor (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V :=
   H.inactive ((e₁ ∪ e₂) ∩ H.inactive (e₁ ∩ e₂))
