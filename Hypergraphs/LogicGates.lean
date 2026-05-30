@@ -36,12 +36,12 @@ def or (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ �
 --     e_{not}(H) = \overline{e(H)}
 def not  (H : Hypergraph V) (e : Finset V) : Finset V := H.inactive e
 
--- NAND — a mix of and and not operations, with the nand hyperedge active when
--- the and hyperedge is inactive.
+-- NAND — a mix of _and_ and _not_ operations, with the nand hyperedge active
+-- when the and hyperedge is inactive.
 --     e_{nand}(H) = \overline{e₁(H) ∩ e₂(H)}
 def nand (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.inactive (e₁ ∩ e₂)
 
--- NOR — the union of or and not activates the nor hyperedge when the or
+-- NOR — the union of _or_ and _not_ activates the _nor_ hyperedge when the _or_
 -- hyperedge is inactive.
 --     e_{nor}(H) = \overline{e₁(H) ∪ e₂(H)}
 def nor  (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.inactive (e₁ ∪ e₂)
@@ -52,8 +52,8 @@ def nor  (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.inactive (e�
 def xor  (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V :=
   (e₁ ∪ e₂) ∩ H.inactive (e₁ ∩ e₂)
 
--- XNOR — integration of xor and not operations, where the xnor hyperedge is
--- active when the xor hyperedge becomes inactive.
+-- XNOR — integration of `xor` and `not` operations, where the `xnor` hyperedge
+-- is active when the `xor` hyperedge becomes inactive.
 --     e_{xnor}(H) = \overline{(e₁(H) ∪ e₂(H)) ∩ \overline{(e₁(H) ∩ e₂(H))}}
 def xnor (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V :=
   H.inactive ((e₁ ∪ e₂) ∩ H.inactive (e₁ ∩ e₂))
@@ -81,20 +81,21 @@ theorem xor_subset  (e₁ e₂ : Finset V) : xor  H e₁ e₂ ⊆ H.vertices :=
 -- Section 1: The "N" gates are the negations of their bases (by definition)
 -- ============================================================================
 
--- TODO
-theorem nand_eq_not_and (e₁ e₂ : Finset V) : nand H e₁ e₂ = not H (and H e₁ e₂) := rfl
-theorem nor_eq_not_or   (e₁ e₂ : Finset V) : nor  H e₁ e₂ = not H (or  H e₁ e₂) := rfl
+theorem nand_eq_not_and (e₁ e₂ : Finset V) : nand H e₁ e₂ = not H (and H e₁ e₂) := by
+  ext v; simp only [nand, not, and, active, inactive, Finset.mem_sdiff, Finset.mem_inter]; tauto
+theorem nor_eq_not_or   (e₁ e₂ : Finset V) : nor  H e₁ e₂ = not H (or  H e₁ e₂) := by
+  ext v; simp only [nor, not, or, active, inactive, Finset.mem_sdiff, Finset.mem_inter, Finset.mem_union]; tauto
 theorem xnor_eq_not_xor (e₁ e₂ : Finset V) : xnor H e₁ e₂ = not H (xor H e₁ e₂) := rfl
 
 -- ============================================================================
 -- Section 2: De Morgan — NAND is an OR of NOTs, NOR is an AND of NOTs
 -- ============================================================================
 
-theorem nand_eq_or_not (e₁ e₂ : Finset V) : nand H e₁ e₂ = or (not H e₁) (not H e₂) := by
-  ext v; simp only [nand, or, not, inactive, Finset.mem_sdiff, Finset.mem_inter, Finset.mem_union]; tauto
+theorem nand_eq_or_not (e₁ e₂ : Finset V) : nand H e₁ e₂ = or H (not H e₁) (not H e₂) := by
+  ext v; simp only [nand, or, not, active, inactive, Finset.mem_sdiff, Finset.mem_inter, Finset.mem_union]; tauto
 
-theorem nor_eq_and_not (e₁ e₂ : Finset V) : nor H e₁ e₂ = and (not H e₁) (not H e₂) := by
-  ext v; simp only [nor, and, not, inactive, Finset.mem_sdiff, Finset.mem_union, Finset.mem_inter]; tauto
+theorem nor_eq_and_not (e₁ e₂ : Finset V) : nor H e₁ e₂ = and H (not H e₁) (not H e₂) := by
+  ext v; simp only [nor, and, not, active, inactive, Finset.mem_sdiff, Finset.mem_union, Finset.mem_inter]; tauto
 
 -- NOT is an involution — but only for genuine hyperedges of H (e ⊆ H.vertices);
 -- this is exactly where the complement's universe matters.
