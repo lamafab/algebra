@@ -24,12 +24,12 @@ variable {V : Type*} [DecidableEq V]
 -- AND — the intersection of two hyperedges, creating a new hyperedge that is
 -- active only when both original hyperedges are active.
 --     e_{and}(H) = e₁(H) ∩ e₂(H)
-def and (e₁ e₂ : Finset V) : Finset V := e₁ ∩ e₂
+def and (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∩ e₂)
 
 -- OR — a union of hyperedges, where a new hyperedge is active if at least one
 -- of the original hyperedges is active.
 --     e_{or}(H) = e₁(H) ∪ e₂(H)
-def or (e₁ e₂ : Finset V) : Finset V := e₁ ∪ e₂
+def or (H : Hypergraph V) (e₁ e₂ : Finset V) : Finset V := H.active (e₁ ∪ e₂)
 
 -- NOT — inverting a hyperedge: a new hyperedge becomes active when the original
 -- one is inactive.
@@ -68,10 +68,8 @@ variable (H : Hypergraph V)
 -- (AND/OR need the inputs to be edges of H; the complement-based ones land in
 -- H.vertices unconditionally.)
 
-theorem and_subset (e₁ e₂ : Finset V) (he₁ : e₁ ⊆ H.vertices) :
-    and e₁ e₂ ⊆ H.vertices := Finset.inter_subset_left.trans he₁
-theorem or_subset (e₁ e₂ : Finset V) (he₁ : e₁ ⊆ H.vertices) (he₂ : e₂ ⊆ H.vertices) :
-    or e₁ e₂ ⊆ H.vertices := Finset.union_subset he₁ he₂
+theorem and_subset  (e₁ e₂ : Finset V) : and H e₁ e₂  ⊆ H.vertices := H.active_subset _
+theorem or_subset   (e₁ e₂ : Finset V)  : or H e₁ e₂  ⊆ H.vertices := H.active_subset _
 theorem not_subset  (e : Finset V)     : not  H e     ⊆ H.vertices := H.inactive_subset _
 theorem nand_subset (e₁ e₂ : Finset V) : nand H e₁ e₂ ⊆ H.vertices := H.inactive_subset _
 theorem nor_subset  (e₁ e₂ : Finset V) : nor  H e₁ e₂ ⊆ H.vertices := H.inactive_subset _
@@ -83,8 +81,9 @@ theorem xor_subset  (e₁ e₂ : Finset V) : xor  H e₁ e₂ ⊆ H.vertices :=
 -- Section 1: The "N" gates are the negations of their bases (by definition)
 -- ============================================================================
 
-theorem nand_eq_not_and (e₁ e₂ : Finset V) : nand H e₁ e₂ = not H (and e₁ e₂) := rfl
-theorem nor_eq_not_or   (e₁ e₂ : Finset V) : nor  H e₁ e₂ = not H (or  e₁ e₂) := rfl
+-- TODO
+theorem nand_eq_not_and (e₁ e₂ : Finset V) : nand H e₁ e₂ = not H (and H e₁ e₂) := rfl
+theorem nor_eq_not_or   (e₁ e₂ : Finset V) : nor  H e₁ e₂ = not H (or  H e₁ e₂) := rfl
 theorem xnor_eq_not_xor (e₁ e₂ : Finset V) : xnor H e₁ e₂ = not H (xor H e₁ e₂) := rfl
 
 -- ============================================================================
@@ -136,8 +135,8 @@ def exampleH : Hypergraph (Fin 4) where
   edges        := {{0, 1}, {1, 2}}
   mem_vertices := by decide
 
-example : and  ({0, 1} : Finset (Fin 4)) {1, 2} = {1}       := by decide
-example : or   ({0, 1} : Finset (Fin 4)) {1, 2} = {0, 1, 2} := by decide
+example : and  exampleH {0, 1} {1, 2} = {1}                        := by decide
+example : or   exampleH {0, 1} {1, 2} = {0, 1, 2}                  := by decide
 example : not  exampleH {0, 1}        = ({2}     : Finset (Fin 4)) := by decide  -- not {2,3}!
 example : nand exampleH {0, 1} {1, 2} = ({0, 2}  : Finset (Fin 4)) := by decide
 example : nor  exampleH {0, 1} {1, 2} = (∅       : Finset (Fin 4)) := by decide
