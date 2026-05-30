@@ -171,8 +171,11 @@ what's deferred, or a named `axiom`. Don't fake a proof.
   - ✓ #1 `Hypergraphs/Incidence.lean`; ✓ `Crypto/Field127.lean` (Lucas–Lehmer).
   - ✓ #2 `Crypto/HFHE/Defs.lean` (Cipher DAG, abstract mask `R`, `decrypt`,
     `encrypt1`) + `Correctness.lean` (`decrypt_strip`, `decrypt_correct` exact,
-    `encrypt1_correct` unconditional).
-  - ◐ `Coding/*` semi-fleshed; ▢ `Homomorphism`/`Security`/`PVAC` scaffolds.
+    `encrypt1_correct` unconditional; every binder is now param-commented).
+  - ◐ #3 `Homomorphism.lean` — `decrypt_cAdd` (additive, exact) ✓; `cSub`/`cMul` ▢.
+  - ◐ `Coding/*` semi-fleshed; ▢ `Security`/`PVAC` scaffolds.
+  - Security keystones #4/#5: see `hardness.md` — #5 is inherently an axiom; #4
+    needs a crypto-game framework Lean lacks. Not near-term coding work.
 - `Paillier.lean` is the **discipline reference**: model the scheme
   deterministically (noise/mask as explicit args), prove correctness as algebra,
   defer hardness to an axiom/kernel. HFHE follows it but is *easier* — exact `=`
