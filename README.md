@@ -19,6 +19,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
+  - [Paillier](Crypto/Paillier.lean): additively homomorphic encryption, decryption correctness proven as algebra
 
 ## Build
 
