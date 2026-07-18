@@ -3,52 +3,50 @@ import Mathlib.Data.Int.ModEq
 import Mathlib.Tactic
 
 -- ============================================================================
--- Paillier — additively homomorphic encryption
+-- Paillier: additively homomorphic encryption
 -- ============================================================================
 --
--- Plaintexts live in ZMod n, ciphertexts in ZMod n².  With the standard
+-- Plaintexts live in ZMod n, ciphertexts in ZMod n². With the standard
 -- simplification g = n + 1 the scheme is:
 --
---   keygen      n = p·q,  λ = lcm(p-1, q-1),  µ = λ⁻¹ (mod n)
---   encrypt m   c = gᵐ · rⁿ           (mod n²),  r coprime to n  (RANDOM)
+--   keygen      n = p·q,              λ = lcm(p-1, q-1),  µ = λ⁻¹ (mod n)
+--   encrypt m   c = gᵐ · rⁿ           (mod n²), r random and coprime to n
 --   add c₁ c₂   c₁ · c₂               (mod n²)
---   decrypt c   L(c^λ) · µ            (mod n),   L(x) = (x-1)/n
+--   decrypt c   L(c^λ) · µ            (mod n), L(x) = (x-1)/n
 --
--- The whole thing rests on two facts about arithmetic mod n²:
+-- The scheme rests on two facts about arithmetic mod n²:
 --
---   BINOMIAL    (1+n)^k ≡ 1 + k·n     (mod n²)   — pure algebra
---   CARMICHAEL  rⁿᐧλ   ≡ 1             (mod n²)   — number theory
+--   binomial    (1+n)^k ≡ 1 + k·n     (mod n²), pure algebra
+--   carmichael  rⁿᐧλ   ≡ 1             (mod n²), number theory
 --
--- This file proves the ALGEBRA that turns those two facts into decryption
--- correctness — in particular it handles the awkward L(x) = (x-1)/n integer
--- division, whose exactness is the subtle part.  The CARMICHAEL kernel is
--- deferred (`sorry`); BINOMIAL is proved here since it needs no number theory.
---
--- TODO: This file needs more polish, and a disclaimer for Carmichael.
+-- This file proves the algebra that turns those two facts into decryption
+-- correctness, in particular the L(x) = (x-1)/n integer division, whose
+-- exactness is the subtle part. The carmichael kernel is deferred (`sorry`);
+-- binomial is proved here since it needs no number theory.
 
 namespace Paillier
 
 -- ============================================================================
--- Section 1: The L-function and decryption correctness (THE ALGEBRA)
+-- Section 1: The L-function and decryption correctness (the algebra)
 -- ============================================================================
 --
--- Work over ℤ with `a ≡ b [ZMOD m]`.  The reason we can't just stay inside
--- `ZMod n²` is L: dividing by n is not an operation on `ZMod n²` (n isn't a
--- unit there).  So decryption inherently steps out to ℤ, divides, and steps
--- back mod n — and the division is only meaningful because it's EXACT.
+-- Work over ℤ with `a ≡ b [ZMOD m]`. We can't stay inside `ZMod n²` because of
+-- L: dividing by n is not an operation there (n isn't a unit). So decryption
+-- steps out to ℤ, divides, and steps back mod n, and the division is only
+-- meaningful because it's exact.
 
 /-- The Paillier L-function `L(x) = (x-1)/n` (integer division). -/
 def L (n x : ℤ) : ℤ := (x - 1) / n
 
--- The crux.  `cl` stands for the integer `c^λ`; the `kernel` hypothesis is
--- exactly what BINOMIAL and CARMICHAEL combine to give (see Section 3).  Given
--- it, decryption is pure algebra: the division by n comes out exact, and the
--- µ = λ⁻¹ step collapses λ·µ to 1.
+-- `cl` stands for the integer `c^λ`; the `kernel` hypothesis is exactly what
+-- binomial and carmichael combine to give (see Section 3). Given it, decryption
+-- is pure algebra: the division by n comes out exact, and the µ = λ⁻¹ step
+-- collapses λ·µ to 1.
 theorem decrypt_correct (n lam mu m cl : ℤ) (hn : n ≠ 0)
     (kernel : cl ≡ 1 + m * lam * n [ZMOD n * n])
     (hinv : lam * mu ≡ 1 [ZMOD n]) :
     L n cl * mu ≡ m [ZMOD n] := by
-  -- kernel gives `cl = 1 + m·λ·n - n²·t`, so (cl-1)/n is the EXACT quotient.
+  -- kernel gives `cl = 1 + m·λ·n - n²·t`, so (cl-1)/n is the exact quotient.
   obtain ⟨t, ht⟩ := Int.modEq_iff_dvd.mp kernel
   have hLc : L n cl = m * lam - n * t := by
     unfold L
@@ -64,9 +62,9 @@ theorem decrypt_correct (n lam mu m cl : ℤ) (hn : n ≠ 0)
 -- Section 2: Additive homomorphism (a thin corollary of the above)
 -- ============================================================================
 --
--- The product of two ciphertexts is an encryption of the SUM of the
+-- The product of two ciphertexts is an encryption of the sum of the
 -- plaintexts, so once `decrypt_correct` holds for every plaintext, additive
--- homomorphism is immediate — just instantiate it at m := m₁ + m₂.  (That the
+-- homomorphism is immediate; just instantiate it at m := m₁ + m₂. (That the
 -- product really encrypts the sum is itself a kernel-level fact, folded into
 -- `kernel` below.)
 theorem add_correct (n lam mu m₁ m₂ cl : ℤ) (hn : n ≠ 0)
@@ -79,8 +77,8 @@ theorem add_correct (n lam mu m₁ m₂ cl : ℤ) (hn : n ≠ 0)
 -- Section 3: The two kernels feeding `kernel`
 -- ============================================================================
 
--- BINOMIAL — pure algebra, no number theory.  This is half of what produces
--- the `kernel` hypothesis: raising g = 1+n to a power only ever contributes a
+-- Binomial: pure algebra, no number theory. This is half of what produces the
+-- `kernel` hypothesis: raising g = 1+n to a power only ever contributes a
 -- linear term mod n².
 theorem binomial_modSq (n : ℤ) (k : ℕ) :
     (1 + n) ^ k ≡ 1 + (k : ℤ) * n [ZMOD n * n] := by
@@ -94,14 +92,18 @@ theorem binomial_modSq (n : ℤ) (k : ℕ) :
             Int.modEq_iff_dvd.mpr ⟨-(k : ℤ), by ring⟩
       _ = 1 + ((k + 1 : ℕ) : ℤ) * n        := by push_cast; ring
 
--- CARMICHAEL — the number-theoretic kernel.  For r coprime to n, the random
--- mask rⁿ vanishes after raising to λ.  Proof needs the structure of
--- (ZMod n²)ˣ (Carmichael's theorem via CRT on the prime-power factors); it is
--- deferred for now — this is the "kernel stuff" to be handled later.
+-- Carmichael: the number-theoretic kernel. For r coprime to n, the random mask
+-- rⁿ vanishes after raising to λ. The proof needs the structure of (ZMod n²)ˣ
+-- (Carmichael's theorem via CRT on the prime-power factors), deferred for now.
 -- (λ = lcm(p-1,q-1) and the primality of p, q will become hypotheses when we
 -- discharge this; for now the statement records only what the algebra consumes.)
-theorem carmichael_modSq (n lam : ℤ) (r : ℤ) (hr : IsCoprime r n) (k : ℕ)
-    (hk : (k : ℤ) = n * lam) :
+theorem carmichael_modSq
+    (n lam : ℤ)
+    (r : ℤ)
+    (hr : IsCoprime r n)
+    (k : ℕ)
+    (hk : (k : ℤ) = n * lam)
+  :
     r ^ k ≡ 1 [ZMOD n * n] := by
   sorry
 
@@ -111,7 +113,7 @@ end Paillier
 -- Section 4: A concrete, executable instance (sanity check on real numbers)
 -- ============================================================================
 --
--- The OCaml reference uses p = 61, q = 53.  Everything below actually runs:
+-- The OCaml reference uses p = 61, q = 53. Everything below actually runs:
 -- `native_decide` evaluates encryption and decryption end-to-end in ZMod n².
 
 namespace Paillier.Example
@@ -120,7 +122,7 @@ abbrev p : ℕ   := 61
 abbrev q : ℕ   := 53
 abbrev n : ℕ   := p * q                    -- 3233   (public modulus)
 abbrev nn : ℕ  := n * n                    -- 10452289 = n²
-abbrev lam : ℕ := Nat.lcm (p - 1) (q - 1)  -- 780    (Carmichael λ, SECRET)
+abbrev lam : ℕ := Nat.lcm (p - 1) (q - 1)  -- 780    (Carmichael λ, secret)
 abbrev g : ℕ   := n + 1                    -- 3234   = 1 + n
 abbrev mu : ℕ  := 1173                     -- λ⁻¹ (mod n)
 
