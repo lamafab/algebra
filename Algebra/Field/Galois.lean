@@ -53,7 +53,7 @@ example : (2^1 : 𝔽₃) = 2 := by decide
 example : (2^2 : 𝔽₃) = 1 := by decide
 
 -- ============================================================================
--- Section 3: Characteristic — the prime "under the hood"
+-- Section 2: Characteristic — the prime "under the hood"
 -- ============================================================================
 
 -- The characteristic of a field is the smallest positive n such that
@@ -66,7 +66,8 @@ example : (1 + 1 + 1 : 𝔽₃) = 0 := by decide -- eq
 example : CharP (ZMod 5) 5 := ZMod.charP 5
 
 -- ============================================================================
--- ## Fermat's little theorem in GF(p)
+-- Section 3: Fermat's little theorem in GF(p)
+-- ============================================================================
 --
 -- For any a in GF(p), a^p = a. This is a fundamental identity in finite fields.
 example : (0 : 𝔽₃) ^ 3 = 0 := by decide
@@ -78,12 +79,18 @@ example : (0 : 𝔽₃) ^ (3-1) = 0 := by decide
 example : (1 : 𝔽₃) ^ (3-1) = 1 := by decide
 example : (2 : 𝔽₃) ^ (3-1) = 1 := by decide
 
+-- In any finite group, g^|G| = 1 (Lagrange). The nonzero elements form
+-- 𝔽₃ˣ of order p-1 = 2
+--
+-- TODO: This should be in a dedicated `Group/` file.
+example (g : 𝔽₃ˣ) : g ^ Fintype.card 𝔽₃ˣ = 1 := pow_card_eq_one
+
 -- The general statement from Mathlib:
 -- For any finite field of characteristic p, every element satisfies x^p = x.
 --#check ZMod.pow_prime_eq (p := 5)
 
 -- ============================================================================
--- Section 5: GF(p) has exactly p elements
+-- Section 4: GF(p) has exactly p elements
 -- ============================================================================
 
 example : Fintype.card (ZMod 5) = 5 := by decide
@@ -91,7 +98,7 @@ example : Fintype.card (ZMod 2) = 2 := by decide
 example : Fintype.card (ZMod 7) = 7 := by decide
 
 -- ============================================================================
--- Key Structural Theorems of Finite Fields
+-- Section 5: Key Structural Theorems of Finite Fields
 -- ============================================================================
 
 -- 1. Uniqueness: all finite fields of the same order are isomorphic.
