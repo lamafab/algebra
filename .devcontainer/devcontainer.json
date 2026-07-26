@@ -7,8 +7,7 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"leanprover.lean4",
-				"Anthropic.claude-code"
+				"leanprover.lean4"
 			],
 			"settings": {
 				"lean4.serverEnv": {
