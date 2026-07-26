@@ -200,6 +200,8 @@ example : Ideal ℤ := RingHom.ker (Int.castRingHom (ZMod 5))
 --   R ⧸ I                the quotient ring
 --   Ideal.Quotient.mk I  projection R → R ⧸ I,  a ↦ [a]
 --   Ideal.Quotient.eq    [a] = [b] ⟺ a - b ∈ I
+--
+-- TODO: Probably clarify why this is useful, and reference Polynomials.lean
 
 private abbrev I5 : Ideal ℤ := Ideal.span {(5 : ℤ)}
 private abbrev π5 : ℤ →+* (ℤ ⧸ I5) := Ideal.Quotient.mk _
