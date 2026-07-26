@@ -54,8 +54,13 @@ example : (3 : 𝔽₅) ^ 2 = 4 := by decide
 example : (3 : 𝔽₅) ^ 3 = 2 := by decide
 example : (3 : 𝔽₅) ^ 4 = 1 := by decide
 
--- 4 is NOT a generator — it has order 2, not 4
-example : (4 : 𝔽₅) ^ 2 = 1 := by decide  -- cycles back after just 2 steps
+-- TODO: Note why this is important, resp. why we point this out.
+-- 4 is NOT a generator: 4¹ = 4, 4² = 1, 4³ = 4, 4⁴ = 1, … its powers
+-- oscillate between 1 and 4, so it only generates {1, 4}, not the whole
+-- 𝔽₅ˣ. The order of an element is the smallest k > 0 with gᵏ = 1; here the
+-- first return to 1 happens at k = 2, so the order is 2, not 4.
+example : (4 : 𝔽₅) ^ 1 ≠ 1 := by decide
+example : (4 : 𝔽₅) ^ 2 = 1 := by decide
 
 -- ============================================================================
 -- Section 3: Key properties of cyclic groups
@@ -64,6 +69,7 @@ example : (4 : 𝔽₅) ^ 2 = 1 := by decide  -- cycles back after just 2 steps
 -- Every subgroup of a cyclic group is cyclic
 #check isCyclic_of_surjective
 
+-- TODO: Expand on those a little, as its referenced from RootsOfUnity.lean
 -- For a cyclic group of order n:
 --   - It has exactly one subgroup of order d for each divisor d of n
 --   - The number of generators equals Euler's totient φ(n)
@@ -72,16 +78,3 @@ example : (4 : 𝔽₅) ^ 2 = 1 := by decide  -- cycles back after just 2 steps
 -- Example: ℤ/6ℤ has divisors {1, 2, 3, 6},
 -- so it has subgroups of order 1, 2, 3, and 6
 example : Fintype.card (ZMod 6) = 6 := by decide
-
--- ============================================================================
--- Section 4: Connection to finite fields
--- ============================================================================
-
--- The multiplicative group of ANY finite field is cyclic.
--- This is a deep theorem (proved in Galois.lean for specific cases).
---
--- For 𝔽₅: 𝔽₅ˣ ≅ ℤ/4ℤ (cyclic of order 4)
--- For 𝔽₃: 𝔽₃ˣ ≅ ℤ/2ℤ (cyclic of order 2)
--- For GF(9): GF(9)ˣ ≅ ℤ/8ℤ (cyclic of order 8)
---
--- In general: GF(q)ˣ ≅ ℤ/(q-1)ℤ
