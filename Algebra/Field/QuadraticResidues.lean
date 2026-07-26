@@ -3,22 +3,21 @@ import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 
 -- ============================================================================
--- Quadratic Residues — which elements of 𝔽_p are squares?
+-- Quadratic Residues: which elements of 𝔽_p are squares?
 -- ============================================================================
 --
 -- In 𝔽ₚ the squaring map x ↦ x² is two-to-one (since x² = (-x)²), so only
--- HALF of the nonzero elements are hit. Those that are hit are called
--- QUADRATIC RESIDUES (QRs); the others are NON-RESIDUES (NRs).
+-- half of the nonzero elements are hit. Those that are hit are called
+-- quadratic residues (QRs); the others are non-residues (NRs).
 --
 -- This file answers three questions:
---   §2 — HOW MANY:   exactly (p+1)/2 squares in 𝔽ₚ (counting 0).
---                    §3 unpacks the kernel-and-quotient picture behind the
---                    count, reconciling it with Ideals.lean's "kernels =
---                    ideals" slogan.
---   §4 — WHICH ONES: Euler's criterion, a^((p-1)/2) ∈ {±1}.
---   §5 — WHICH ONES, NICELY: the Legendre symbol packages the criterion.
+--   §2: how many — exactly (p+1)/2 squares in 𝔽ₚ (counting 0).
+--      §3 unpacks the kernel-and-quotient picture behind the count,
+--      reconciling it with Ideals.lean's "kernels = ideals" slogan.
+--   §4: which ones — Euler's criterion, a^((p-1)/2) ∈ {±1}.
+--   §5: which ones, packaged — the Legendre symbol.
 --
--- Application — §6 — counts points on elliptic curves. Cyclic.lean and
+-- Application (§6) counts points on elliptic curves. Cyclic.lean and
 -- Galois.lean are the prerequisites.
 
 notation "𝔽₅" => ZMod 5
@@ -32,7 +31,7 @@ instance : Fact (Nat.Prime 7) := ⟨by norm_num⟩
 -- ============================================================================
 --
 -- Take every element of 𝔽ₚ and square it. The image set is, by definition,
--- the set of QUADRATIC RESIDUES (including 0).
+-- the set of quadratic residues (including 0).
 --
 -- In 𝔽₅:
 --   0² = 0  ┐
@@ -46,7 +45,7 @@ instance : Fact (Nat.Prime 7) := ⟨by norm_num⟩
 --   image  = {0, 1, 2, 4}  (4 elements)
 --   missed = {3, 5, 6}     (non-residues)
 --
--- Notice the COLLISIONS: in 𝔽₅, both 2 and 3 square to 4; both 1 and 4
+-- Notice the collisions: in 𝔽₅, both 2 and 3 square to 4; both 1 and 4
 -- square to 1. The map is two-to-one on nonzero inputs, because
 --   x² = y² ⟺ (x - y)(x + y) = 0 ⟺ x = y or x = -y (we're in a field).
 
@@ -71,8 +70,8 @@ example : IsSquare (0 : 𝔽₅) := by decide
 -- For p = 5: (5+1)/2 = 3 ⟹ {0, 1, 4}.  ✓
 -- For p = 7: (7+1)/2 = 4 ⟹ {0, 1, 2, 4}.  ✓
 --
--- Equivalently: exactly HALF of 𝔽ₚˣ is a square. This is why "non-residue"
--- is a natural concept — they exist in equal numbers to the residues.
+-- Equivalently: exactly half of 𝔽ₚˣ is a square. This is why "non-residue"
+-- is a natural concept; they exist in equal numbers to the residues.
 --
 -- (p = 2 is degenerate: every element is a square, since 0² = 0 and 1² = 1.)
 
@@ -85,14 +84,14 @@ example : (Finset.univ.filter (fun x : 𝔽₇ => IsSquare x)).card = 4 := by de
 -- ============================================================================
 --
 -- §2 ran the slogan "image size = domain size / kernel size" with kernel
--- {1, -1}. But Ideals.lean §5 said "kernels = ideals" — and {1, -1} is NOT
+-- {1, -1}. But Ideals.lean §5 said "kernels = ideals", and {1, -1} is not
 -- an ideal. Resolving this apparent conflict clarifies both pictures.
 --
 -- ----------------------------------------------------------------------------
 -- "Kernel" is parametrized by what the hom preserves
 -- ----------------------------------------------------------------------------
 --
--- A kernel is the preimage of an identity. WHICH identity (and what shape
+-- A kernel is the preimage of an identity. Which identity (and what shape
 -- the kernel takes) depends on the hom's category:
 --
 --   Hom preserves...        "identity" is...   Kernel is a...
@@ -102,8 +101,8 @@ example : (Finset.univ.filter (fun x : 𝔽₇ => IsSquare x)).card = 4 := by de
 --   +       (add group)     0                  subgroup of (𝔽ₚ, +)
 --   linear  (vec sp)        0                  subspace
 --
--- Ideals.lean §5's slogan is implicitly about RING homs. The squaring map
--- sq : 𝔽ₚˣ → 𝔽ₚˣ is a GROUP hom, meaning it respects · but NOT +, so its
+-- Ideals.lean §5's slogan is implicitly about ring homs. The squaring map
+-- sq : 𝔽ₚˣ → 𝔽ₚˣ is a group hom, meaning it respects · but not +, so its
 -- kernel is a multiplicative subgroup of 𝔽ₚˣ, not an ideal.
 
 -- Sanity: sq does not preserve addition.  sq(1+1) = 4 ≠ 2 = sq(1) + sq(1).
@@ -142,12 +141,12 @@ example : ((1 : 𝔽₅) + 1) ^ 2 ≠ (1 : 𝔽₅) ^ 2 + (1 : 𝔽₅) ^ 2 := b
 --
 -- That's ℤ/2ℤ. So  𝔽₅ˣ / {±1}  ≅  ℤ/2ℤ  ≅  {+1, -1}  as groups.
 
--- The image of the squaring map has the same size as the quotient — the
+-- The image of the squaring map has the same size as the quotient; the
 -- First Iso Theorem cashed out as a counting check:
 example : ((Finset.univ : Finset (ZMod 5)ˣ).image (· ^ 2)).card = 2 := by decide
 
 -- ----------------------------------------------------------------------------
--- The Legendre symbol IS the quotient map
+-- The Legendre symbol is the quotient map
 -- ----------------------------------------------------------------------------
 --
 -- Composing the natural projection with the iso to {±1}:
@@ -155,11 +154,13 @@ example : ((Finset.univ : Finset (ZMod 5)ˣ).image (· ^ 2)).card = 2 := by deci
 --      𝔽ₚˣ ──π──→ 𝔽ₚˣ / {±1} ──≅──→ {+1, -1}
 --
 -- sends each x to +1 if x is a square, -1 otherwise. That's exactly
--- `legendreSym p` (extended by 0 on the zero element of 𝔽ₚ — see §5).
+-- `legendreSym p` (extended by 0 on the zero element of 𝔽ₚ; see §5).
 --
 -- ----------------------------------------------------------------------------
 -- The pattern in one sentence
 -- ----------------------------------------------------------------------------
+--
+-- TODO: Simplify this section
 --
 -- Every quotient map collapses its kernel to the identity; what remains
 -- visible afterwards is exactly the quotient.
@@ -174,14 +175,14 @@ example : ((Finset.univ : Finset (ZMod 5)ˣ).image (· ^ 2)).card = 2 := by deci
 -- Section 4: Euler's criterion — telling residues apart
 -- ============================================================================
 --
--- §2 told us HOW MANY squares there are. Euler tells us WHICH:
+-- §2 told us how many squares there are. Euler tells us which:
 --
 --   For odd prime p and a ∈ 𝔽_p with a ≠ 0:
 --     a is a quadratic residue ⟺ a^((p-1)/2) = 1   in 𝔽ₚ
 --
 -- Why it works:
 --   By Fermat (Galois.lean §3): a^(p-1) = 1.
---   So a^((p-1)/2) is a SQUARE ROOT of 1 ⟹ equals ±1.
+--   So a^((p-1)/2) is a square root of 1, hence equals ±1.
 --   The squares form a subgroup of index 2, exactly the kernel of the
 --   map x ↦ x^((p-1)/2). So:
 --     a is a square  ⟺  a^((p-1)/2) = +1
@@ -214,8 +215,8 @@ example : ¬ IsSquare (-1 : 𝔽₇) := by decide
 -- Section 5: The Legendre symbol
 -- ============================================================================
 --
--- Euler's criterion is a NUMBER (±1). Packaging it as a function ℤ → ℤ gives
--- the LEGENDRE SYMBOL:
+-- Euler's criterion gives a number (±1). Packaging it as a function ℤ → ℤ
+-- gives the Legendre symbol:
 --
 --                    ⎧  0  if p ∣ a
 --          ⎛ a ⎞     ⎪
@@ -224,11 +225,11 @@ example : ¬ IsSquare (-1 : 𝔽₇) := by decide
 --                    ⎩ -1  if a is a NR mod p
 --
 -- Two properties make it useful:
---   1. MULTIPLICATIVITY:  (a·b / p) = (a/p) · (b/p).
+--   1. Multiplicativity:  (a·b / p) = (a/p) · (b/p).
 --      Consequence: QR · QR = QR, QR · NR = NR, NR · NR = QR.
 --      (The map a ↦ (a/p) is a group hom 𝔽_pˣ → {±1}, kernel = squares.)
---   2. QUADRATIC RECIPROCITY (Gauss, the celebrated theorem) relates (p/q)
---      and (q/p) — letting you compute Legendre symbols WITHOUT computing
+--   2. Quadratic reciprocity (Gauss, the celebrated theorem) relates (p/q)
+--      and (q/p), letting you compute Legendre symbols without computing
 --      p^((q-1)/2). Out of scope here; see Mathlib's
 --      `Mathlib.NumberTheory.LegendreSymbol.QuadraticReciprocity`.
 
@@ -244,6 +245,7 @@ example : legendreSym 5 5 = 0  := by decide   -- 5 ≡ 0
 example : legendreSym 5 (2 * 3) = legendreSym 5 2 * legendreSym 5 3 :=
   legendreSym.mul 5 2 3
 
+-- TODO: Update this section, and reference EllipticCurves.lean
 -- ============================================================================
 -- Section 6: Application — counting points on elliptic curves
 -- ============================================================================
@@ -262,7 +264,7 @@ example : legendreSym 5 (2 * 3) = legendreSym 5 2 * legendreSym 5 3 :=
 --                ───────  ─────────────────────────────────────
 --                 main         "error term"
 --
--- HASSE'S THEOREM (1933) bounds the error term by 2·√p — i.e. the Legendre
+-- Hasse's theorem (1933) bounds the error term by 2·√p; i.e. the Legendre
 -- sum has magnitude ≤ 2√p, despite running over p terms. That single bound
 -- is what makes ECC's group sizes predictable.
 --
