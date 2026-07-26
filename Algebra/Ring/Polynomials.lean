@@ -8,7 +8,7 @@ import Mathlib.Tactic
 -- A polynomial ring R[X] is the ring of polynomials with coefficients in R.
 -- An element p ∈ R[X] has the form:
 --
---   p = a₀ + a₁·X + a₂·X² + … + aₙ·Xⁿ (aᵢ ∈ R)
+--   p = aₙ·Xⁿ + … + a₂·X² + a₁·X + a₀ (aᵢ ∈ R)
 --
 -- and is fully determined by its coefficient sequence (a₀, a₁, …, aₙ),
 -- with only finitely many aᵢ nonzero.
@@ -40,11 +40,21 @@ example : (X^5 * 8 : 𝔽₃[X]) = (X^5 * 2 : 𝔽₃[X]) := by congr
 --
 -- A polynomial Σ aᵢXⁱ is determined by its coefficients (aᵢ).
 -- `.coeff i` extracts the i-th. Higher coefficients are 0 (finite support).
+--
+-- Reading f = X² + 2X + 1 off term by term (backwards):
+--
+--       f  =   1     +   2·X    +   1·X²    +   0·X³   +   0·X⁴   + …
+--              │          │           │          │          │
+--   ───────────┼──────────┼───────────┼──────────┼──────────┼────────
+--   i        : 0          1           2          3          4
+--   f.coeff i: 1          2           1          0          0
 
 example : f.coeff 0 = 1 := by unfold f; simp [coeff_add, coeff_C, coeff_X_pow, coeff_one]
 example : f.coeff 1 = 2 := by unfold f; simp [coeff_add, coeff_C, coeff_mul_X, coeff_X_pow, coeff_one]
 example : f.coeff 2 = 1 := by unfold f; simp [coeff_add, coeff_mul_X, coeff_X_pow, coeff_one]
 example : f.coeff 3 = 0 := by unfold f; simp [coeff_add, coeff_mul_X, coeff_X_pow, coeff_one]
+example : f.coeff 4 = 0 := by unfold f; simp [coeff_add, coeff_mul_X, coeff_X_pow, coeff_one]
+-- And so on...
 
 -- ============================================================================
 -- Section 3: Arithmetic (mod 3 coefficients)
@@ -67,8 +77,8 @@ example : (3 : 𝔽₃[X]) = 0 := by
 -- Section 4: Ring structure
 -- ============================================================================
 --
--- 𝔽₃[X] is a commutative integral domain — infinite, characteristic 3 —
--- but NOT a field (X has no inverse, just like ℤ in ℚ).
+-- 𝔽₃[X] is a commutative integral domain (infinite, characteristic 3)
+-- but NOT a field (X has no inverse, just like ℤ in ℚ.
 
 noncomputable instance : CommRing 𝔽₃[X] := inferInstance
 instance : IsDomain 𝔽₃[X]   := inferInstance
@@ -83,18 +93,31 @@ example : (X^2 + C 2 * X + C 1 : 𝔽₃[X]).natDegree = 2 := by compute_degree!
 example : (X + C 1 : 𝔽₃[X]).natDegree = 1 := by compute_degree!
 
 -- ============================================================================
--- Section 6: From here to finite fields
+-- Section 6: Quotient rings — turning 𝔽₃[X] into the field GF(9)
 -- ============================================================================
 --
--- 𝔽₃[X] isn't a field, but quotienting by an irreducible polynomial gives
--- one. X² + 1 is irreducible over 𝔽₃ (no roots: 0²+1=1, 1²+1=2, 2²+1=2),
--- so 𝔽₃[X] / (X² + 1) is the 9-element field GF(9).
+-- Given an ideal I ⊆ R, form R/I by declaring everything in I to be zero.
+-- Equivalently, gluing a ≃ b whenever a − b ∈ I. The result is again a ring.
+-- The construction itself lives in Ideals.lean §6.
 --
--- WHY ROOTS = ZEROS: the evaluation map  ev_r : k[X] → k,  p ↦ p(r)  is a
--- ring hom; its kernel is { p | p(r) = 0 } = (X - r). So "r is a root of p"
--- is a kernel-membership statement (Ideals.lean §5). Zero matters because
--- kernels are, by definition, the preimage of zero. The factor theorem
--- (r is a root ⟺ (X - r) divides p) is the principal-ideal description
--- of this kernel; the First Iso Theorem then gives k[X] / (X - r) ≅ k.
+-- 𝔽₃[X] now plays the role ℤ played there, and the dictionary is exact:
 --
--- The full GF(9) construction lives in QuotientRings.lean §4.
+--     ℤ                          𝔽₃[X]
+--     prime p                    irreducible q
+--     ℤ / (p)  = 𝔽_p             𝔽₃[X] / (q)  =  a field
+--
+-- In both, quotienting by a "prime-like" generator collapses a non-field
+-- domain into a field; the ideal is maximal, and R/maximal is a field
+-- (Ideals.lean §9). For polynomials the prime-like elements are the
+-- IRREDUCIBLE ones (no nontrivial factorization).
+--
+-- Take q = X² + 1. A quadratic is irreducible exactly when it has no root
+-- (otherwise it splits off a linear factor), and X² + 1 has none in 𝔽₃:
+--
+--   0²+1 = 1,  1²+1 = 2,  2²+1 = 2.
+--
+-- So 𝔽₃[X] / (X² + 1) is a field. Its elements are the remainders mod X² + 1,
+-- namely a + bX with a, b ∈ 𝔽₃ — exactly 3² = 9 of them. This is GF(9); its
+-- structure as GF(3²) is developed in Galois.lean.
+
+-- TODO: Follow-up in RootsInterpolation.lean
