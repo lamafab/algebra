@@ -277,14 +277,4 @@ theorem dec_enc (m : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2) (he : weight e ≤
     dec (enc m e) = m :=
   decrypt_correct S Sinv G σ decode (by native_decide) decode_correct m e he
 
--- A single run: message ![1, 0, 1, 1], error in position 3.
-example : dec (enc ![1, 0, 1, 1] (Function.update 0 3 1)) = ![1, 0, 1, 1] := by
-  native_decide
-
--- And the whole space, end to end: every message, every allowed error.
-example (m : Fin 4 → ZMod 2) (j : Option (Fin 7)) :
-    dec (enc m (errorVec j)) = m := by
-  revert m j
-  native_decide
-
 end McEliece.Example
