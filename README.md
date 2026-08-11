@@ -22,6 +22,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
   - [Paillier](Crypto/Paillier.lean): additively homomorphic encryption, decryption correctness proven as algebra
+  - [McEliece](Crypto/McEliece.lean): code-based encryption; scrambling by S·G·P, decryption correctness from a decoder hypothesis, and a fully executable [7,4,3] Hamming code instance
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
 
