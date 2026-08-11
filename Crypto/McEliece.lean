@@ -112,6 +112,13 @@ def decrypt (decode : (Fin n → ZMod 2) → Fin k → ZMod 2) (c : Fin n → ZM
 -- Correctness: given a decoder for the secret code that tolerates errors of
 -- weight ≤ t, decryption recovers the message. The decoder hypothesis does
 -- all the coding theory; what remains is one chain of matrix identities.
+--
+--   decrypt (encrypt m e)
+--   = decode ((m·(S·G·P) + e) · P⁻¹) · S⁻¹        unfold decrypt, encrypt
+--   = decode (m·S·G·(P·P⁻¹) + e·P⁻¹) · S⁻¹        add_vecMul, vecMul_vecMul
+--   = decode (m·S·G + e·P⁻¹) · S⁻¹                permMatrix_mul_symm
+--   = (m·S) · S⁻¹                                 hdecode, weight_comp
+--   = m                                           hS, vecMul_one
 theorem decrypt_correct
     (decode : (Fin n → ZMod 2) → Fin k → ZMod 2)
     (hS : S * Sinv = 1)
@@ -124,7 +131,6 @@ theorem decrypt_correct
   -- The error after undoing P is a permutation of e, so still small.
   have hw : weight (e ∘ σ) ≤ t := by rwa [weight_comp]
   unfold decrypt encrypt
-  -- (m ᵥ* (S·G·P) + e) ᵥ* P⁻¹ = m ᵥ* (S·G·(P·P⁻¹)) + e∘σ = (m ᵥ* S) ᵥ* G + e∘σ
   rw [add_vecMul, vecMul_vecMul, vecMul_permMatrix, Equiv.symm_symm,
     Matrix.mul_assoc (S * G), permMatrix_mul_symm, Matrix.mul_one, ← vecMul_vecMul,
     hdecode _ _ hw, vecMul_vecMul, hS, vecMul_one]
