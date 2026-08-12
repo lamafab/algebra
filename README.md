@@ -10,6 +10,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [Code](Algebra/Code/)
     - [Hamming](Algebra/Code/Hamming.lean): the [7,4,3] Hamming code; generator and parity-check matrices, codewords, syndrome decoding, single-error correction, and a worked example
     - [Multiplicity](Algebra/Code/Multiplicity.lean): multiplicity vanishing for binary multilinear polynomials, hold-out test (Ghoshal–Ishai–Jain–Sun), and a demonstration on a small structured vs random matrix
+    - [Hypergraph](Algebra/Code/Hypergraph.lean): hypergraph incidence matrix as a parity-check matrix, k-uniformity, minimum distance, unique syndrome decoding theorem, and the Hamming [7,4,3] code as a 4-uniform hypergraph
   - [Group](Algebra/Group/)
     - [Cyclic](Algebra/Group/Cyclic.lean): cyclic groups and their connection to ℤ/nℤ
   - [Ring](Algebra/Ring/)
