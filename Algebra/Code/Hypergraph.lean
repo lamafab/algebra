@@ -24,8 +24,6 @@ open Finset Matrix
 -- 4-uniform hypergraph with minimum distance 3: it demonstrates the uniqueness
 -- property with t = 1.
 
-namespace Hypergraph
-
 -- ============================================================================
 -- Section 1: The structure
 -- ============================================================================
@@ -203,5 +201,4 @@ example (σ : hammingHypergraph.EdgeIdx → ZMod 2)
 
 end HammingExample
 
-end Hypergraph
 end Hypergraph
