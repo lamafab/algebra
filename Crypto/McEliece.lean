@@ -24,12 +24,12 @@ import Mathlib.Tactic
 --   §3  decryption correctness is pure linear algebra once a decoder for
 --       the secret code is given (the decoder enters as a hypothesis)
 --
--- What is not proved: that Ĝ hides the structure of G. That is the McEliece
+-- What is **not** proved: that Ĝ hides the structure of G. That is the McEliece
 -- assumption (a scrambled Goppa code looks like a random code, and decoding
 -- a random linear code is hard), not algebra.
 --
--- §4 instantiates everything on the [7,4,3] Hamming code, whose decoder is
--- syndrome decoding; correctness there is checked exhaustively.
+-- §4 instantiates everything on the [7,4,3] Hamming code; the theory of that
+-- code is developed in Algebra/Code/Hamming.lean.
 
 namespace McEliece
 
@@ -143,13 +143,10 @@ end McEliece
 -- Section 4: A concrete instance on the [7,4,3] Hamming code
 -- ============================================================================
 --
--- The [7,4,3] Hamming code corrects one error (t = 1). Its decoder is
--- syndrome decoding: for H the parity-check matrix, the syndrome w ᵥ* Hᵀ is
--- zero on codewords and equals column j of H for a single error in position
--- j, so the syndrome identifies the error position directly.
---
--- Below everything actually runs: decode is a computable function and its
--- correctness on all 16 messages × 8 error patterns is by native_decide.
+-- The code theory is developed in Algebra/Code/Hamming.lean; here we repeat
+-- just what the scheme needs (generator, parity-check matrix, syndrome
+-- decoder) to wire it into the McEliece scheme.  Correctness is checked
+-- exhaustively by native_decide.
 
 namespace McEliece.Example
 
@@ -168,9 +165,6 @@ def H : Matrix (Fin 3) (Fin 7) (ZMod 2) :=
      1, 1, 1, 0, 0, 1, 0;
      0, 1, 1, 1, 0, 0, 1]
 
--- Every codeword has zero syndrome: G·Hᵀ = 0.
-example : G * Hᵀ = 0 := by native_decide
-
 /-- The syndrome of a received word. -/
 def syndrome (w : Fin 7 → ZMod 2) : Fin 3 → ZMod 2 := w ᵥ* Hᵀ
 
@@ -181,67 +175,6 @@ def decode (w : Fin 7 → ZMod 2) : Fin 4 → ZMod 2 :=
     | none => w
     | some j => Function.update w j (w j + 1)
   fun i => w' (Fin.castLE (by decide) i)
-
-/-- The error patterns of weight at most one: no error, or one flipped bit. -/
-def errorVec : Option (Fin 7) → Fin 7 → ZMod 2
-  | none => 0
-  | some j => Function.update 0 j 1
-
-example (j : Option (Fin 7)) : weight (errorVec j) ≤ 1 := by
-  revert j
-  native_decide
-
--- Every vector of weight ≤ 1 is an `errorVec j`: the zero vector or a single
--- flipped bit. Over 𝔽₂ a nonzero entry is 1, and a second nonzero entry
--- would already give weight ≥ 2.
-theorem weight_le_one {e : Fin 7 → ZMod 2} (he : weight e ≤ 1) :
-    ∃ j : Option (Fin 7), e = errorVec j := by
-  by_cases h0 : e = 0
-  · exact ⟨none, h0⟩
-  obtain ⟨i, hi⟩ : ∃ i, e i ≠ 0 := by
-    by_contra hc
-    push Not at hc
-    exact h0 (funext hc)
-  have h1 : e i = 1 := by
-    have h01 : ∀ a : ZMod 2, a = 0 ∨ a = 1 := by decide
-    rcases h01 (e i) with h | h
-    · exact absurd h hi
-    · exact h
-  have hothers : ∀ j, j ≠ i → e j = 0 := by
-    intro j hj
-    by_contra hjn
-    have h2 : 2 ≤ weight e := by
-      have hpair : ∑ l ∈ {i, j}, (if e l = 0 then (0 : ℕ) else 1)
-          = (if e i = 0 then 0 else 1) + (if e j = 0 then 0 else 1) :=
-        Finset.sum_pair (Ne.symm hj)
-      have hsum : ∑ l ∈ {i, j}, (if e l = 0 then (0 : ℕ) else 1) ≤ weight e :=
-        Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ _)
-          (fun x _ _ => Nat.zero_le _)
-      have hij2 : (if e i = 0 then (0 : ℕ) else 1) + (if e j = 0 then 0 else 1) = 2 := by
-        simp [hi, hjn]
-      omega
-    omega
-  exact ⟨some i, funext fun j => by
-    by_cases hji : j = i
-    · subst hji
-      simp [errorVec, h1]
-    · simp [errorVec, Function.update_of_ne hji, hothers j hji]⟩
-
--- The decoder is correct on every message and every error of weight ≤ 1:
--- 16 messages × 8 error patterns, checked exhaustively.
-theorem decode_errorVec (x : Fin 4 → ZMod 2) (j : Option (Fin 7)) :
-    decode (x ᵥ* G + errorVec j) = x := by
-  revert x j
-  native_decide
-
-theorem decode_correct (x : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2) (he : weight e ≤ 1) :
-    decode (x ᵥ* G + e) = x := by
-  obtain ⟨j, rfl⟩ := weight_le_one he
-  exact decode_errorVec x j
-
--- ============================================================================
--- Keys and the full round trip
--- ============================================================================
 
 /-- Scrambling matrix (secret), unitriangular hence invertible over 𝔽₂. -/
 def S : Matrix (Fin 4) (Fin 4) (ZMod 2) :=
@@ -274,13 +207,14 @@ def enc (m : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2) : Fin 7 → ZMod 2 :=
 def dec (c : Fin 7 → ZMod 2) : Fin 4 → ZMod 2 :=
   decrypt Sinv σ decode c
 
--- `enc` really is McEliece encryption with these keys.
-example (m : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2) :
-    enc m e = encrypt S G σ m e := rfl
-
--- Round trip through the abstract correctness theorem.
+-- Round trip: the syndrome decoder corrects any single error, so the full
+-- McEliece decryption recovers the original message.
 theorem dec_enc (m : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2) (he : weight e ≤ 1) :
-    dec (enc m e) = m :=
-  decrypt_correct S Sinv G σ decode (by native_decide) decode_correct m e he
+    dec (enc m e) = m := by
+  have hdecode : ∀ (x : Fin 4 → ZMod 2) (e : Fin 7 → ZMod 2), weight e ≤ 1 → decode (x ᵥ* G + e) = x := by
+    intro x e he
+    revert x e
+    native_decide
+  exact decrypt_correct S Sinv G σ decode (by native_decide) hdecode m e he
 
 end McEliece.Example
