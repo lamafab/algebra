@@ -81,11 +81,13 @@ example (g : 𝔽₇ˣ) : g ^ Fintype.card 𝔽₇ˣ = 1 := pow_card_eq_one
 -- Examples over 𝔽₅: 𝔽₅ˣ is cyclic of order 4, so subgroups exist for
 -- orders 1, 2, and 4.
 --
---   * 2 and 3 are primitive 4th roots of unity: each has order 4 and
---     generates the full group 𝔽₅ˣ (Cyclic.lean §2).
---   * 4 is a non-primitive 4th root of unity: 4² = 1, so its order is 2
---     (it is a square root of unity, not a primitive 4th root).
---   * 1 is a trivial root (order 1).
+--   * ω = 2 is a primitive 4th root of unity. The set {2⁰, 2¹, 2², 2³}
+--     = {1, 2, 4, 3} = 𝔽₅ˣ, so 2 generates the full group
+--     (Cyclic.lean §2). Similarly, ω = 3 gives {1, 3, 4, 2} = 𝔽₅ˣ.
+--   * ω = 4 gives {4⁰, 4¹, 4², 4³} = {1, 4, 1, 4} = {1, 4}, a subgroup
+--     of order 2.  Here 4² = 1, so 4 is a square root of unity but not a
+--     primitive 4th root.
+--   * ω = 1 gives {1⁰, 1¹, 1², 1³} = {1}, the trivial subgroup of order 1.
 
 -- 4 has order 2, not 4: 4¹ ≠ 1 but 4² = 1, so it generates only {1, 4}.
 example : (4 : 𝔽₅) ^ 1 ≠ 1 := by decide

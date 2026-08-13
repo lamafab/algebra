@@ -16,10 +16,12 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Polynomials](Algebra/Ring/Polynomials.lean): polynomial rings, working over 𝔽₃[X]
     - [RootsInterpolation](Algebra/Ring/RootsInterpolation.lean): the roots bound (Schwartz–Zippel), interpolation, and vanishing polynomials
     - [Ideals](Algebra/Ring/Ideals.lean): ideals, kernels, quotients, and the prime/maximal hierarchy
+    - [Multilinear](Algebra/Ring/Multilinear.lean): multivariate polynomials, the multivariate Schwartz–Zippel bound, and the multilinear extension (MLE) of boolean functions over 𝔽₂
   - [Field](Algebra/Field/)
     - [Galois](Algebra/Field/Galois.lean): finite fields GF(pⁿ) and their structure
     - [QuadraticResidues](Algebra/Field/QuadraticResidues.lean): squares in 𝔽ₚ, Euler's criterion, and the Legendre symbol
     - [RootsOfUnity](Algebra/Field/RootsOfUnity.lean): roots of unity in finite fields, primitive roots, and the connection to cyclic subgroups
+    - [BinaryFields](Algebra/Field/BinaryFields.lean): GF(2) and GF(2ⁿ), boolean gates as polynomials, Freshman's dream, Frobenius, and trace map
 - [Crypto](Crypto/): cryptographic schemes built on the above
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem

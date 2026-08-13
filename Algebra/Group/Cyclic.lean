@@ -55,6 +55,7 @@ example : (3 : 𝔽₅) ^ 3 = 2 := by decide
 example : (3 : 𝔽₅) ^ 4 = 1 := by decide
 
 -- TODO: Note why this is important, resp. why we point this out.
+--
 -- 4 is NOT a generator: 4¹ = 4, 4² = 1, 4³ = 4, 4⁴ = 1, … its powers
 -- oscillate between 1 and 4, so it only generates {1, 4}, not the whole
 -- 𝔽₅ˣ. The order of an element is the smallest k > 0 with gᵏ = 1; here the
