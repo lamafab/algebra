@@ -159,7 +159,17 @@ section MLE
 variable {R : Type*} [CommSemiring R] {n : ℕ}
 
 /-- A polynomial is multilinear: every variable has exponent at most 1 in every
-monomial. -/
+monomial.
+
+For example, take p = x₀²·x₁ + x₁·x₂ over three variables (n=3). Its support
+contains two exponent vectors:
+
+  m₁ = (2, 1, 0)  (for x₀²·x₁)
+  m₂ = (0, 1, 1)  (for x₁·x₂)
+
+The condition ∀ m ∈ p.support, ∀ i, m i ≤ 1 fails because m₁(0)=2 > 1.
+If instead p = x₀·x₁ + x₁·x₂, both exponent vectors are (1,1,0) and (0,1,1),
+every coordinate is ≤ 1, so IsMultilinear holds. -/
 def IsMultilinear (p : MvPolynomial (Fin n) R) : Prop :=
   ∀ m ∈ p.support, ∀ i, m i ≤ 1
 
