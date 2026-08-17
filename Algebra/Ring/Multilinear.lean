@@ -48,6 +48,8 @@ open Finset Fintype
 --   χ₍₁,₀₎ =   x₀ ·(1−x₁)     1 at (1,0), 0 elsewhere
 --   χ₍₁,₁₎ =   x₀ ·  x₁       1 at (1,1), 0 elsewhere
 --
+-- TODO: Move this to section 3?
+--
 -- Evaluating all four at every corner:
 --
 --   (x₀,x₁) │ χ₍₀,₀₎  χ₍₀,₁₎  χ₍₁,₀₎  χ₍₁,₁₎
@@ -482,6 +484,8 @@ end MLEOverBinary
 -- hypercube" to "ANF coefficients" is the Moebius inversion on the boolean
 -- lattice. Over 𝔽₂ the coefficient of χ_S is the sum of the values f(1_T)
 -- over all T ⊆ S, and this reconstructs f.
+--
+-- TODO: Demonstrate a visual example as well.
 
 section SubsetBasis
 variable {n : ℕ}
@@ -534,7 +538,9 @@ theorem eval_bool_subsetMonomial (S : Finset (Fin n)) (w : Fin n → ZMod 2) :
     · exfalso; exact hwi hw
 
 -- The Moebius inversion on the boolean lattice: for any function on subsets,
+--
 --   Σ_{S⊆A} Σ_{T⊆S} f(T) = f(A)   over 𝔽₂.
+--
 -- Each T contributes to exactly the S with T⊆S⊆A, and there are 2^{|A|-|T|}
 -- of those, which is 1 mod 2 only for T = A. The proof goes by induction on
 -- A, splitting the powerset of `insert i A` into the subsets not containing i
