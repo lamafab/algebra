@@ -311,7 +311,13 @@ end MLE
 section MLEOverBinary
 variable {n : ℕ}
 
-/-- The indicator polynomial of a hypercube point v: 1 at v, 0 elsewhere. -/
+/-- The indicator polynomial of a hypercube point v: 1 at v, 0 elsewhere:
+
+  χ₍₀,₀₎ = (1−x₀)·(1−x₁)    1 at (0,0), 0 elsewhere
+  χ₍₀,₁₎ = (1−x₀)·  x₁      1 at (0,1), 0 elsewhere
+  χ₍₁,₀₎ =   x₀ ·(1−x₁)     1 at (1,0), 0 elsewhere
+  χ₍₁,₁₎ =   x₀ ·  x₁       1 at (1,1), 0 elsewhere
+-/
 def mleIndicator (v : Fin n → ZMod 2) : MvPolynomial (Fin n) (ZMod 2) :=
   ∏ i : Fin n, (if v i = 1 then X i else 1 - X i)
 
