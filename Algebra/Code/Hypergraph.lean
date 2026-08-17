@@ -166,7 +166,7 @@ structure SecureHypergraph (k d : ℕ) where
   minDist : ∀ c ∈ code H, c ≠ 0 → d ≤ hammingWeight c
 
 /-- There exist secure hypergraphs for any security parameter k and
-minimum distance d.  This is the LPN assumption. -/
+minimum distance d. This is the LPN assumption. -/
 axiom existsSecureHypergraph (k d : ℕ) : SecureHypergraph k d
 
 -- ============================================================================
@@ -175,7 +175,7 @@ axiom existsSecureHypergraph (k d : ℕ) : SecureHypergraph k d
 --
 -- The parity-check matrix of the [7,4,3] Hamming code
 -- (Algebra/Code/Hamming.lean) defines a 4-uniform hypergraph on 7 vertices
--- with 3 edges.  Its minimum distance is 3 = 2·1+1, so the uniqueness theorem
+-- with 3 edges. Its minimum distance is 3 = 2·1+1, so the uniqueness theorem
 -- holds with t = 1.
 
 section HammingExample

@@ -14,7 +14,7 @@ namespace Hamming
 -- (4 bits of message), d = minimum distance.
 --
 -- Minimum distance d = 3 means any two distinct codewords differ in at least
--- 3 positions.  Equivalently, every nonzero codeword has Hamming weight ≥ 3.
+-- 3 positions. Equivalently, every nonzero codeword has Hamming weight ≥ 3.
 -- This implies the code corrects up to t = ⌊(d−1)/2⌋ = 1 error.
 --
 -- The generator matrix G is in systematic form [I₄ | A]: the first 4
@@ -29,7 +29,7 @@ def G : Matrix (Fin 4) (Fin 7) (ZMod 2) :=
      0, 0, 1, 0, 1, 1, 1;
      0, 0, 0, 1, 1, 0, 1]
 
-/-- Parity-check matrix H = [Aᵀ | I₃].  Every codeword w satisfies w·Hᵀ = 0. -/
+/-- Parity-check matrix H = [Aᵀ | I₃]. Every codeword w satisfies w·Hᵀ = 0. -/
 def H : Matrix (Fin 3) (Fin 7) (ZMod 2) :=
   !![1, 0, 1, 1, 1, 0, 0;
      1, 1, 1, 0, 0, 1, 0;
@@ -83,7 +83,7 @@ example : syndrome (errorVec 5) = ![0, 1, 0] := by
 -- ============================================================================
 --
 -- The syndrome of a received word w = c + eⱼ (codeword + single error at j)
--- is column j of H.  So the syndrome directly names the error position.
+-- is column j of H. So the syndrome directly names the error position.
 
 /-- Syndrome decoding: match the syndrome to a column of H to find the error,
 flip that bit, then extract the first 4 coordinates (the message). -/

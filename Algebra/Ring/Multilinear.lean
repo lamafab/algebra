@@ -18,7 +18,7 @@ open Finset Fintype
 -- ============================================================================
 --
 -- This file extends the univariate polynomial facts from
--- RootsInterpolation.lean to the multivariate setting.  The main goal is the
+-- RootsInterpolation.lean to the multivariate setting. The main goal is the
 -- Multilinear Extension (MLE): given a function f : {0,1}ⁿ → R, there is a
 -- unique multilinear polynomial matching f on the boolean hypercube.
 --
@@ -93,7 +93,7 @@ example (p : MvPolynomial (Fin n) R) (hp : p ≠ 0) :
   simpa [hypercube] using schwartz_zippel_totalDegree hp ({0, 1} : Finset R)
 
 -- If totalDegree(p) = 1 then the fraction of hypercube points where p
--- vanishes is at most 1/2.  This is the soundness guarantee of one
+-- vanishes is at most 1/2. This is the soundness guarantee of one
 -- sumcheck round: when the prover pretends p is nonzero but p is in fact
 -- zero at too many points, the verifier's random challenge catches it
 -- with probability > 1/2.
@@ -110,8 +110,8 @@ end SchwartzZippel
 -- ============================================================================
 --
 -- A polynomial is multilinear if every variable appears with exponent at most
--- 1 in every monomial.  On the boolean hypercube {0,1}ⁿ such a polynomial is
--- pinned down by its 2ⁿ values.  Conversely, every function f : {0,1}ⁿ → R
+-- 1 in every monomial. On the boolean hypercube {0,1}ⁿ such a polynomial is
+-- pinned down by its 2ⁿ values. Conversely, every function f : {0,1}ⁿ → R
 -- extends to a multilinear polynomial, the Multilinear Extension (MLE), built
 -- here over 𝔽₂ from the indicator polynomials χᵥ that are 1 at a single
 -- hypercube point and 0 elsewhere.
@@ -402,10 +402,10 @@ end MLEOverBinary
 -- ============================================================================
 --
 -- The subset monomials χ_S = ∏_{i∈S} x_i form a basis for the space of
--- multilinear polynomials.  Evaluating χ_S at the characteristic vector of T
+-- multilinear polynomials. Evaluating χ_S at the characteristic vector of T
 -- gives 1 exactly when S ⊆ T, so the change of basis from "values on the
 -- hypercube" to "ANF coefficients" is the Moebius inversion on the boolean
--- lattice.  Over 𝔽₂ the coefficient of χ_S is the sum of the values f(1_T)
+-- lattice. Over 𝔽₂ the coefficient of χ_S is the sum of the values f(1_T)
 -- over all T ⊆ S, and this reconstructs f.
 
 section SubsetBasis
@@ -461,7 +461,7 @@ theorem eval_bool_subsetMonomial (S : Finset (Fin n)) (w : Fin n → ZMod 2) :
 -- The Moebius inversion on the boolean lattice: for any function on subsets,
 --   Σ_{S⊆A} Σ_{T⊆S} f(T) = f(A)   over 𝔽₂.
 -- Each T contributes to exactly the S with T⊆S⊆A, and there are 2^{|A|-|T|}
--- of those, which is 1 mod 2 only for T = A.  The proof goes by induction on
+-- of those, which is 1 mod 2 only for T = A. The proof goes by induction on
 -- A, splitting the powerset of `insert i A` into the subsets not containing i
 -- and those containing i, which cancel over 𝔽₂.
 

@@ -82,11 +82,13 @@ example (g : 𝔽₇ˣ) : g ^ Fintype.card 𝔽₇ˣ = 1 := pow_card_eq_one
 -- orders 1, 2, and 4.
 --
 --   * ω = 2 is a primitive 4th root of unity. The set {2⁰, 2¹, 2², 2³}
---     = {1, 2, 4, 3} = 𝔽₅ˣ, so 2 generates the full group
---     (Cyclic.lean §2). Similarly, ω = 3 gives {1, 3, 4, 2} = 𝔽₅ˣ.
+--     = {1, 2, 4, 3} = 𝔽₅ˣ, so 2 generates the full group (Cyclic.lean §2).
+--     Similarly, ω = 3 gives {1, 3, 4, 2} = 𝔽₅ˣ.
+--
 --   * ω = 4 gives {4⁰, 4¹, 4², 4³} = {1, 4, 1, 4} = {1, 4}, a subgroup
---     of order 2.  Here 4² = 1, so 4 is a square root of unity but not a
+--     of order 2. Here 4² = 1, so 4 is a square root of unity but not a
 --     primitive 4th root.
+--
 --   * ω = 1 gives {1⁰, 1¹, 1², 1³} = {1}, the trivial subgroup of order 1.
 
 -- 4 has order 2, not 4: 4¹ ≠ 1 but 4² = 1, so it generates only {1, 4}.

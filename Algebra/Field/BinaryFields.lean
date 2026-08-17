@@ -101,7 +101,7 @@ example : (fun (x y : 𝔽₂) => 1 + x * y) 1 0 = 1 := by decide
 example : (fun (x y : 𝔽₂) => 1 + x * y) 1 1 = 0 := by decide
 
 -- Every boolean function f : {0,1}ⁿ → {0,1} can be written uniquely as a
--- multilinear polynomial over 𝔽₂ (the "algebraic normal form", ANF).  For
+-- multilinear polynomial over 𝔽₂ (the "algebraic normal form", ANF). For
 -- example, the majority function Maj(x,y,z) = xy + yz + xz:
 def majority (x y z : 𝔽₂) : 𝔽₂ := x * y + y * z + x * z
 
@@ -120,8 +120,8 @@ example : majority 1 1 1 = 1 := by decide
 -- ============================================================================
 --
 -- For any n ≥ 1, there exists a unique (up to isomorphism) field GF(2ⁿ) with
--- 2ⁿ elements.  In Mathlib it is constructed as `GaloisField 2 n`, the
--- splitting field of X^{2ⁿ} − X over 𝔽₂.  It is noncomputable (the field is
+-- 2ⁿ elements. In Mathlib it is constructed as `GaloisField 2 n`, the
+-- splitting field of X^{2ⁿ} − X over 𝔽₂. It is noncomputable (the field is
 -- defined by its universal property, not by explicit arithmetic), so we can
 -- prove theorems about it but cannot `dec_trivial` or `native_decide`
 -- element-wise.
@@ -157,7 +157,7 @@ example (n : ℕ) : IsCyclic (Units (GaloisField 2 n)) := by infer_instance
 -- ============================================================================
 --
 -- In characteristic 2, squaring is a ring homomorphism: (x + y)² = x² + y²
--- ("Freshman's dream").  The map x ↦ x² is the Frobenius automorphism.
+-- ("Freshman's dream"). The map x ↦ x² is the Frobenius automorphism.
 
 -- Freshman's dream over 𝔽₂:
 example (x y : 𝔽₂) : (x + y)^2 = x^2 + y^2 :=
@@ -178,7 +178,7 @@ example (F : Type*) [CommRing F] (x y : F) : (x * y)^2 = x^2 * y^2 := by ring
 example (x : GaloisField 2 4) : frobeniusAlgEquiv (ZMod 2) (GaloisField 2 4) 2 x = x^2 := by
   simp
 
--- Its powers generate the Galois group Gal(GF(2ⁿ)/𝔽₂) ≅ ℤ/nℤ.  The k-th
+-- Its powers generate the Galois group Gal(GF(2ⁿ)/𝔽₂) ≅ ℤ/nℤ. The k-th
 -- iterate is x ↦ x^{2ᵏ}.
 example (x : GaloisField 2 4) (k : ℕ) :
     (frobeniusAlgEquiv (ZMod 2) (GaloisField 2 4) 2)^[k] x = x^(2^k) := by
@@ -195,7 +195,7 @@ example (x : GaloisField 2 4) (k : ℕ) :
 #check Algebra.trace (𝔽₂) (GaloisField 2 4)
 
 -- The trace formula for GF(2ⁿ)/𝔽₂: Tr(x) embedded into GF(2ⁿ) equals
--- Σ_{i=0}^{n-1} x^{2ⁱ}.  The actual trace lives in 𝔽₂.
+-- Σ_{i=0}^{n-1} x^{2ⁱ}. The actual trace lives in 𝔽₂.
 -- (The RHS is written as x^(2^i) because Nat.card 𝔽₂ = 2.)
 example (n : ℕ) (x : GaloisField 2 n) :
     algebraMap 𝔽₂ (GaloisField 2 n) (Algebra.trace 𝔽₂ (GaloisField 2 n) x) =
@@ -216,8 +216,8 @@ end
 -- ============================================================================
 --
 -- Binary fields pack neatly into towers: GF(2) ⊂ GF(2²) ⊂ GF(2⁴) ⊂ ... ⊂
--- GF(2^{2ᵏ}).  Each step is a degree-2 extension, built by adjoining a root
--- of t² + t + β for some β in the base field.  This "tower" representation
+-- GF(2^{2ᵏ}). Each step is a degree-2 extension, built by adjoining a root
+-- of t² + t + β for some β in the base field. This "tower" representation
 -- is what makes Binius arithmetic efficient: elements are bit-packed, addition
 -- is XOR of the packed bits, and the Frobenius/trace maps decompose along the
 -- tower.
@@ -241,11 +241,11 @@ example : Nonempty (GaloisField 2 2 →ₐ[𝔽₂] GaloisField 2 4) :=
 --
 -- A boolean circuit on w wires can be represented as an arithmetic circuit
 -- over 𝔽₂: each boolean gate becomes a polynomial, and the circuit output is
--- a multivariate polynomial over 𝔽₂.  Packing w bits into one element of
+-- a multivariate polynomial over 𝔽₂. Packing w bits into one element of
 -- GF(2ʷ) lets the circuit process them in one field operation.
 --
--- The simplest example: a half-adder.  Given bits a, b, the sum is S = a + b
--- (XOR) and the carry is C = a·b (AND).  This is exactly the arithmetic over
+-- The simplest example: a half-adder. Given bits a, b, the sum is S = a + b
+-- (XOR) and the carry is C = a·b (AND). This is exactly the arithmetic over
 -- 𝔽₂.
 
 def halfAdderSum (a b : 𝔽₂) : 𝔽₂ := a + b
