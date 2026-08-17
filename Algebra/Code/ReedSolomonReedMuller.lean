@@ -21,8 +21,10 @@ noncomputable section
 -- typically an affine subspace L ⊆ GF(2ᵏ) (an 𝔽₂-coset of a linear subspace),
 -- so that folding (via the trace map) halves the dimension each round.
 --
+-- TODO: FRI => Fast Reed-Solomon Interactive
+--
 -- Reed-Muller (RM) codes evaluate multivariate polynomials of bounded total
--- degree on the entire boolean hypercube 𝔽₂ᵐ.  They are the natural codes
+-- degree on the entire boolean hypercube 𝔽₂ᵐ. They are the natural codes
 -- for multilinear extensions and sumcheck.
 --
 -- Prerequisites: BinaryFields.lean for GF(2ᵏ); Multilinear.lean for the
@@ -44,9 +46,11 @@ instance : Fact (Nat.Prime 2) := ⟨by norm_num⟩
 --
 -- Because a nonzero polynomial of degree < d has at most d−1 roots in any
 -- field, two distinct such polynomials agree on at most d−1 points of L.
--- Therefore RS[L, d] has minimum distance |L| − d + 1.  The injectivity
+-- Therefore RS[L, d] has minimum distance |L| − d + 1. The injectivity
 -- theorem below is the case where the number of agreeing points is |L|;
 -- the min-distance bound sharpens it.
+--
+-- TODO: Worth referencing `Algebra/Ring/RootsInterpolation.lean`
 
 section ReedSolomon
 variable {k d : ℕ}
