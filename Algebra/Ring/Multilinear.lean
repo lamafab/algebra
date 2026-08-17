@@ -17,10 +17,21 @@ open Finset Fintype
 -- Multivariate Polynomials and the Boolean Hypercube
 -- ============================================================================
 --
--- This file extends the univariate polynomial facts from
--- RootsInterpolation.lean to the multivariate setting. The main goal is the
--- Multilinear Extension (MLE): given a function f : {0,1}ⁿ → R, there is a
--- unique multilinear polynomial matching f on the boolean hypercube.
+-- This file extends the univariate polynomial facts from RootsInterpolation.lean
+-- to the multivariate setting. The main goal is the Multilinear Extension (MLE):
+-- given a function f : {0,1}ⁿ → R, there is a unique multilinear polynomial
+-- matching f on the boolean hypercube.
+--
+-- Visual example for n = 2: the boolean hypercube {0,1}² has four points:
+--
+--   (0,0),   (0,1),   (1,0),   (1,1)
+--
+-- They form the corners of a square in the plane, where x₀ is the horizontal
+-- coordinate and x₁ the vertical coordinate. If f is the AND gate, meaning
+-- f(0,0) = f(0,1) = f(1,0) = 0, and f(1,1) = 1, then the unique multilinear
+-- polynomial extending it to all of R² is p(x₀,x₁) = x₀·x₁. The indicator
+-- polynomials χᵥ that are 1 at a single corner v and 0 elsewhere are products
+-- of (xᵢ) and (1−xᵢ) depending on whether vᵢ = 1 or 0 respectively.
 --
 -- Prerequisites: RootsInterpolation.lean for the univariate roots bound;
 -- BinaryFields.lean for the connection between boolean functions and 𝔽₂
