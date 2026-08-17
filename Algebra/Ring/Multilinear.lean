@@ -31,7 +31,15 @@ open Finset Fintype
 -- f(0,0) = f(0,1) = f(1,0) = 0, and f(1,1) = 1, then the unique multilinear
 -- polynomial extending it to all of R² is p(x₀,x₁) = x₀·x₁. The indicator
 -- polynomials χᵥ that are 1 at a single corner v and 0 elsewhere are products
--- of (xᵢ) and (1−xᵢ) depending on whether vᵢ = 1 or 0 respectively.
+-- of (xᵢ) and (1−xᵢ) depending on whether vᵢ = 1 or 0 respectively. For n = 2:
+--
+--   χ₍₀,₀₎ = (1−x₀)·(1−x₁)    1 at (0,0), 0 elsewhere
+--   χ₍₀,₁₎ = (1−x₀)·  x₁      1 at (0,1), 0 elsewhere
+--   χ₍₁,₀₎ =   x₀  ·(1−x₁)    1 at (1,0), 0 elsewhere
+--   χ₍₁,₁₎ =   x₀  ·  x₁      1 at (1,1), 0 elsewhere
+--
+-- Every function f on {0,1}² is then the linear combination
+-- f = Σᵥ f(v)·χᵥ, which gives the MLE.
 --
 -- Prerequisites: RootsInterpolation.lean for the univariate roots bound;
 -- BinaryFields.lean for the connection between boolean functions and 𝔽₂
