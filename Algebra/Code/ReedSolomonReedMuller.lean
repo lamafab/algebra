@@ -92,7 +92,7 @@ end ReedSolomon
 --   Minimum distance = 2^{m-r}
 --
 -- For the minimum distance: a nonzero polynomial of total degree ≤ r vanishes
--- on at most 2ᵐ − 2^{m-r} hypercube points.  The proof uses the standard
+-- on at most 2ᵐ − 2^{m-r} hypercube points. The proof uses the standard
 -- induction RM(r,m) ≅ RM(r,m-1) + xₘ · RM(r-1,m-1).
 
 section ReedMuller
