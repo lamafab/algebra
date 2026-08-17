@@ -11,6 +11,8 @@ open scoped BigOperators
 open MvPolynomial
 open Finset Fintype
 
+-- TODO: This file needs to be refined; it's too complicated.
+
 -- ============================================================================
 -- Multivariate Polynomials and the Boolean Hypercube
 -- ============================================================================
