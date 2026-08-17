@@ -29,9 +29,19 @@ open Finset Fintype
 -- They form the corners of a square in the plane, where x₀ is the horizontal
 -- coordinate and x₁ the vertical coordinate. If f is the AND gate, meaning
 -- f(0,0) = f(0,1) = f(1,0) = 0, and f(1,1) = 1, then the unique multilinear
--- polynomial extending it to all of R² is p(x₀,x₁) = x₀·x₁. The indicator
--- polynomials χᵥ that are 1 at a single corner v and 0 elsewhere are products
--- of (xᵢ) and (1−xᵢ) depending on whether vᵢ = 1 or 0 respectively. For n = 2:
+-- polynomial extending it to all of R² is p(x₀,x₁) = x₀·x₁. Concretely:
+--
+--   (x₀,x₁) │ x₀·x₁
+--   ────────┼───────
+--   (0, 0)  │  0
+--   (0, 1)  │  0
+--   (1, 0)  │  0
+--   (1, 1)  │  1
+--
+-- That is exactly the AND truth table: the polynomial x₀·x₁ agrees with AND
+-- on all four corner points. The indicator polynomials χᵥ that are 1 at a
+-- single corner v and 0 elsewhere are products of (xᵢ) and (1−xᵢ) depending on
+-- whether vᵢ = 1 or 0 respectively. For n = 2:
 --
 --   χ₍₀,₀₎ = (1−x₀)·(1−x₁)    1 at (0,0), 0 elsewhere
 --   χ₍₀,₁₎ = (1−x₀)·  x₁      1 at (0,1), 0 elsewhere
