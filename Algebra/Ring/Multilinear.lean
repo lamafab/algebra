@@ -77,6 +77,30 @@ noncomputable section
 -- ============================================================================
 -- Section 1: MvPolynomial basics and degree bounds
 -- ============================================================================
+--
+-- A multivariate polynomial in n variables over a ring R is a finite formal
+-- sum Σₘ cₘ·Xᵐ where m = (m₀,...,mₙ₋₁) is an exponent vector in ℕⁿ (only
+-- finitely many are nonzero), cₘ ∈ R is the coefficient, and Xᵐ is the monomial
+-- x₀^{m₀} · ... · xₙ₋₁^{mₙ₋₁}. In Mathlib this is represented by the type
+-- `MvPolynomial (Fin n) R`. For n=3 and R=ℤ, the polynomial
+--
+--   p = 3·x₀²·x₁ + 5·x₂
+--
+-- is stored as two entries in a table (the "support"):
+--
+--   exponent vector  │ coefficient
+--   ─────────────────┼────────────
+--   (2, 1, 0)        │    3
+--   (0, 0, 1)        │    5
+--
+-- The exponent vector (2,1,0) means x₀²·x₁¹·x₂⁰ = x₀²·x₁, and (0,0,1) means
+-- x₂¹.  The remaining infinitely many exponent vectors (all other triples)
+-- have coefficient 0 and are omitted from the support.
+--
+-- The total degree of a monomial is Σᵢ mᵢ, and the total degree of a
+-- polynomial is the maximum total degree among its monomials. The degree
+-- bounds below (product, sum, constants) are the basic tools for reasoning
+-- about polynomial degrees.
 
 section Basics
 variable {σ : Type*} {R : Type*} [CommSemiring R] [Nontrivial R]
