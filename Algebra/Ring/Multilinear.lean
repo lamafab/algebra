@@ -35,11 +35,21 @@ open Finset Fintype
 --
 --   χ₍₀,₀₎ = (1−x₀)·(1−x₁)    1 at (0,0), 0 elsewhere
 --   χ₍₀,₁₎ = (1−x₀)·  x₁      1 at (0,1), 0 elsewhere
---   χ₍₁,₀₎ =   x₀  ·(1−x₁)    1 at (1,0), 0 elsewhere
---   χ₍₁,₁₎ =   x₀  ·  x₁      1 at (1,1), 0 elsewhere
+--   χ₍₁,₀₎ =   x₀ ·(1−x₁)     1 at (1,0), 0 elsewhere
+--   χ₍₁,₁₎ =   x₀ ·  x₁       1 at (1,1), 0 elsewhere
 --
--- Every function f on {0,1}² is then the linear combination
--- f = Σᵥ f(v)·χᵥ, which gives the MLE.
+-- Evaluating all four at every corner:
+--
+--   (x₀,x₁) │ χ₍₀,₀₎  χ₍₀,₁₎  χ₍₁,₀₎  χ₍₁,₁₎
+--   ────────┼───────────────────────────
+--   (0, 0)  │   1      0      0      0
+--   (0, 1)  │   0      1      0      0
+--   (1, 0)  │   0      0      1      0
+--   (1, 1)  │   0      0      0      1
+--
+-- Each column acts like a "one-hot" basis vector: exactly one entry is 1 and
+-- the rest are 0. Every function f on {0,1}² can then be written as the
+-- linear combination f = Σᵥ f(v)·χᵥ, which gives the MLE.
 --
 -- Prerequisites: RootsInterpolation.lean for the univariate roots bound;
 -- BinaryFields.lean for the connection between boolean functions and 𝔽₂
