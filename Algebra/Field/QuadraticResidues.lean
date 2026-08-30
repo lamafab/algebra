@@ -105,7 +105,7 @@ example : (Finset.univ.filter (fun x : 𝔽₇ => IsSquare x)).card = 4 := by de
 -- sq : 𝔽ₚˣ → 𝔽ₚˣ is a group hom, meaning it respects · but not +, so its
 -- kernel is a multiplicative subgroup of 𝔽ₚˣ, not an ideal.
 
--- Sanity: sq does not preserve addition.  sq(1+1) = 4 ≠ 2 = sq(1) + sq(1).
+-- Sanity: sq does not preserve addition. sq(1+1) = 4 ≠ 2 = sq(1) + sq(1).
 example : ((1 : 𝔽₅) + 1) ^ 2 ≠ (1 : 𝔽₅) ^ 2 + (1 : 𝔽₅) ^ 2 := by decide
 
 -- And {1, -1} fails every ideal axiom of 𝔽₅: it doesn't contain 0, isn't
