@@ -145,7 +145,7 @@ end McEliece
 --
 -- The code theory is developed in Algebra/Code/Hamming.lean; here we repeat
 -- just what the scheme needs (generator, parity-check matrix, syndrome
--- decoder) to wire it into the McEliece scheme.  Correctness is checked
+-- decoder) to wire it into the McEliece scheme. Correctness is checked
 -- exhaustively by native_decide.
 
 namespace McEliece.Example
