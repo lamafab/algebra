@@ -75,8 +75,9 @@ example : (0 : 𝔽₃) ^ (3-1) = 0 := by decide
 example : (1 : 𝔽₃) ^ (3-1) = 1 := by decide
 example : (2 : 𝔽₃) ^ (3-1) = 1 := by decide
 
--- In any finite group, g^|G| = 1 (Lagrange theorem). The nonzero
--- elements form 𝔽₃ˣ of order p-1 = 2.
+-- TODO: This should be moved to the Group/ directory(?)
+--
+-- In any finite group, a^|G| = 1 (Lagrange theorem).
 example (g : 𝔽₃ˣ) : g ^ Fintype.card 𝔽₃ˣ = 1 := pow_card_eq_one
 
 -- The general statement from Mathlib:
