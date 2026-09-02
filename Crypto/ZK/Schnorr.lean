@@ -15,7 +15,7 @@ import Mathlib.Tactic
 --   response   prover sends z = k + c·w (mod q)
 --   verify     accept iff g^z = R · A^c
 --
--- The three defining properties are proved separately (zk_todo.md, step 2):
+-- The three defining properties are proved separately:
 --
 --   §2 completeness        honest runs always accept; one pow_add/pow_mul
 --                          identity, the same shape as dh_correctness
