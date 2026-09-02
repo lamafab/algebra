@@ -31,6 +31,9 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [McEliece](Crypto/McEliece.lean): code-based encryption; scrambling by S·G·P, decryption correctness from a decoder hypothesis, and a fully executable [7,4,3] Hamming code instance
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
+    - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
+    - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, and Merkle paths with verified openings
+    - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
 
 ## Build
 
