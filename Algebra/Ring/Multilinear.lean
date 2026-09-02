@@ -18,7 +18,7 @@ open Finset Fintype
 -- This file extends the univariate polynomial facts from RootsInterpolation.lean
 -- to the multivariate setting. The main goal is the Multilinear Extension (MLE):
 -- given a function f : {0,1}ⁿ → R, there is a unique multilinear polynomial
--- matching f on the boolean hypercube.
+-- (every variable has exponent at most 1) matching f on the boolean hypercube.
 --
 -- Visual example for n = 2: the boolean hypercube {0,1}² has four points:
 --
@@ -43,17 +43,17 @@ open Finset Fintype
 --
 --   χ₍₀,₀₎ = (1−x₀)·(1−x₁)    1 at (0,0), 0 elsewhere
 --   χ₍₀,₁₎ = (1−x₀)·  x₁      1 at (0,1), 0 elsewhere
---   χ₍₁,₀₎ =   x₀ ·(1−x₁)     1 at (1,0), 0 elsewhere
---   χ₍₁,₁₎ =   x₀ ·  x₁       1 at (1,1), 0 elsewhere
+--   χ₍₁,₀₎ =   x₀  ·(1−x₁)    1 at (1,0), 0 elsewhere
+--   χ₍₁,₁₎ =   x₀  ·  x₁      1 at (1,1), 0 elsewhere
 --
 -- Evaluating all four at every corner:
 --
 --   (x₀,x₁) │ χ₍₀,₀₎  χ₍₀,₁₎  χ₍₁,₀₎  χ₍₁,₁₎
---   ────────┼───────────────────────────
---   (0, 0)  │   1      0      0      0
---   (0, 1)  │   0      1      0      0
---   (1, 0)  │   0      0      1      0
---   (1, 1)  │   0      0      0      1
+--   ────────┼───────────────────────────────
+--   (0, 0)  │   1       0       0       0
+--   (0, 1)  │   0       1       0       0
+--   (1, 0)  │   0       0       1       0
+--   (1, 1)  │   0       0       0       1
 --
 -- Each column acts like a "one-hot" basis vector: exactly one entry is 1 and
 -- the rest are 0. Every function f on {0,1}² can then be written as the
@@ -125,8 +125,6 @@ end Basics
 -- ============================================================================
 -- Section 2: Multivariate Schwartz-Zippel
 -- ============================================================================
-
--- TODO: Should we mention sumcheck here?
 
 section SchwartzZippel
 variable {R : Type*} [CommRing R] [IsDomain R] [DecidableEq R] {n : ℕ}
@@ -477,7 +475,23 @@ theorem eval_mleIndicator (v w : Fin n → ZMod 2) :
         · exact hw
       simp [hvi0, hw1]
 
-/-- The multilinear extension of f. -/
+/-- The multilinear extension of f: the unique multilinear polynomial that
+agrees with f on every hypercube point. It is the sum over hypercube points v
+of f(v) times the indicator χᵥ (1 at v, 0 elsewhere).
+
+For n = 2 and the AND function with table f(0,0)=f(0,1)=f(1,0)=0, f(1,1)=1,
+each indicator term vanishes at every corner except one, so the sum collapses
+to the single surviving term x₀·x₁:
+
+  (x₀,x₁) │ χ₍₀,₀₎ + χ₍₀,₁₎ + χ₍₁,₀₎ + χ₍₁,₁₎  sum
+  ────────┼──────────────────────────────────  ─────
+  (0, 0)  │ 0·1    + 0·0    + 0·0    + 1·0     = 0
+  (0, 1)  │ 0·0    + 0·1    + 0·0    + 1·0     = 0
+  (1, 0)  │ 0·0    + 0·0    + 0·1    + 1·0     = 0
+  (1, 1)  │ 0·0    + 0·0    + 0·0    + 1·1     = 1
+
+Only the (1,1) indicator survives, giving mle(f) = χ₍₁,₁₎ = x₀·x₁. This precisely
+replicates the AND truth table as demonstrated in the header-/
 def mle (f : (Fin n → ZMod 2) → ZMod 2) : MvPolynomial (Fin n) (ZMod 2) :=
   ∑ v : Fin n → ZMod 2, C (f v) * mleIndicator v
 
