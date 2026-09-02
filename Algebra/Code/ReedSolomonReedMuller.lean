@@ -67,9 +67,16 @@ def rsCode (L : Finset (GaloisField 2 k)) (d : ℕ) : Set (L → GaloisField 2 k
 
 /-- The encoding is injective when the degree bound does not exceed |L|.
 Two distinct polynomials of degree < d cannot agree on all |L| points. -/
-theorem rsEncode_injective (L : Finset (GaloisField 2 k)) (d : ℕ) (hd : d ≤ L.card)
-    (p q : Polynomial (GaloisField 2 k)) (hp : p.natDegree < d) (hq : q.natDegree < d)
-    (h : rsEncode L p = rsEncode L q) : p = q := by
+theorem rsEncode_injective
+    (L : Finset (GaloisField 2 k))
+    (d : ℕ)
+    (hd : d ≤ L.card)
+    (p q : Polynomial (GaloisField 2 k))
+    (hp : p.natDegree < d)
+    (hq : q.natDegree < d)
+    (h : rsEncode L p = rsEncode L q)
+  :
+    p = q := by
   have hmax : max p.natDegree q.natDegree < L.card := by
     have hmax' : max p.natDegree q.natDegree < d := max_lt hp hq
     exact lt_of_lt_of_le hmax' hd
