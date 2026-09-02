@@ -221,6 +221,9 @@ end
 -- GF(2^{2ᵏ}) fields form a tower: each level is degree 2 over the previous.
 -- This is how Binius bit-packs elements and decomposes Frobenius/trace along
 -- the tower; see also `Multilinear.lean` for the multilinear side.
+--
+-- TODO: Generalize this section more broadly; Binius should only be referenced
+-- briefly.
 
 -- Subfield embedding: GF(2²) ⊂ GF(2⁴) because 2 ∣ 4.
 example : Nonempty (GaloisField 2 2 →ₐ[𝔽₂] GaloisField 2 4) :=
