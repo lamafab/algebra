@@ -65,6 +65,12 @@ noncomputable section
 --
 -- The verifier checks g₀(0) + g₀(1) = 0 + 1 = 1 = C. After sampling r₀ = 0,
 -- round 2 reduces to the single evaluation p(0,1) = 0.
+--
+-- TODO: Make it more explicit that the verifier actually receives the full
+-- gₙ polynomial during the rounds, not just the resulting value.
+--
+-- TODO: Note that sumchecks verifies knowledge of the truth tables (ie. program
+-- behavior), not actual execution/state-transition.
 
 section TwoRounds
 
@@ -80,10 +86,8 @@ example : ∑ v : Fin 2 → ZMod 2, MvPolynomial.eval v (mle andCircuit) = 1 := 
 -- Round 1. The prover sends the univariate claim
 --   g₀(t) = Σ_{(t, x₁) ∈ {0,1}²} p(t, x₁).
 --
--- The verifier checks g₀(0) + g₀(1) equals the previous claim. In the form of
+-- The verifier checks g₀(0) + g₀(1) equals the initial claim. In the form of
 -- partial sums over first-coordinate slices, that is exactly this equality.
---
--- NOTE that at this point nothing prevents the prover from lying.
 example :
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 0}, MvPolynomial.eval v.1 (mle andCircuit)) +
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, MvPolynomial.eval v.1 (mle andCircuit))
@@ -109,6 +113,8 @@ example :
 -- The verifier samples r₁ = 1 and asks for the value p(0, 1) directly (via
 -- the polynomial commitment, BinaryFRI.lean). It equals 0, matching g₁(1),
 -- so the verifier accepts.
+--
+-- TODO: Consider adding a tree for visual clarity.
 example : MvPolynomial.eval ![0, 1] (mle andCircuit) = 0 := by
   rw [eval_mle]
   decide
