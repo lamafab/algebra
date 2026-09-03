@@ -17,11 +17,10 @@ noncomputable section
 -- ============================================================================
 --
 -- Reed-Solomon (RS) codes evaluate univariate polynomials of bounded degree
--- on a finite subset of GF(2ᵏ). For binary FRI the evaluation domain is
--- typically an affine subspace L ⊆ GF(2ᵏ) (an 𝔽₂-coset of a linear subspace),
--- so that folding (via the trace map) halves the dimension each round.
---
--- TODO: FRI => Fast Reed-Solomon Interactive
+-- on a finite subset of GF(2ᵏ). For binary FRI (Fast Reed-Solomon Interactive
+-- Oracle Proofs of Proximity) the evaluation domain is typically an affine
+-- subspace L ⊆ GF(2ᵏ) (an 𝔽₂-coset of a linear subspace), so that folding
+-- (via the trace map) halves the dimension each round.
 --
 -- Reed-Muller (RM) codes evaluate multivariate polynomials of bounded total
 -- degree on the entire boolean hypercube 𝔽₂ᵐ. They are the natural codes
@@ -45,12 +44,26 @@ instance : Fact (Nat.Prime 2) := ⟨by norm_num⟩
 -- the vector (p(α))_{α∈L} ∈ (GF(2ᵏ))^L.
 --
 -- Because a nonzero polynomial of degree < d has at most d−1 roots in any
--- field, two distinct such polynomials agree on at most d−1 points of L.
--- Therefore RS[L, d] has minimum distance |L| − d + 1. The injectivity
--- theorem below is the case where the number of agreeing points is |L|;
--- the min-distance bound sharpens it.
+-- field (RootsInterpolation.lean §1), two distinct such polynomials agree
+-- on at most d−1 points of L. Therefore RS[L, d] has minimum distance
+-- |L| − d + 1, proved as `rs_min_distance` at the end of the section.
+-- The injectivity theorem below is the uniqueness corollary: two codewords
+-- at distance 0 come from the same polynomial.
 --
--- TODO: Worth referencing `RootsInterpolation.lean`
+-- Visual example for k = 2, L = {0, 1, ω, ω+1} ⊆ GF(4), and p(X) = X + 1:
+--
+--   α       │ p(α) = α + 1
+--   ────────┼────────────
+--   0       │   1
+--   1       │   0
+--   ω       │  ω+1
+--   ω+1     │   ω
+--
+-- The codeword is the vector [1, 0, ω+1, ω] ∈ GF(4)⁴. A different polynomial
+-- of degree < 2 would give a different vector on at least one point.
+--
+-- GF(4) has characteristic 2, so x = -x and x ↦ x + 1 swaps the pairs
+-- 0 ↔ 1 and ω ↔ ω+1 in the table (Galois.lean §2).
 
 section ReedSolomon
 variable {k d : ℕ}
@@ -85,6 +98,94 @@ theorem rsEncode_injective
     have hval := congr_fun h ⟨α, hα⟩
     simpa [rsEncode] using hval
   exact Polynomial.eq_of_natDegree_lt_card_of_eval_eq' p q L heval hmax
+
+/-- The set of points of L on which p and q agree. The codewords differ on
+the complement, so their Hamming distance is |L| − |rsAgreement L p q|. -/
+noncomputable def rsAgreement (L : Finset (GaloisField 2 k))
+    (p q : Polynomial (GaloisField 2 k)) : Finset (GaloisField 2 k) := by
+  classical
+  exact L.filter fun α => p.eval α = q.eval α
+
+/-- Agreement bound: distinct polynomials of degree < d agree on at most
+d−1 points of L. Every agreement point is a root of the nonzero difference
+p − q, whose degree is < d. -/
+theorem rs_agreement_card_le
+    (L : Finset (GaloisField 2 k)) (d : ℕ)
+    (p q : Polynomial (GaloisField 2 k))
+    (hp : p.natDegree < d) (hq : q.natDegree < d) (hpq : p ≠ q) :
+    (rsAgreement L p q).card ≤ d - 1 := by
+  classical
+  have hpq' : p - q ≠ 0 := sub_ne_zero.mpr hpq
+  have hsub : rsAgreement L p q ⊆ (p - q).roots.toFinset := by
+    intro α hα
+    rw [rsAgreement, Finset.mem_filter] at hα
+    rw [Multiset.mem_toFinset, mem_roots hpq', IsRoot.def, Polynomial.eval_sub,
+      sub_eq_zero]
+    exact hα.2
+  have hcard : (rsAgreement L p q).card ≤ (p - q).natDegree :=
+    le_trans (le_trans (Finset.card_le_card hsub)
+      (Multiset.toFinset_card_le (p - q).roots)) (card_roots' (p - q))
+  have hdeg : (p - q).natDegree ≤ d - 1 :=
+    le_trans (natDegree_sub_le p q) (max_le (by omega) (by omega))
+  omega
+
+/-- Minimum distance of RS[L, d]: two distinct codewords differ in at least
+|L| − d + 1 positions. The injectivity theorem above is the special case
+"distance 0 implies equal polynomials". -/
+theorem rs_min_distance
+    (L : Finset (GaloisField 2 k)) (d : ℕ) (hd : d ≤ L.card)
+    (p q : Polynomial (GaloisField 2 k))
+    (hp : p.natDegree < d) (hq : q.natDegree < d) (hpq : p ≠ q) :
+    L.card - d + 1 ≤ L.card - (rsAgreement L p q).card := by
+  have h := rs_agreement_card_le L d p q hp hq hpq
+  omega
+
+-- ============================================================================
+-- Walkthrough: encoding, distance, and correction over GF(4)
+-- ============================================================================
+--
+-- TODO: There's some repeated information here from Galois.lean (§2)
+--
+-- In characteristic 2, adding 1 twice returns to the start: x ↦ x + 1 is an
+-- involution, ie. f(f(x)) = x. This is why p(X) = X + 1 in the table pairs
+-- 0 with 1 and ω with ω+1.
+example (x : GaloisField 2 2) : (x + 1) + 1 = x := by
+  have h : (1 + 1 : GaloisField 2 2) = 0 := by
+    have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
+    norm_num at h2 ⊢; exact h2
+  calc (x + 1) + 1 = x + (1 + 1) := by ring
+       _ = x := by rw [h, add_zero]
+
+-- Subtraction is addition: in char 2, x = -x for every x.
+example (x y : GaloisField 2 2) : x - y = x + y := by
+  suffices h : y + y = 0 by
+    calc x - y = x + (y + y) - y := by rw [h, add_zero]
+         _ = x + y := by ring
+  have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
+  calc y + y = 2 * y := by ring
+       _ = 0 := by rw [h2, zero_mul]
+
+-- Encoding a linear polynomial aX + b on any domain L is pointwise a·α + b.
+example (a b : GaloisField 2 2) (L : Finset (GaloisField 2 2)) :
+    rsEncode L (Polynomial.C a * Polynomial.X + Polynomial.C b) =
+      fun α : L => a * (α : GaloisField 2 2) + b := by
+  funext α
+  show (Polynomial.C a * Polynomial.X + Polynomial.C b).eval
+      (α : GaloisField 2 2) = a * (α : GaloisField 2 2) + b
+  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C,
+    Polynomial.eval_X, Polynomial.eval_C]
+
+-- The endpoints of the X + 1 codeword in the table: p(0) = 1, p(1) = 0.
+example :
+    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval 0 = 1 := by
+  simp
+example :
+    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval 1 = 0 := by
+  simp
+  have h : (1 + 1 : GaloisField 2 2) = 0 := by
+    have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
+    norm_num at h2 ⊢; exact h2
+  exact h
 
 end ReedSolomon
 
@@ -136,5 +237,14 @@ example : rmEncode (X (0 : Fin 2) + X 1)
 
 example : rmEncode (X (0 : Fin 2) + X 1) (fun _ : Fin 2 => (1 : ZMod 2)) = (0 : ZMod 2) := by
   simp [rmEncode, one_plus_one_zmod2]
+
+-- The four evaluations above form the codeword of x₀ + x₁: it has weight
+-- 2 = 2^{2−1}, the minimum distance of RM(1, 2). The general distance
+-- formula 2^{m−r} is stated in the section header; its induction on m is
+-- not formalized here. That this codeword lies in the code:
+example : rmEncode (X (0 : Fin 2) + X 1) ∈ rmCode (m := 2) 1 := by
+  refine ⟨X 0 + X 1, ?_, rfl⟩
+  simp only [Set.mem_setOf_eq]
+  exact le_trans (totalDegree_add _ _) (by simp)
 
 end ReedMuller
