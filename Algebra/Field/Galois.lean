@@ -16,7 +16,7 @@ import Mathlib.Tactic
 -- The prime field is the case n = 1: GF(p) = ℤ/pℤ.
 
 -- ============================================================================
--- Section 1: GF(5) — a concrete prime field
+-- Section 1: GF(5), a concrete prime field
 -- ============================================================================
 
 -- In Mathlib, ZMod p is already a field when p is prime.
@@ -49,17 +49,61 @@ instance : IsCyclic 𝔽₃ˣ := inferInstance
 example : Fintype.card 𝔽₃ˣ = 2 := by decide
 
 -- ============================================================================
--- Section 2: Characteristic — the prime "under the hood"
+-- Section 2: Characteristic, the prime "under the hood"
 -- ============================================================================
-
+--
+-- TODO: consider moving some characteristic 2 properties to BinaryFields.lean
+-- instead? There's generally an overlap between this file and binary fields.
+--
+-- TODO: study the orbit structure of translation maps in characteristic p.
+-- For c ≠ 0, x ↦ x + c has order p: iterating gives x + k·c, and k·c = 0 iff
+-- p | k (if k·c = 0 for k < p then k·1 = 0, contradicting minimality of p).
+-- So translations are cycles of length p; char 2 is the case where they are
+-- involutions, which is why binary-field translations pair elements up.
+--
 -- The characteristic of a field is the smallest positive n such that
 -- 1 + 1 + ... + 1 (n times) = 0. For GF(p), that's just p.
+--
+-- Why it must be prime: if a composite n = a·b killed 1 (n·1 = 0), then
+-- (a·1)·(b·1) = 0 with both factors nonzero, a zero divisor. Fields have
+-- none, so the characteristic is prime, or 0 when no such n exists (ℚ).
+-- Prime p avoids this: p = a·b forces a = 1 or b = 1, so one factor is
+-- 1·1 = 1 or p·1 = 0; you never get two nonzero elements multiplying to 0.
+--
+-- Implications:
+--
+-- 1. GF(pⁿ) has characteristic p, not pⁿ. GF(4) has four elements, yet
+--    1 + 1 = 0 already. The characteristic counts additions of 1, it is
+--    not the size of the field.
+--
+-- 2. The relation p·1 = 0 scales to every element:
+--    p·x = x + ... + x = (p·1)·x = 0. In characteristic 2 this reads
+--    x + x = 0, so x = -x and subtraction is addition. This is why
+--    x ↦ x + 1 is its own inverse on GF(4):
+--
+--      x + x = 0 ⟹ 1 + 1 = 0 ⟹ (x + 1) + 1 = x + (1 + 1) = x + 0 = x
+--
+-- 3. The binomial coefficient C(p, i) is divisible by p for 0 < i < p,
+--    so the middle terms of (a + b)ᵖ vanish in characteristic p:
+--    (a + b)ᵖ = aᵖ + bᵖ. Hence x ↦ xᵖ is a ring homomorphism; on a
+--    finite field it is even an automorphism, the Frobenius map of §5.
+--
+--    TODO: expand on this
 
--- In 𝔽₃: 1 + 1 + 1 = 0, but no smaller sum works
+-- In 𝔽₃: 1 + 1 + 1 = 0, but no smaller sum works.
 example : (1 + 1 + 1 : 𝔽₃) = 0 := by decide
 
--- Mathlib knows the characteristic:
+-- Mathlib records the characteristic as the typeclass CharP R p.
 example : CharP (ZMod 5) 5 := ZMod.charP 5
+
+-- (1) GF(4) has characteristic 2, despite having 4 elements.
+example : CharP (GaloisField 2 2) 2 := inferInstance
+
+-- (2) p·x = 0 for every element, not just for 1.
+example (x : 𝔽₃) : x + x + x = 0 := by fin_cases x <;> decide
+
+-- (3) The freshman's dream: p-th powers split over sums.
+example (a b : 𝔽₃) : (a + b) ^ 3 = a ^ 3 + b ^ 3 := add_pow_char a b 3
 
 -- ============================================================================
 -- Section 3: Fermat's little theorem in GF(p)
