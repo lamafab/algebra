@@ -143,11 +143,37 @@ example (n : ℕ) : Finite (GaloisField 2 n) := by
 -- theorem).
 #check FiniteField.pow_card
 
--- The multiplicative group GF(2ⁿ)ˣ is cyclic of order 2ⁿ − 1 (odd; there
--- are NO 2-power roots of unity in the multiplicative group).
---
--- TODO: Clarify, and reference `RootsOfUnity.lean`
+-- The multiplicative group GF(2ⁿ)ˣ is cyclic of order 2ⁿ − 1, which is odd.
 example (n : ℕ) : IsCyclic (Units (GaloisField 2 n)) := by infer_instance
+
+-- TODO: Generalize this a little more; context is too Binary-FRI heavy.
+--
+-- Oddness forces 1 to be the only 2-power root of unity in GF(2ⁿ). A 2ʳ-th
+-- root of unity has order dividing 2ʳ (Cyclic.lean §2), so its order is a power
+-- of 2; but Lagrange (RootsOfUnity.lean §2) forces the order to divide 2ⁿ − 1,
+-- and a power of 2 dividing an odd number is 1. Equivalently, in characteristic
+-- 2 the freshman's dream (§4) gives x^{2ʳ} − 1 = (x − 1)^{2ʳ}, so X^{2ʳ} − 1
+-- has the single root 1 with full multiplicity.
+--
+-- TODO: Explain multiplicity.
+--
+-- Consequence: squaring is a bijection on GF(2ⁿ)ˣ and never halves a
+-- multiplicative subgroup. BinaryFRI.lean folds additively for this reason.
+--
+-- Formally, in any characteristic-2 field, by induction on r. The squaring
+-- step uses y² = 1 → y ∈ {1, −1}, and −1 = 1 in characteristic 2.
+example (F : Type*) [Field F] [CharP F 2] (x : F) (r : ℕ)
+    (h : x ^ (2 ^ r) = 1) : x = 1 := by
+  induction r generalizing x with
+  | zero => simpa using h
+  | succ r ih =>
+    have hs : (x ^ (2 ^ r)) ^ 2 = 1 := by
+      rw [← pow_mul, ← pow_succ]
+      exact h
+    rcases sq_eq_one_iff.mp hs with h1 | h1
+    · exact ih _ h1
+    · rw [CharTwo.neg_eq] at h1
+      exact ih _ h1
 
 -- Unique: any two finite fields of the same order are isomorphic.
 #check @FiniteField.algEquivOfCardEq
