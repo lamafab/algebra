@@ -12,6 +12,11 @@ open Finset
 
 noncomputable section
 
+-- TODO: This entire file needs to be reworked; it's too messy and all over the
+-- place. Additionally, more visual demonstrations should be used.
+
+-- TODO: More substance on error recovery and efficient decoding.
+
 -- ============================================================================
 -- Reed-Solomon and Reed-Muller codes over binary fields
 -- ============================================================================
@@ -141,14 +146,16 @@ theorem rs_min_distance
   omega
 
 -- ============================================================================
--- Walkthrough: encoding, distance, and correction over GF(4)
+-- Walkthrough: encode, corrupt, observe over GF(4)
 -- ============================================================================
 --
--- TODO: There's some repeated information here from Galois.lean (§2)
---
--- In characteristic 2, adding 1 twice returns to the start: x ↦ x + 1 is an
--- involution, ie. f(f(x)) = x. This is why p(X) = X + 1 in the table pairs
--- 0 with 1 and ω with ω+1.
+-- `GaloisField` carries no DecidableEq instance in Mathlib, so unlike
+-- Hamming.lean nothing here is computed by `decide`; each step is proved
+-- from the field axioms. The two char-2 facts below are the tools the
+-- later steps use. The message polynomial is p(X) = X + 1.
+
+-- Tool 1: in characteristic 2, adding 1 twice returns to the start. This is
+-- why the codeword of X + 1 pairs 0 with 1 and ω with ω+1.
 example (x : GaloisField 2 2) : (x + 1) + 1 = x := by
   have h : (1 + 1 : GaloisField 2 2) = 0 := by
     have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
@@ -156,7 +163,8 @@ example (x : GaloisField 2 2) : (x + 1) + 1 = x := by
   calc (x + 1) + 1 = x + (1 + 1) := by ring
        _ = x := by rw [h, add_zero]
 
--- Subtraction is addition: in char 2, x = -x for every x.
+-- Tool 2: subtraction is addition, so a received word minus the codeword is
+-- their sum.
 example (x y : GaloisField 2 2) : x - y = x + y := by
   suffices h : y + y = 0 by
     calc x - y = x + (y + y) - y := by rw [h, add_zero]
@@ -165,27 +173,26 @@ example (x y : GaloisField 2 2) : x - y = x + y := by
   calc y + y = 2 * y := by ring
        _ = 0 := by rw [h2, zero_mul]
 
--- Encoding a linear polynomial aX + b on any domain L is pointwise a·α + b.
-example (a b : GaloisField 2 2) (L : Finset (GaloisField 2 2)) :
-    rsEncode L (Polynomial.C a * Polynomial.X + Polynomial.C b) =
-      fun α : L => a * (α : GaloisField 2 2) + b := by
+-- Encode: on any domain L the codeword of X + 1 is the pointwise map α ↦ α+1.
+example (L : Finset (GaloisField 2 2)) :
+    rsEncode L (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1) =
+      fun α : L => (α : GaloisField 2 2) + 1 := by
   funext α
-  show (Polynomial.C a * Polynomial.X + Polynomial.C b).eval
-      (α : GaloisField 2 2) = a * (α : GaloisField 2 2) + b
-  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C,
-    Polynomial.eval_X, Polynomial.eval_C]
+  show (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
+      (α : GaloisField 2 2) = (α : GaloisField 2 2) + 1
+  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_X]
+  simp
 
--- The endpoints of the X + 1 codeword in the table: p(0) = 1, p(1) = 0.
-example :
-    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval 0 = 1 := by
+-- Two entries of the codeword: p(0) = 1 and p(1) = 0.
+example : (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
+    (0 : GaloisField 2 2) = 1 := by
   simp
-example :
-    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval 1 = 0 := by
+
+example : (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
+    (1 : GaloisField 2 2) = 0 := by
   simp
-  have h : (1 + 1 : GaloisField 2 2) = 0 := by
-    have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
-    norm_num at h2 ⊢; exact h2
-  exact h
+  have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
+  norm_num at h2 ⊢; exact h2
 
 end ReedSolomon
 
@@ -193,8 +200,9 @@ end ReedSolomon
 -- Section 2: Reed-Muller codes over 𝔽₂
 -- ============================================================================
 --
--- Reed-Muller code RM(r, m) ⊆ 𝔽₂^{𝔽₂ᵐ}: evaluate multivariate polynomials of
--- total degree ≤ r on the entire boolean hypercube 𝔽₂ᵐ.
+-- Reed-Muller code RM(r, m) ⊆ 𝔽₂^{𝔽₂ᵐ}, ie. f: 𝔽₂ᵐ → 𝔽₂. It evaluates
+-- multivariate polynomials of total degree ≤ r on the entire boolean hypercube
+-- 𝔽₂ᵐ.
 --
 --   Dimension = Σ_{i=0}^{r} C(m, i)
 --   Minimum distance = 2^{m-r}
