@@ -63,6 +63,35 @@ example : (3 : 𝔽₅) ^ 4 = 1 := by decide
 example : (4 : 𝔽₅) ^ 1 ≠ 1 := by decide
 example : (4 : 𝔽₅) ^ 2 = 1 := by decide
 
+-- TODO: This should be in a Group.lean file, with "order" in the context
+-- of an element properly defined. Don't forget to update the reference in
+-- file Algebra.Group.Cyclic, then.
+--
+-- If gᵐ = 1 for some m, then the order of g divides m. g is an m-th root of
+-- unity (RootsOfUnity.lean) for every multiple m of its order.
+--
+-- 4 has order 2: 4² = 1 gives orderOf 4 ∣ 2, and 4¹ ≠ 1 rules out order 1.
+example : orderOf (4 : 𝔽₅) = 2 := by
+  have h : orderOf (4 : 𝔽₅) ∣ 2 :=
+    orderOf_dvd_of_pow_eq_one (by decide : (4 : 𝔽₅) ^ 2 = 1)
+  rcases (Nat.dvd_prime Nat.prime_two).mp h with h1 | h1
+  · rw [orderOf_eq_one_iff] at h1
+    exact absurd h1 (by decide : (4 : 𝔽₅) ≠ 1)
+  · exact h1
+
+-- 4² = 1, so the order divides 2:
+example : orderOf (4 : 𝔽₅) ∣ 2 :=
+  orderOf_dvd_of_pow_eq_one (by decide : (4 : 𝔽₅) ^ 2 = 1)
+
+-- Also 4⁴ = 1, so the order divides 4; but 2 ≠ 4. Root of unity ≠ primitive.
+example : orderOf (4 : 𝔽₅) ∣ 4 :=
+  orderOf_dvd_of_pow_eq_one (by decide : (4 : 𝔽₅) ^ 4 = 1)
+
+-- Lagrange (g^|G| = 1) becomes a divisibility statement: the order of every
+-- element divides the group order. Here |𝔽₅ˣ| = 4 and 2 ∣ 4.
+example : orderOf (4 : 𝔽₅) ∣ Fintype.card 𝔽₅ˣ :=
+  orderOf_dvd_of_pow_eq_one (n := 4) (by decide : (4 : 𝔽₅) ^ 4 = 1)
+
 -- ============================================================================
 -- Section 3: Key properties of cyclic groups
 -- ============================================================================
