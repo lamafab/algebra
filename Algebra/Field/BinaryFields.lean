@@ -153,9 +153,7 @@ example (n : ℕ) : IsCyclic (Units (GaloisField 2 n)) := by infer_instance
 -- of 2; but Lagrange (RootsOfUnity.lean §2) forces the order to divide 2ⁿ − 1,
 -- and a power of 2 dividing an odd number is 1. Equivalently, in characteristic
 -- 2 the freshman's dream (§4) gives x^{2ʳ} − 1 = (x − 1)^{2ʳ}, so X^{2ʳ} − 1
--- has the single root 1 with full multiplicity.
---
--- TODO: Explain multiplicity.
+-- has the single root 1 with full multiplicity (Multiplicity.lean §4).
 --
 -- Consequence: squaring is a bijection on GF(2ⁿ)ˣ and never halves a
 -- multiplicative subgroup. BinaryFRI.lean folds additively for this reason.
