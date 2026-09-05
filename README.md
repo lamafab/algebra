@@ -16,6 +16,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [Ring](Algebra/Ring/)
     - [Polynomials](Algebra/Ring/Polynomials.lean): polynomial rings, working over 𝔽₃[X]
     - [RootsInterpolation](Algebra/Ring/RootsInterpolation.lean): the roots bound (Schwartz–Zippel), interpolation, and vanishing polynomials
+    - [Multiplicity](Algebra/Ring/Multiplicity.lean): multiplicity of a root, the degree budget counted with multiplicity, the derivative test for repeated roots, and the characteristic-2 collapse (X − 1)²ʳ = X²ʳ − 1
     - [Ideals](Algebra/Ring/Ideals.lean): ideals, kernels, quotients, and the prime/maximal hierarchy
     - [Multilinear](Algebra/Ring/Multilinear.lean): multivariate polynomials, the multivariate Schwartz–Zippel bound, and the multilinear extension (MLE) of boolean functions over 𝔽₂
   - [Field](Algebra/Field/)
