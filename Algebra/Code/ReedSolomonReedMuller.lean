@@ -68,7 +68,7 @@ instance : Fact (Nat.Prime 2) := ⟨by norm_num⟩
 -- of degree < 2 would give a different vector on at least one point.
 --
 -- GF(4) has characteristic 2, so x = -x and x ↦ x + 1 swaps the pairs
--- 0 ↔ 1 and ω ↔ ω+1 in the table (Galois.lean §2).
+-- 0 ↔ 1 and ω ↔ ω+1 in the table (Characteristic.lean §2).
 
 section ReedSolomon
 variable {k d : ℕ}
