@@ -177,6 +177,8 @@ example :
 
 section Merkle
 
+-- TODO: Use a "Hash" type alias for F → F → F, or similar
+
 variable {F : Type*}
 
 /-- A binary tree of field elements; the codeword sits at the leaves. -/
