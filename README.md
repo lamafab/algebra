@@ -36,6 +36,8 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
     - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, and Merkle paths with verified openings
     - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
+- [Examples](Examples/): end-to-end runs that wire the pieces above together
+  - [BiniusToy](Examples/BiniusToy.lean): one AND-gate evaluation carried through the whole Binius pipeline: the arithmetized claim, the Merkle commitment, the sumcheck reduction to a single point, and the final opening check
 
 ## Build
 
