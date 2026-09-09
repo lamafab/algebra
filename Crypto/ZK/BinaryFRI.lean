@@ -11,14 +11,18 @@ import Algebra.Code.ReedSolomonReedMuller
 -- verifier that a committed word is close to a Reed-Solomon codeword, by
 -- repeatedly folding the polynomial to half its degree until only a constant
 -- remains. Prime-field FRI folds along the squaring map x ↦ x² on a
--- multiplicative subgroup. Binary fields cannot do that: GF(2ᵏ)ˣ has odd
--- order, so there are no 2-power roots of unity to halve around
--- (BinaryFields.lean §3).
+-- multiplicative subgroup; squaring is 2-to-1 there, the odd-characteristic
+-- half of the dichotomy (Characteristic.lean §4). Binary fields cannot do
+-- that: GF(2ᵏ)ˣ has odd order, so there are no 2-power roots of unity to
+-- halve around (BinaryFields.lean §3), and squaring is injective rather than
+-- 2-to-1 in characteristic 2 (BinaryFields.lean §4b, Characteristic.lean §4).
 --
 -- Binary FRI folds along the additive map q(x) = x² + β·x instead. In
 -- characteristic 2 this map is 𝔽₂-linear, its kernel is {0, β}, and it
--- identifies exactly the pairs {x, x + β}. Applied to an 𝔽₂-subspace domain
--- of size 2ᵐ, it collapses the domain to size 2^{m−1}: one round of folding.
+-- sends each pair {x, x + β} to a single value. Applied to an 𝔽₂-subspace
+-- domain of size 2ᵐ, it collapses the domain to size 2^{m−1}: one round of
+-- folding.
+--
 -- Iterating with fresh β's halves the domain each round until one point is
 -- left.
 --
@@ -27,9 +31,10 @@ import Algebra.Code.ReedSolomonReedMuller
 --   §3  Merkle paths and their verification
 --   §4  The query phase and the soundness sketch
 --
--- Prerequisites: BinaryFields.lean §4 (Freshman's dream, trace),
--- ReedSolomonReedMuller.lean (the RS code), Multilinear.lean (the MLE table
--- being committed to).
+-- Prerequisites: Characteristic.lean (the squaring dichotomy §4, the
+-- freshman's dream §3), BinaryFields.lean (§3 no 2-power roots of unity,
+-- §4b squaring cannot fold), ReedSolomonReedMuller.lean (the RS code),
+-- Multilinear.lean (the MLE table being committed to).
 
 namespace BinaryFRI
 
@@ -44,17 +49,24 @@ variable {F : Type*} [Field F] [CharP F 2]
 /-- The additive fold map q(x) = x² + β·x. Degree 2, but 𝔽₂-linear. -/
 def foldMap (β x : F) : F := x ^ 2 + β * x
 
+omit [CharP F 2] in
+/-- The two readings of q: expanded for linearity, factored for the roots.
+The factored form shows the kernel directly (foldMap_eq_zero_iff). -/
+theorem foldMap_eq_mul_add (β x : F) : foldMap β x = x * (x + β) := by
+  rw [foldMap]; ring
+
 /-- q is additive: q(x + y) = q(x) + q(y). The square is linear in
-characteristic 2 by Freshman's dream (BinaryFields.lean §4). -/
+characteristic 2 by Freshman's dream (Characteristic.lean §3,
+BinaryFields.lean §4). -/
 theorem foldMap_add (β x y : F) : foldMap β (x + y) = foldMap β x + foldMap β y := by
   rw [foldMap, foldMap, foldMap, add_pow_char (R := F) (x := x) (y := y) (p := 2)]
   ring
 
-/-- The kernel of q is {0, β}: q(x) = x·(x+β) vanishes exactly at 0 and β. -/
+/-- The kernel of q is {0, β}: q(x) = x·(x+β) vanishes exactly at 0 and β.
+Remember that -β = β when the characteristic is 2 (Characteristic.lean §2) -/
 theorem foldMap_eq_zero_iff (β x : F) :
     foldMap β x = 0 ↔ x = 0 ∨ x = β := by
-  have hfact : x ^ 2 + β * x = x * (x + β) := by ring
-  rw [foldMap, hfact, mul_eq_zero]
+  rw [foldMap_eq_mul_add, mul_eq_zero]
   constructor
   · rintro (h | h)
     · exact Or.inl h
@@ -66,7 +78,32 @@ theorem foldMap_eq_zero_iff (β x : F) :
     · exact Or.inr (h ▸ CharTwo.add_self_eq_zero x)
 
 /-- The 2-to-1 collapse at the heart of binary FRI: q(x + β) = q(x). Each
-fold round pairs up the domain {x, x+β} and halves its size. -/
+fold round pairs up the domain {x, x+β} and halves its size. Unlike the
+squaring pair {x, −x}, which collapses in characteristic 2 (Characteristic.lean
+§4, BinaryFields.lean §4b), this pair is always distinct when β ≠ 0, so the
+fold really is 2-to-1.
+
+Worked example over GF(4) = {0, 1, ω, ω+1} with ω² = ω+1, taking β = ω:
+
+  x        x²        ω·x         q(x) = x² + ω·x
+  ─────────────────────────────────────────────
+  0        0         0           0
+  1        1         ω           1 + ω
+  ω        ω+1       ω² = ω+1    (ω+1)+(ω+1) = 0
+  ω+1      ω         ω(ω+1) = 1  ω + 1
+
+Four inputs, two outputs; the two inputs in each fiber differ by exactly ω:
+
+  0   ──┐
+        ├──→  0
+  ω   ──┘        (0 + ω = ω)
+
+  1   ──┐
+        ├──→  1 + ω
+  ω+1 ──┘        (1 + ω = ω+1)
+
+Adding ω flips each element to its partner; adding ω again flips back,
+since ω + ω = 0. -/
 theorem foldMap_pair (β x : F) : foldMap β (x + β) = foldMap β x := by
   rw [foldMap, foldMap, add_pow_char (R := F) (x := x) (y := β) (p := 2)]
   have hββ : β ^ 2 + β * β = 0 := by
@@ -82,17 +119,52 @@ end AdditiveFold
 -- ============================================================================
 --
 -- The prover's message is one field element: the Merkle root of a Reed-Solomon
--- codeword. The codeword is the evaluation table of the MLE (Multilinear.lean)
--- stretched over a larger domain L ⊆ GF(2ᵏ) by RS encoding
--- (ReedSolomonReedMuller.lean). The stretching is what buys distance: two
--- different low-degree polynomials disagree on most of L.
+-- codeword. The codeword is built in two steps:
 --
---   `rsEncode L p` : the codeword, evaluations of p on L
+--   1. The MLE table (Multilinear.lean) assigns a field element to each
+--      point of the hypercube 𝔽₂ᵐ. Viewed on an 𝔽₂-subspace of size 2ᵐ
+--      inside GF(2ᵏ), that table is the evaluation table of a unique
+--      univariate polynomial p of degree < 2ᵐ (RootsInterpolation.lean).
+--      Interpolating the table recovers p.
+--   2. Stretch: evaluate p on a larger domain L containing that subspace
+--      (ReedSolomonReedMuller.lean §1). The stretched table is the RS
+--      codeword that gets Merkle-hashed in §3.
+--
+-- The stretching is what buys distance. Two different polynomials of degree
+-- < 2ᵐ agree on at most 2ᵐ − 1 points, so their codewords differ in at
+-- least |L| − 2ᵐ + 1 positions. FRI's proximity question, "is the committed
+-- word close to some codeword?", only has content because codewords are
+-- this far apart: a word near the code is near exactly one codeword, so
+-- the polynomial it came from is pinned down.
+--
+--   `rsEncode L p`       : the codeword, evaluations of p on L
 --   `rsEncode_injective` : the codeword determines the polynomial
 --     (the roots bound from RootsInterpolation.lean, applied to p − q)
+--   `rs_min_distance`    : distinct codewords differ in at least
+--     |L| − d + 1 positions
 
 #check @rsEncode
 #check @rsEncode_injective
+#check @rs_min_distance
+
+-- Encoding over GF(4), concretely: p(X) = X + 1 becomes the pointwise map
+-- α ↦ α + 1 on any domain (the full walkthrough, with the four-entry
+-- codeword table, is ReedSolomonReedMuller.lean §1).
+example (L : Finset (GaloisField 2 2)) :
+    rsEncode L (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1) =
+      fun α : L => (α : GaloisField 2 2) + 1 := by
+  funext α
+  show (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
+      (α : GaloisField 2 2) = (α : GaloisField 2 2) + 1
+  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_X]
+  simp
+
+-- Distinct polynomials give codewords that disagree: X + 1 and X already
+-- differ at α = 0, and by rs_min_distance they differ almost everywhere.
+example :
+    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
+      (0 : GaloisField 2 2) ≠ Polynomial.X.eval (0 : GaloisField 2 2) := by
+  simp
 
 -- ============================================================================
 -- Section 3: Merkle paths
