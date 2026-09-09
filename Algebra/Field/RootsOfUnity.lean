@@ -59,12 +59,18 @@ example (g : 𝔽₇ˣ) : g ^ Fintype.card 𝔽₇ˣ = 1 := pow_card_eq_one
 -- Section 2: Roots of unity
 -- ============================================================================
 --
+-- TODO: Too noisy, rephrase this paragraph.
+--
 -- In a field K, an n-th root of unity is an element x satisfying xⁿ = 1.
 -- These elements form a subgroup of the multiplicative group Kˣ (if xⁿ = 1
--- and yⁿ = 1 then (xy)ⁿ = xⁿ·yⁿ = 1). When this subgroup is cyclic of order
--- n, a generator of it is a primitive n-th root of unity; equivalently, ω
--- is primitive if ωⁿ = 1 and ωᵏ ≠ 1 for every 0 < k < n, i.e. the order of
--- ω is exactly n (Cyclic.lean §2). The n-th roots themselves are then
+-- and yⁿ = 1 then (xy)ⁿ = xⁿ·yⁿ = 1). The subgroup property is not a
+-- coincidence: the n-th roots are exactly the kernel of the n-th power map
+-- x ↦ xⁿ on Kˣ, and kernels of group homs are subgroups (QuadraticResidues.lean
+-- §3; the n = 2 case there is {±1}, the kernel of squaring). When this
+-- subgroup is cyclic of order n, a generator of it is a primitive n-th root
+-- of unity; equivalently, ω is primitive if ωⁿ = 1 and ωᵏ ≠ 1 for every
+-- 0 < k < n, i.e. the order of ω is exactly n (Cyclic.lean §2). The n-th
+-- roots themselves are then
 --
 --   {ω⁰, ω¹, …, ωⁿ⁻¹},
 --
