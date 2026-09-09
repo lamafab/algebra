@@ -45,6 +45,12 @@ namespace Examples.BiniusToy
 /-- The system: a two-input AND gate. -/
 def circuit (v : Fin 2 → ZMod 2) : ZMod 2 := v 0 * v 1
 
+-- The truth table, as a sanity check.
+example : circuit ![0, 0] = 0 := by decide
+example : circuit ![0, 1] = 0 := by decide
+example : circuit ![1, 0] = 0 := by decide
+example : circuit ![1, 1] = 1 := by decide
+
 /-- The witness: x₀ = 1, x₁ = 1 satisfies the gate. -/
 example : circuit ![1, 1] = 1 := by decide
 
@@ -65,13 +71,14 @@ example : ∑ v : Fin 2 → ZMod 2, eval v (mle circuit) = 1 := by
 -- there is exactly one value the prover can present at each leaf position.
 
 /-- The committed table: the circuit's truth table, leaf order
-(0,0), (0,1), (1,0), (1,1).
+(0,0)=0, (0,1)=0, (1,0)=0, (1,1)=1.
 
         root = 1
        /        \
       0          1
      / \        / \
     0   0      0   1
+   —————————————————
    00  01     10  11   ← leaf corners (x₀, x₁)
 
 Internal nodes hold toyHash of their children (addition mod 2), so the
