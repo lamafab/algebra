@@ -21,10 +21,11 @@ import Mathlib.Tactic
 --   §3  The derivative test: a repeated root of p is a common root of p and
 --       p′, so polynomials coprime to their derivative (separable) have only
 --       simple roots.
---   §4  Characteristic p: the freshman's dream gives (X − 1)^{2ʳ} =
---       X^{2ʳ} − 1 in characteristic 2, so a single root can carry the whole
---       degree budget. This is the polynomial side of "no 2-power roots of
---       unity" in BinaryFields.lean §3.
+--   §4  Characteristic 2: the freshman's dream (Characteristic.lean §3)
+--       gives (X − 1)^{2ʳ} = X^{2ʳ} − 1, so a single root can carry the
+--       whole degree budget. This is the polynomial side of "no 2-power
+--       roots of unity" (BinaryFields.lean §3; the field-theoretic
+--       squaring-collapse face is Characteristic.lean §4).
 --
 -- Prerequisites: RootsInterpolation.lean for the roots bound and the
 -- eval-on-all-points technique for proving polynomial identities over 𝔽ₚ.
@@ -84,7 +85,27 @@ example : rootMultiplicity 2 ((X - C 1)^2 : 𝔽₅[X]) = 0 := by
   simp [eval_pow, eval_sub]
   decide
 
--- (X − 1)²(X − 2) has root 1 twice and root 2 once: 2 + 0 at 1.
+-- Let p = (X − 1)²(X − 2). Its roots, from the values over 𝔽₅:
+--
+--   p(1) = (1−1)²·(1−2) = 0·(−1) = 0   so 1 is a root
+--   p(2) = (2−1)²·(2−2) = 1·0    = 0   so 2 is a root
+--   p(0) = 3, p(3) = 4, p(4) = 3       no other roots
+--
+-- The multiplicities come from the factorization, not the value table. The
+-- multiplicity of a is the number of times (X − a) divides p in a row: divide
+-- once, and keep dividing while the quotient still vanishes at a (§1). For a
+-- = 1 the quotient survives one division but not two:
+--
+--   p / (X − 1)  = (X − 1)(X − 2),   still 0 at 1, divide again
+--   p / (X − 1)² = (X − 2),          1 at 1 ≠ 0, stop
+--
+-- so (X − 1) factors out exactly 2 times: the multiplicity of 1 is 2. For
+-- a = 2 the quotient fails immediately after one division:
+--
+--   p / (X − 2)  = (X − 1)²,         1 at 2 ≠ 0, stop
+--
+-- so the multiplicity of 2 is 1. The value table sees the zeros but cannot
+-- see these counts; only the factorization carries them.
 example : rootMultiplicity 1 ((X - C 1)^2 * (X - C 2) : 𝔽₅[X]) = 2 := by
   have hne : (X - C 1)^2 * (X - C 2) ≠ (0 : 𝔽₅[X]) :=
     mul_ne_zero (pow_ne_zero _ (X_sub_C_ne_zero 1)) (X_sub_C_ne_zero 2)
