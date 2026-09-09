@@ -146,17 +146,14 @@ example (n : ℕ) : Finite (GaloisField 2 n) := by
 -- The multiplicative group GF(2ⁿ)ˣ is cyclic of order 2ⁿ − 1, which is odd.
 example (n : ℕ) : IsCyclic (Units (GaloisField 2 n)) := by infer_instance
 
--- TODO: Generalize this a little more; context is too Binary-FRI heavy.
---
 -- Oddness forces 1 to be the only 2-power root of unity in GF(2ⁿ). A 2ʳ-th
 -- root of unity has order dividing 2ʳ (Cyclic.lean §2), so its order is a power
 -- of 2; but Lagrange (RootsOfUnity.lean §2) forces the order to divide 2ⁿ − 1,
--- and a power of 2 dividing an odd number is 1. Equivalently, in characteristic
--- 2 the freshman's dream (§4) gives x^{2ʳ} − 1 = (x − 1)^{2ʳ}, so X^{2ʳ} − 1
--- has the single root 1 with full multiplicity (Multiplicity.lean §4).
+-- and a power of 2 dividing an odd number is 1 (respectively 2⁰ = 1).
 --
 -- Consequence: squaring is a bijection on GF(2ⁿ)ˣ and never halves a
--- multiplicative subgroup. BinaryFRI.lean folds additively for this reason.
+-- multiplicative subgroup (§4b). BinaryFRI.lean folds additively for this
+-- reason.
 --
 -- Formally, in any characteristic-2 field, by induction on r. The squaring
 -- step uses y² = 1 → y ∈ {1, −1}, and −1 = 1 in characteristic 2.
@@ -184,7 +181,8 @@ example (F : Type*) [Field F] [CharP F 2] (x : F) (r : ℕ)
 -- ============================================================================
 --
 -- In characteristic 2, squaring is a ring homomorphism: (x + y)² = x² + y²
--- ("Freshman's dream"). The map x ↦ x² is the Frobenius automorphism.
+-- (freshman's dream, Characteristic.lean). The map x ↦ x² is the Frobenius
+-- automorphism.
 
 -- Freshman's dream over 𝔽₂:
 example (x y : 𝔽₂) : (x + y)^2 = x^2 + y^2 :=
@@ -235,6 +233,45 @@ example (n : ℕ) (x : GaloisField 2 n) :
 
 -- The trace is nonzero (it is a surjective linear map onto 𝔽₂).
 #check FiniteField.trace_to_zmod_nondegenerate
+
+-- ============================================================================
+-- Section 4b: Squaring is a bijection, so it cannot fold
+-- ============================================================================
+--
+-- This is the characteristic-2 half of the squaring dichotomy; the general
+-- statement and the odd-characteristic half are in Characteristic.lean §4,
+-- and the odd-p counting is QuadraticResidues.lean.
+--
+-- Prime-field FRI folds a polynomial along the squaring map x ↦ x² on a
+-- multiplicative subgroup (BinaryFRI.lean, header). That works because over a
+-- field of odd characteristic the two points {x, −x} with the same square are
+-- distinct, so squaring is 2-to-1 and each fold halves the domain. In
+-- characteristic 2 the pair collapses: every element is its own negative
+-- (§1), so x = −x and squaring is 1-to-1, a bijection on the finite field.
+-- There is nothing to halve. Binary FRI therefore folds along a linear map
+-- with a two-element kernel instead (BinaryFRI.lean §1).
+
+-- In characteristic 2 every element is its own negative.
+example (F : Type*) [Field F] [CharP F 2] (x : F) : -x = x :=
+  CharTwo.neg_eq x
+
+-- Squaring is injective: x² = y² forces x = y. The proof uses the freshman's
+-- dream (§4): (x − y)² = x² − y², so x² = y² gives (x − y)² = 0, and a field
+-- has no nonzero nilpotents.
+example (F : Type*) [Field F] [CharP F 2] {x y : F} (h : x^2 = y^2) : x = y := by
+  have hfresh : (x + -y)^2 = x^2 + (-y)^2 :=
+    add_pow_char (R := F) (x := x) (y := -y) (p := 2)
+  rw [neg_pow_two] at hfresh
+  have hsub : (x - y)^2 = x^2 - y^2 := by
+    rw [sub_eq_add_neg, hfresh, sub_eq_add_neg, CharTwo.neg_eq (y^2)]
+  have h0 : (x - y)^2 = 0 := by rw [hsub, h, sub_self]
+  have hxy : x - y = 0 := sq_eq_zero_iff.mp h0
+  exact sub_eq_zero.mp hxy
+
+-- The polynomial shadow of the collapse (Multiplicity.lean §4): over an odd
+-- field X² − y has two distinct roots ±x, but in characteristic 2 it factors
+-- as (X − x)², one root with multiplicity 2. The fold's "two points" are the
+-- same point counted twice.
 
 end
 
