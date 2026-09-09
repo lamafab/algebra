@@ -182,7 +182,7 @@ variable {F : Type*}
 /-- A binary tree of field elements; the codeword sits at the leaves. -/
 inductive Tree (F : Type*) where
   | leaf : F → Tree F
-  | node : Tree F → Tree F → Tree F
+  | node : Tree F → (Tree F → Tree F)
 
 /-- The Merkle root: hash the two child roots at each internal node. -/
 def Tree.root (h : F → F → F) : Tree F → F
@@ -190,7 +190,7 @@ def Tree.root (h : F → F → F) : Tree F → F
   | node l r => h (root h l) (root h r)
 
 /-- Follow directions (true = left) down to a leaf value. -/
-def Tree.lookup : Tree F → List Bool → Option F
+def Tree.lookup : Tree F → (List Bool → Option F)
   | leaf x, [] => some x
   | node l _, true :: bs => lookup l bs
   | node _ r, false :: bs => lookup r bs

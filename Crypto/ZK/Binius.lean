@@ -73,6 +73,8 @@ example (w : Fin 2 → ZMod 2) : eval w (mle andCircuit) = andCircuit w :=
 
 -- The four corners, concretely.
 example : eval ![0, 0] (mle andCircuit) = 0 := by rw [eval_mle]; decide
+example : eval ![0, 1] (mle andCircuit) = 0 := by rw [eval_mle]; decide
+example : eval ![1, 0] (mle andCircuit) = 0 := by rw [eval_mle]; decide
 example : eval ![1, 1] (mle andCircuit) = 1 := by rw [eval_mle]; decide
 
 -- The MLE is multilinear: degree at most 1 in each variable. This is what
