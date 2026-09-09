@@ -46,8 +46,14 @@ instance : Fact (Nat.Prime 7) := ⟨by norm_num⟩
 --   missed = {3, 5, 6}     (non-residues)
 --
 -- Notice the collisions: in 𝔽₅, both 2 and 3 square to 4; both 1 and 4
--- square to 1. The map is two-to-one on nonzero inputs, because
---   x² = y² ⟺ (x - y)(x + y) = 0 ⟺ x = y or x = -y (we're in a field).
+-- square to 1. The map is two-to-one on nonzero inputs, because:
+--
+--   x² = y² ⟺ (x - y)(x + y) = 0 ⟺ x = ±y
+--
+-- The two fibers are exactly the negation pairs {x, −x}: the kernel fiber
+-- over 1 is {1, 4} with 1 = −4 (equivalently −1 = 4), and the fiber over 4
+-- is {2, 3} with 2 = −3 (equivalently −2 = 3). Each square has its two roots
+-- paired by negation.
 
 example : IsSquare (1 : 𝔽₅) := by decide
 example : IsSquare (4 : 𝔽₅) := by decide
@@ -62,7 +68,7 @@ example : IsSquare (0 : 𝔽₅) := by decide
 -- ============================================================================
 --
 -- The squaring map 𝔽ₚˣ → 𝔽ₚˣ is a group homomorphism (for p odd) with
--- kernel {1, -1}. By the First Iso Theorem (Ideals.lean §10) its image has
+-- kernel {1, -1} (§3). By the First Iso Theorem (Ideals.lean §10) its image has
 -- size |𝔽_pˣ| / |kernel| = (p-1)/2. Add 1 for 0 (handled separately):
 --
 --   #(squares in 𝔽_p) = (p-1)/2 + 1 = (p+1)/2
@@ -73,7 +79,8 @@ example : IsSquare (0 : 𝔽₅) := by decide
 -- Equivalently: exactly half of 𝔽ₚˣ is a square. This is why "non-residue"
 -- is a natural concept; they exist in equal numbers to the residues.
 --
--- (p = 2 is degenerate: every element is a square, since 0² = 0 and 1² = 1.)
+-- (p = 2 is degenerate: squaring is a bijection, since x = −x in
+-- characteristic 2; see Characteristic.lean §4 and BinaryFields.lean §4b.)
 
 -- The counts match for 𝔽₅ and 𝔽₇ by direct enumeration:
 example : (Finset.univ.filter (fun x : 𝔽₅ => IsSquare x)).card = 3 := by decide
@@ -100,6 +107,8 @@ example : (Finset.univ.filter (fun x : 𝔽₇ => IsSquare x)).card = 4 := by de
 --   ·       (mult group)    1                  subgroup of 𝔽ₚˣ
 --   +       (add group)     0                  subgroup of (𝔽ₚ, +)
 --   linear  (vec sp)        0                  subspace
+--
+-- TODO: This probably deserves a notable mention in Ideals.lean
 --
 -- Ideals.lean §5's slogan is implicitly about ring homs. The squaring map
 -- sq : 𝔽ₚˣ → 𝔽ₚˣ is a group hom, meaning it respects · but not +, so its
@@ -253,9 +262,9 @@ example : legendreSym 5 (2 * 3) = legendreSym 5 2 * legendreSym 5 3 :=
 -- For an elliptic curve y² = x³ + a·x + b over 𝔽_p, a point (x, y) exists
 -- above each x iff the RHS x³ + a·x + b is a square in 𝔽_p. Counting:
 --
---   * RHS = 0           ⟹ 1 point (x, 0)
+--   * RHS = 0             ⟹ 1 point (x, 0)
 --   * RHS is a nonzero QR ⟹ 2 points (x, ±y)
---   * RHS is a NR       ⟹ 0 points
+--   * RHS is a NR         ⟹ 0 points
 --
 -- Encode this with the Legendre symbol: each x contributes 1 + (RHS/p).
 -- Summing over x ∈ 𝔽_p and adding 1 for the point at infinity:
