@@ -159,6 +159,16 @@ example : (Int.castRingHom (ZMod 5)) 10 = 0 := by decide
 example : (Int.castRingHom (ZMod 5)) 7  = 2 := by decide   -- not in kernel
 example : Ideal ℤ := RingHom.ker (Int.castRingHom (ZMod 5))
 
+-- TODO: Clarify
+--
+-- Special case: the source is a field. A field has only the two trivial
+-- ideals (§9), so ker φ is {0} or everything. "Everything" would force
+-- φ(1) = 0, but homs send 1 to 1, and 1 ≠ 0 in a nontrivial target.
+-- So every ring hom out of a field is injective:
+
+example {K L : Type*} [Field K] [Field L] (f : K →+* L) : Function.Injective f :=
+  f.injective
+
 -- ============================================================================
 -- Section 6: Quotient rings — the construction
 -- ============================================================================
@@ -253,7 +263,8 @@ example : (ℤ ⧸ I5) ≃+* ZMod 5 := Int.quotientSpanNatEquivZMod 5
 -- Section 8: When the quotient ISN'T a field — ℤ/(6)
 -- ============================================================================
 --
--- (6) ⊆ ℤ is not maximal (§9) — and not even prime as an ideal: 2 · 3 = 6 ∈ (6)
+-- (6) ⊆ ℤ is not maximal (§9), and not even prime as an ideal (§9):
+--   2 · 3 = 6 ∈ (6)
 -- but neither 2 nor 3 is. So ℤ/(6) is just a ring, with zero divisors:
 
 private abbrev I6 : Ideal ℤ := Ideal.span {(6 : ℤ)}
@@ -321,6 +332,9 @@ example : π6 3 ≠ π6 0 := by
 -- That's why ring theory cares about non-fields like ℤ and k[X]: they have
 -- the RICH ideal structure to quotient by, and those quotients are often
 -- where new fields come from (𝔽ₚ, GF(9), ℂ).
+
+-- TODO: Symbols are too opaque
+example {K : Type*} [Field K] (I : Ideal K) : I = ⊥ ∨ I = ⊤ := Ideal.eq_bot_or_top I
 
 example : (Ideal.span ({5} : Set ℤ)).IsMaximal :=
   PrincipalIdealRing.isMaximal_of_irreducible <|
