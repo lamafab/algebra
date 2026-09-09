@@ -11,6 +11,12 @@ open BinaryFRI
 -- Binius: a full binary-field argument for a boolean circuit
 -- ============================================================================
 --
+-- TODO: Slim this file to the architecture (the pipeline diagram, the
+-- interface facts, and the §5 soundness budget) and let the worked run live
+-- in Examples/BiniusToy.lean, which already carries one claim through every
+-- station. Sections 1-4 here duplicate that toy; replace them with pointers
+-- so each execution detail exists in exactly one place.
+--
 -- The pipeline that turns "this boolean circuit is satisfied" into a proof:
 --
 --   circuit f : {0,1}ⁿ → 𝔽₂
