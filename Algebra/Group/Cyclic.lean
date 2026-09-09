@@ -65,7 +65,7 @@ example : (4 : 𝔽₅) ^ 2 = 1 := by decide
 
 -- TODO: This should be in a Group.lean file, with "order" in the context
 -- of an element properly defined. Don't forget to update the reference in
--- file Algebra.Group.Cyclic, then.
+-- file BinaryFields.lean, then.
 --
 -- If gᵐ = 1 for some m, then the order of g divides m. g is an m-th root of
 -- unity (RootsOfUnity.lean) for every multiple m of its order.
