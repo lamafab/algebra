@@ -65,7 +65,17 @@ example : ∑ v : Fin 2 → ZMod 2, eval v (mle circuit) = 1 := by
 -- there is exactly one value the prover can present at each leaf position.
 
 /-- The committed table: the circuit's truth table, leaf order
-(0,0), (0,1), (1,0), (1,1). -/
+(0,0), (0,1), (1,0), (1,1).
+
+        root = 1
+       /        \
+      0          1
+     / \        / \
+    0   0      0   1
+   00  01     10  11   ← leaf corners (x₀, x₁)
+
+Internal nodes hold toyHash of their children (addition mod 2), so the
+root is the leaf parity. -/
 def table : BinaryFRI.Tree (ZMod 2) :=
   .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
 
