@@ -21,6 +21,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Multilinear](Algebra/Ring/Multilinear.lean): multivariate polynomials, the multivariate Schwartz–Zippel bound, and the multilinear extension (MLE) of boolean functions over 𝔽₂
   - [Field](Algebra/Field/)
     - [Galois](Algebra/Field/Galois.lean): finite fields GF(pⁿ) and their structure
+    - [Characteristic](Algebra/Field/Characteristic.lean): the characteristic of a field; why it is prime, char-2 facts (x = −x, translation involutions), the freshman's dream, and the squaring dichotomy (2-to-1 odd vs 1-to-1 char 2)
     - [QuadraticResidues](Algebra/Field/QuadraticResidues.lean): squares in 𝔽ₚ, Euler's criterion, and the Legendre symbol
     - [RootsOfUnity](Algebra/Field/RootsOfUnity.lean): roots of unity in finite fields, primitive roots, and the connection to cyclic subgroups
     - [BinaryFields](Algebra/Field/BinaryFields.lean): GF(2) and GF(2ⁿ), boolean gates as polynomials, Freshman's dream, Frobenius, and trace map
