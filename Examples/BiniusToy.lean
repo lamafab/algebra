@@ -35,6 +35,13 @@ open BinaryFRI
 
 namespace Examples.BiniusToy
 
+-- TODO: Add a larger example that includes the RS stretching and the fold
+-- rounds (BinaryFRI.lean §1b-§1c, §2): commit a stretched codeword, run the
+-- fold chain alongside sumcheck, and check FoldChain.step at the queried
+-- points in Step 3. That is the piece this toy omits by staying at 𝔽₂
+-- scale; it needs a decidable GF(4) model (AdjoinRoot (X²+X+1) over 𝔽₂)
+-- since Mathlib's GaloisField does not evaluate with decide.
+
 -- ============================================================================
 -- Step 0: The claim
 -- ============================================================================
