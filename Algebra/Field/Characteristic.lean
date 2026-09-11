@@ -106,6 +106,8 @@ example (F : Type*) [Field F] [CharP F 2] (c : F) (x : F) :
 -- the Frobenius map (BinaryFields.lean §4, Galois.lean §5). The freshman's
 -- dream is exactly the additivity of that homomorphism.
 --
+-- TODO: Clarify "automorphism"
+--
 -- What "respects addition" looks like, with the squaring map sq(x) = x² as
 -- the machine. Feeding it a sum means squaring the whole sum as one input,
 -- and additivity says that equals squaring the parts separately and adding:
