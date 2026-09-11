@@ -87,7 +87,6 @@ def table : BinaryFRI.Tree (ZMod 2) :=
   .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
 
 -- TODO: This should be a little more advanced, such as not just skipping zeroes?
-
 /-- The toy compression function: addition mod 2. -/
 def toyHash : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
 
