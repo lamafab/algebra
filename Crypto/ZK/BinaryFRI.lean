@@ -172,6 +172,7 @@ fold polynomial q. Uniqueness (used by the soundness argument, not by the
 honest prover) is not formalized here. -/
 theorem exists_fold_decomp (β : F) (f : Polynomial F) :
     ∃ p₀ p₁ : Polynomial F,
+      -- f(X) = p₀(q(X)) + X·p₁(q(X))
       f = p₀.comp (foldQ β) + X * p₁.comp (foldQ β) ∧
       2 * p₀.natDegree ≤ f.natDegree ∧ 2 * p₁.natDegree ≤ f.natDegree := by
   induction' h : f.natDegree using Nat.strong_induction_on with n ih generalizing f
