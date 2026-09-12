@@ -30,7 +30,7 @@ open BinaryFRI
 --     │  over GF(2ᵏ), Merkle-committed, and proximity-tested by additive
 --     │  folding; the verifier opens the committed table at r
 --
--- Note on that step: the MLE is multivariate, FRI needs a univariate
+-- TODO on that step: the MLE is multivariate, FRI needs a univariate
 -- polynomial, so "RS-encoded" includes a conversion: embed the hypercube
 -- as an 𝔽₂-subspace of GF(2ⁿ) by an 𝔽₂-basis choice, interpret the MLE
 -- table as values of a univariate function on that subspace, and
