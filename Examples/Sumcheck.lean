@@ -4,6 +4,8 @@ import Mathlib.Algebra.MvPolynomial.Basic
 import Mathlib.Algebra.MvPolynomial.Eval
 import Mathlib.Tactic
 
+-- TODO: Reference Crypto/ZK/Sumcheck.lean (or move this there?)
+
 -- ============================================================================
 -- Sumcheck with a nonlinear round polynomial
 -- ============================================================================
