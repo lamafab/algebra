@@ -15,7 +15,8 @@ noncomputable section
 -- TODO: This entire file needs to be reworked; it's too messy and all over the
 -- place. Additionally, more visual demonstrations should be used.
 
--- TODO: More substance on error recovery and efficient decoding.
+-- TODO: More substance on error recovery and efficient decoding; those are
+-- missing entirely.
 
 -- ============================================================================
 -- Reed-Solomon and Reed-Muller codes over binary fields
