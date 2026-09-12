@@ -26,6 +26,11 @@ import Mathlib.Tactic
 -- lies outside the interpolation nodes {0, 1}, so the target value
 -- v₁ = g₀(2) is genuinely new information.
 --
+-- In the real protocol the challenges are uniform over the field, so a
+-- sample lands outside {0, 1} with probability 5/7. The values 2 and 3
+-- below are not drawn at random: they are chosen deliberately to exhibit
+-- the off-node case. Any of {2, …, 6} would demonstrate the same thing.
+--
 -- TODO: Compact the following comment block:
 --
 -- Why three: RootsInterpolation.lean §1, the first consequence of the
@@ -122,9 +127,10 @@ example : g₀.eval 0 + g₀.eval 1 = 5 := by
 
 -- TODO: "outside {0, 1}"; do we need to mention that?
 
-/-- The verifier samples r₀ = 2, outside {0, 1}. The new target v₁ = g₀(2)
-is not among the values the slices provided: it is computed from the
-polynomial itself. -/
+/-- The verifier samples r₀ = 2, outside {0, 1}. Uniform over ℤ/7ℤ in the
+real protocol; 2 is a deliberate choice here, any of 2, …, 6 works. The
+new target v₁ = g₀(2) is not among the values the slices provided: it is
+computed from the polynomial itself. -/
 example : g₀.eval 2 = 2 := by
   simp only [g₀, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
     Polynomial.eval_C, Polynomial.eval_X]
@@ -169,9 +175,9 @@ example : g₁.eval 0 + g₁.eval 1 = g₀.eval 2 := by
     Polynomial.eval_C, Polynomial.eval_X]
   decide
 
-/-- The verifier samples r₁ = 3, again outside {0, 1}. The reduction is
-complete: the sum claim has become the single evaluation claim
-p(2, 3) = 3, with v = g₁(3). -/
+/-- The verifier samples r₁ = 3, again outside {0, 1} and again a
+deliberate choice rather than a draw. The reduction is complete: the sum
+claim has become the single evaluation claim p(2, 3) = 3, with v = g₁(3). -/
 example : g₁.eval 3 = 3 := by
   simp only [g₁, Polynomial.eval_add, Polynomial.eval_mul,
     Polynomial.eval_C, Polynomial.eval_X]
