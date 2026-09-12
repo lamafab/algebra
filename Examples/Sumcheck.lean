@@ -24,6 +24,16 @@ import Mathlib.Tactic
 -- lies outside the interpolation nodes {0, 1}, so the target value
 -- v₁ = g₀(2) is genuinely new information.
 --
+-- TODO: Compact the following comment block:
+--
+-- Why three: RootsInterpolation.lean §1, the first consequence of the
+-- roots bound: polynomials of degree < n agreeing at n points are equal,
+-- so n = 3 points pin down g₀, and §2 gives the interpolant's existence.
+-- Two points leave a one-parameter family: ĝ₀ = g₀ + c·X·(X−1) for any
+-- c ∈ ℤ/7ℤ is a different quadratic agreeing with g₀ at both nodes, and
+-- it still passes the verifier's check ĝ₀(0) + ĝ₀(1) = 5, because X(X−1)
+-- vanishes exactly there.
+--
 -- The run:
 --
 --   claim:      Σ p over the hypercube {0,1}² = 5
