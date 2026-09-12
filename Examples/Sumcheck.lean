@@ -120,6 +120,8 @@ example : g₀.eval 0 + g₀.eval 1 = 5 := by
     Polynomial.eval_C, Polynomial.eval_X]
   decide
 
+-- TODO: "outside {0, 1}"; do we need to mention that?
+
 /-- The verifier samples r₀ = 2, outside {0, 1}. The new target v₁ = g₀(2)
 is not among the values the slices provided: it is computed from the
 polynomial itself. -/
@@ -155,6 +157,7 @@ example : g₁.eval 0 = eval ![2, 0] p := by
   simp only [g₁, p, Polynomial.eval_add, Polynomial.eval_mul,
     Polynomial.eval_C, Polynomial.eval_X, eval_add, eval_mul, eval_pow, eval_X]
   decide
+
 example : g₁.eval 1 = eval ![2, 1] p := by
   simp only [g₁, p, Polynomial.eval_add, Polynomial.eval_mul,
     Polynomial.eval_C, Polynomial.eval_X, eval_add, eval_mul, eval_pow, eval_X]
