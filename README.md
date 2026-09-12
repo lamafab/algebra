@@ -38,6 +38,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [BiniusToy](Examples/BiniusToy.lean): one AND-gate evaluation carried through the whole Binius pipeline: the arithmetized claim, the Merkle commitment, the sumcheck reduction to a single point, and the final opening check
+  - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes
 
 ## Build
 
