@@ -29,7 +29,7 @@ open BinaryFRI
 --   polynomial commitment (BinaryFRI.lean): the MLE table is RS-encoded
 --     │  over GF(2ᵏ), Merkle-committed, and proximity-tested by additive
 --     │  folding; the verifier opens the committed table at r
---
+--     │
 -- TODO on that step: the MLE is multivariate, FRI needs a univariate
 -- polynomial, so "RS-encoded" includes a conversion: embed the hypercube
 -- as an 𝔽₂-subspace of GF(2ⁿ) by an 𝔽₂-basis choice, interpret the MLE
@@ -37,6 +37,7 @@ open BinaryFRI
 -- interpolate (RootsInterpolation.lean) to the degree-< 2ⁿ polynomial.
 -- That embedding is currently comment-level only (BinaryFRI.lean §2's
 -- header has the same note); formalizing it is the open gap here.
+--     │
 --     ▼
 --   verifier accepts iff the opened value equals v
 --
