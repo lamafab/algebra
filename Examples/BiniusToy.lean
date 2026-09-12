@@ -128,7 +128,7 @@ claimed C = 1:
   g₀(0) = p(0,0) + p(0,1) = 0 + 0 = 0
   g₀(1) = p(1,0) + p(1,1) = 0 + 1 = 1
   ─────────────────
-  g₀(0) + g₀(1) = 0 + 1 = 1 = C -/
+  g₀(0) + g₀(1) = 0 + 1 = 1 = C  ✓ -/
 example :
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 0}, eval v.1 (mle circuit)) +
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, eval v.1 (mle circuit)) = 1 := by
@@ -141,9 +141,9 @@ example : (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 0}, eval v.1 (mle circuit)) = 
 example : (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, eval v.1 (mle circuit)) = 1 := by
   simp only [eval_mle]; decide
 
-/-- The verifier samples r₀ = 1. Round 2's claim is now about p̃(1, x₁):
-the one-variable slice containing the witness. Its two values must sum to
-g₀(1) = 1:
+/-- The verifier samples r₀ = 1 (coin flip). Round 2's claim is now about
+p̃(1, x₁): the one-variable slice containing the witness. Its two values must
+sum to g₀(1) = 1:
 
   g₁(0) = p(1, 0) = 0
   g₁(1) = p(1, 1) = 1
@@ -152,8 +152,8 @@ g₀(1) = 1:
 example : eval ![1, 0] (mle circuit) + eval ![1, 1] (mle circuit) = 1 := by
   simp only [eval_mle]; decide
 
-/-- The verifier samples r₁ = 1. The reduction is complete: the sum claim
-has become the single evaluation claim p̃(1, 1) = 1, with v = 1.
+/-- The verifier samples r₁ = 1 (coin flip). The reduction is complete: the
+sum claim has become the single evaluation claim p̃(1, 1) = 1, with v = 1.
 
 The reduction, end to end:
 
