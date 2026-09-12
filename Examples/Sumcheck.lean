@@ -84,7 +84,19 @@ example : ∑ v ∈ cube, eval v p = 5 := by
 -- Step 1: Round 1, the quadratic message
 -- ============================================================================
 
-/-- The honest round-1 polynomial: g₀(t) = p(t,0) + p(t,1) = t² + 2t + 1. -/
+/-- The honest round-1 polynomial: g₀(t) = p(t,0) + p(t,1) = t² + 2t + 1.
+
+Term by term, with x₀ set to t and x₁ summed over {0, 1}:
+
+  term of p:    x₀²·x₁      x₀       x₁
+               ───────────────────────────
+  at x₁ = 0:      0          t        0
+  at x₁ = 1:      t²         t        1
+               ───────────────────────────
+  column sum:     t²    +   2t   +    1     = g₀(t)
+
+The cross term x₀²·x₁ survives only at x₁ = 1 (it vanishes at x₁ = 0),
+while x₀ contributes twice, once per slice. -/
 noncomputable def g₀ : Polynomial (ZMod 7) :=
   Polynomial.X ^ 2 + Polynomial.C 2 * Polynomial.X + Polynomial.C 1
 
@@ -126,7 +138,16 @@ example : g₀.eval 2 ≠ g₀.eval 0 ∧ g₀.eval 2 ≠ g₀.eval 1 := by
 -- Step 2: Round 2, the pinned slice
 -- ============================================================================
 
-/-- The honest round-2 polynomial: g₁(t) = p(2, t) = 5t + 2. -/
+/-- The honest round-2 polynomial: g₁(t) = p(2, t) = 5t + 2.
+
+Term by term, with x₀ pinned to the challenge r₀ = 2 (no summation left;
+only x₁ remains, renamed t):
+
+  term of p:    x₀²·x₁      x₀       x₁
+               ───────────────────────────
+  at x₀ = 2:     4·t    +    2   +    t     = 5t + 2 = g₁(t)
+
+The cross term x₀²·x₁ becomes 4·t because x₀² = 2² = 4 in ℤ/7ℤ. -/
 noncomputable def g₁ : Polynomial (ZMod 7) := Polynomial.C 5 * Polynomial.X + Polynomial.C 2
 
 -- g₁ is the pinned slice p(2, ·) at both interpolation nodes.
