@@ -10,6 +10,10 @@ open Finset
 
 noncomputable section
 
+-- TODO: The examples/comments use coordinate values, meanwhile sumchecks
+-- purpose is evaluating polynomials. So this should be updated to use
+-- polynomials instead, as the current version is misleading.
+
 -- ============================================================================
 -- Sumcheck: proving a hypercube claim
 -- ============================================================================
@@ -66,8 +70,12 @@ noncomputable section
 -- The verifier checks g₀(0) + g₀(1) = 0 + 1 = 1 = C. After sampling r₀ = 0,
 -- round 2 reduces to the single evaluation p(0,1) = 0.
 --
--- TODO: Make it more explicit that the verifier actually receives the full
--- gₙ polynomial during the rounds, not just the resulting value.
+-- The verifier receives the full gᵢ polynomial each round, not just its
+-- values: the next claim's target is the evaluation gᵢ(rᵢ) at the fresh
+-- challenge. Examples/BiniusToy.lean Step 2 shows this concretely (there
+-- g₀ = g₁ = X over 𝔽₂).
+--
+-- TODO: Fold that point into this section's prose above.
 --
 -- TODO: Note that sumchecks verifies knowledge of the truth tables (ie. program
 -- behavior), not actual execution/state-transition.

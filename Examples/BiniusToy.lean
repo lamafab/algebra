@@ -141,6 +141,20 @@ example : (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 0}, eval v.1 (mle circuit)) = 
 example : (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, eval v.1 (mle circuit)) = 1 := by
   simp only [eval_mle]; decide
 
+/-- The round-1 message as a polynomial: g₀(t) = p̃(t,0) + p̃(t,1) = t. The
+verifier receives this polynomial, not just the two slice values; two values
+suffice because p̃ multilinear makes g₀ linear. Over the real challenge space
+GF(2ᵏ) the next claim's target is an evaluation g₀(r₀) at a fresh point; over
+𝔽₂ the challenge always lands on an interpolation node, hiding the step. -/
+noncomputable def g₀ : Polynomial (ZMod 2) := Polynomial.X
+
+-- Its values are the slice sums above.
+example : g₀.eval 0 = 0 := by rw [g₀, Polynomial.eval_X]
+example : g₀.eval 1 = 1 := by rw [g₀, Polynomial.eval_X]
+
+-- The next claim's target is an evaluation at the challenge: v₁ = g₀(r₀), r₀ = 1.
+example : g₀.eval (1 : ZMod 2) = 1 := by rw [g₀, Polynomial.eval_X]
+
 /-- The verifier samples r₀ = 1 (coin flip). Round 2's claim is now about
 p̃(1, x₁): the one-variable slice containing the witness. Its two values must
 sum to g₀(1) = 1:
@@ -151,6 +165,19 @@ sum to g₀(1) = 1:
   g₁(0) + g₁(1) = 0 + 1 = 1 = g₀(1) = g₀(r₀)  ✓ -/
 example : eval ![1, 0] (mle circuit) + eval ![1, 1] (mle circuit) = 1 := by
   simp only [eval_mle]; decide
+
+/-- Round 2's message as a polynomial: g₁(t) = p̃(r₀, t) = p̃(1, t) = t. It is
+the one-variable slice as a function of t, not just at the two points. -/
+noncomputable def g₁ : Polynomial (ZMod 2) := Polynomial.X
+
+-- g₁ is the slice p̃(1, ·) pointwise (both points).
+example : g₁.eval 0 = eval ![1, 0] (mle circuit) := by
+  rw [eval_mle, g₁, Polynomial.eval_X]; decide
+example : g₁.eval 1 = eval ![1, 1] (mle circuit) := by
+  rw [eval_mle, g₁, Polynomial.eval_X]; decide
+
+-- The final claim's value is the evaluation at the challenge: v = g₁(r₁), r₁ = 1.
+example : g₁.eval (1 : ZMod 2) = 1 := by rw [g₁, Polynomial.eval_X]
 
 /-- The verifier samples r₁ = 1 (coin flip). The reduction is complete: the
 sum claim has become the single evaluation claim p̃(1, 1) = 1, with v = 1.
