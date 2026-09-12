@@ -106,7 +106,7 @@ example : IsMultilinear (mle andCircuit) := isMultilinear_mle andCircuit
 -- a claim without summing 2ⁿ terms itself; after 2 rounds it only needs the
 -- MLE at one random point r ∈ GF(2ᵏ)².
 
--- The hypercube sum of the AND circuit is 1.
+-- The hypercube sum of the AND circuit is 0+0+0+1 = 1.
 example : ∑ w : Fin 2 → ZMod 2, eval w (mle andCircuit) = 1 := by
   simp only [eval_mle]
   decide
