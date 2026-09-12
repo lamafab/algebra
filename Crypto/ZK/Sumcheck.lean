@@ -45,7 +45,7 @@ noncomputable section
 --
 -- The prover claims this sum equals a target C. Each round reduces C by one
 -- variable until the claim is about p at a single point. The example below
--- uses the AND gate MLE of x₀·x₁ over two variables, from Binius §2.
+-- uses the AND gate MLE of x₀·x₁ over two variables, from Multilinear.lean.
 --
 -- Concretely for n = 2 and p = x₀·x₁ (AND circuit), the hypercube has four
 -- corners:

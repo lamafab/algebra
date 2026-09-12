@@ -93,7 +93,7 @@ root is the leaf parity (TODO: change this). -/
 def table : BinaryFRI.Tree (ZMod 2) :=
   .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
 
--- TODO: This should be a little more advanced, such as not just skipping zeroes?
+-- TODO: This should be a little more advanced, such as not just "ignoring" zeroes?
 /-- The toy compression function: addition mod 2. -/
 def toyHash : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
 
@@ -101,7 +101,9 @@ def toyHash : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
 example : table.root toyHash = 1 := by decide
 
 /-- The commitment is honestly formed: each leaf equals the MLE at its
-corner. This is what ties the tree to the circuit (eval_mle). -/
+corner. This is what ties the tree to the circuit (eval_mle).
+
+Note: `true` => left, `false` => right (TODO: consider making this more explicit)-/
 example : table.lookup [true,  true]  = some (eval ![0, 0] (mle circuit)) := by
   rw [eval_mle]; decide
 example : table.lookup [true,  false] = some (eval ![0, 1] (mle circuit)) := by
@@ -121,7 +123,12 @@ example : table.lookup [false, false] = some (eval ![1, 1] (mle circuit)) := by
 -- checks the two slices sum to C, then fixes x₀ := r₀.
 
 /-- Round 1 consistency: the x₀ = 0 slice and the x₀ = 1 slice sum to the
-claimed C = 1. -/
+claimed C = 1:
+
+  g₀(0) = p(0,0) + p(0,1) = 0 + 0 = 0
+  g₀(1) = p(1,0) + p(1,1) = 0 + 1 = 1
+  ─────────────────
+  g₀(0) + g₀(1) = 0 + 1 = 1 = C -/
 example :
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 0}, eval v.1 (mle circuit)) +
     (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, eval v.1 (mle circuit)) = 1 := by
@@ -136,12 +143,27 @@ example : (∑ v : {w : Fin 2 → ZMod 2 // w 0 = 1}, eval v.1 (mle circuit)) = 
 
 /-- The verifier samples r₀ = 1. Round 2's claim is now about p̃(1, x₁):
 the one-variable slice containing the witness. Its two values must sum to
-g₀(1) = 1. -/
+g₀(1) = 1:
+
+  g₁(0) = p(1, 0) = 0
+  g₁(1) = p(1, 1) = 1
+  ─────────────────
+  g₁(0) + g₁(1) = 0 + 1 = 1 = g₀(1) = g₀(r₀)  ✓ -/
 example : eval ![1, 0] (mle circuit) + eval ![1, 1] (mle circuit) = 1 := by
   simp only [eval_mle]; decide
 
 /-- The verifier samples r₁ = 1. The reduction is complete: the sum claim
-has become the single evaluation claim p̃(1, 1) = 1, with v = 1. -/
+has become the single evaluation claim p̃(1, 1) = 1, with v = 1.
+
+The reduction, end to end:
+
+  claim:      Σ p̃ over the hypercube = 1
+  r₀ = 1:     g₀(0) + g₀(1) = 1,        pin x₀ := 1
+  r₁ = 1:     g₁(0) + g₁(1) = g₀(1),    pin x₁ := 1
+  final:      p̃(1, 1) = g₁(1) = 1
+
+All that remains is to ask the commitment for the value at r = (1, 1)
+and accept iff it equals v = 1; that is Step 3. -/
 example : eval ![1, 1] (mle circuit) = 1 := by rw [eval_mle]; decide
 
 -- ============================================================================
