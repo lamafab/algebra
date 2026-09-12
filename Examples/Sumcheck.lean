@@ -100,15 +100,15 @@ while x₀ contributes twice, once per slice. -/
 noncomputable def g₀ : Polynomial (ZMod 7) :=
   Polynomial.X ^ 2 + Polynomial.C 2 * Polynomial.X + Polynomial.C 1
 
--- g₀ is quadratic: two values do not determine the message.
 example : g₀.natDegree = 2 := by unfold g₀; compute_degree!
 
 -- Its values at the interpolation nodes are the honest slice sums:
--- g₀(0) = p(0,0) + p(0,1) and g₀(1) = p(1,0) + p(1,1).
+--   g₀(0) = p(0,0) + p(0,1) and g₀(1) = p(1,0) + p(1,1).
 example : g₀.eval 0 = eval ![0, 0] p + eval ![0, 1] p := by
   simp only [g₀, p, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
     Polynomial.eval_C, Polynomial.eval_X, eval_add, eval_mul, eval_pow, eval_X]
   decide
+
 example : g₀.eval 1 = eval ![1, 0] p + eval ![1, 1] p := by
   simp only [g₀, p, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
     Polynomial.eval_C, Polynomial.eval_X, eval_add, eval_mul, eval_pow, eval_X]
