@@ -61,8 +61,8 @@ example : circuit ![1, 1] = 1 := by decide
 /-- The witness: x₀ = 1, x₁ = 1 satisfies the gate. -/
 example : circuit ![1, 1] = 1 := by decide
 
-/-- The arithmetized claim: the hypercube sum of the circuit's MLE is 1.
-Only (1,1) contributes (Multilinear.lean; Sumcheck.lean §1). -/
+/-- The arithmetized claim: the hypercube sum of the circuit's MLE is
+0+0+0+1 = 1. Only (1,1) contributes (Multilinear.lean; Sumcheck.lean §1). -/
 example : ∑ v : Fin 2 → ZMod 2, eval v (mle circuit) = 1 := by
   simp only [eval_mle]
   decide
@@ -89,7 +89,7 @@ example : ∑ v : Fin 2 → ZMod 2, eval v (mle circuit) = 1 := by
    00  01     10  11   ← leaf corners (x₀, x₁)
 
 Internal nodes hold toyHash of their children (addition mod 2), so the
-root is the leaf parity. -/
+root is the leaf parity (TODO: change this). -/
 def table : BinaryFRI.Tree (ZMod 2) :=
   .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
 
