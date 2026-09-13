@@ -125,8 +125,6 @@ example : g₀.eval 0 + g₀.eval 1 = 5 := by
     Polynomial.eval_C, Polynomial.eval_X]
   decide
 
--- TODO: "outside {0, 1}"; do we need to mention that?
-
 /-- The verifier samples r₀ = 2, outside {0, 1}. Uniform over ℤ/7ℤ in the
 real protocol; 2 is a deliberate choice here, any of 2, …, 6 works. The
 new target v₁ = g₀(2) is not among the values the slices provided: it is
