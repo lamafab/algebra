@@ -152,7 +152,32 @@ example : ∀ x : G4, qmap ω (x + ω) = qmap ω x := by decide
 example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (ω + 1) = ω + 1 := by
   decide
 
-/-- The folded word's value at q(x), computed from the fiber {x, x + β}:
+/-- TODO: Clean this all up properly:
+
+Long division: given f and q, there exist unique s and aX + b with
+degree < deg q such that:
+
+  f = s·q + (aX + b)
+
+Consider the example message f(X) = X³ + X + 1. We need to cancel the
+leading X³, so we multiply q(X) by X:
+
+  s·q → X·q = X(X² + ω·X) = X³ + ωX²
+
+We now need to figure out (aX + b), and can hence compute f - X·q:
+
+  f - X·q = (X³ + X + 1) + (X³ + ωX²)     (char 2: subtract is add)
+          = (X³ + X³) + ωX² + X + 1
+          = ωX² + X + 1
+
+We now have:
+
+  f = X·q + (ωX² + X + 1)
+      ╰─╯   ╰────┬────╯
+      s so far    "remainder"
+---
+
+The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
 
 (foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
