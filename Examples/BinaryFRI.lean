@@ -86,7 +86,7 @@ open G4
 
 -- Sanity: the defining relation, its consequences, and characteristic 2.
 example : w * w = u := by decide          -- ω² = ω+1
-example : w * u = e := by decide          -- ω⁻¹ = ω+1, since ω(ω+1) = ω² + ω = 1
+example : w * u = e := by decide          -- ω(ω+1) = ω² + ω = 1; read backwards, ω⁻¹ = ω+1 (the `inv` table)
 example : ∀ x : G4, x + x = 0 := by decide
 example : ∀ x : G4, inv x * x = if x = 0 then 0 else 1 := by decide
 
