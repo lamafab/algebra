@@ -184,11 +184,8 @@ example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (�
 --
 --   ω·q = ω·(X² + ωX) = ωX² + ω²X = ωX² + (ω+1)X     (recall: ω² = ω+1)
 --   remainder = (ωX² + X + 1) + (ωX² + (ω+1)X)
---             = (ω+ω)X² + (1 + ω+1)X + 1
+--             = (ωX² + ωX²) + (1 + ω+1)X + 1         (recall: x + x = 0)
 --             = ωX + 1
---
--- (The ω²X term spawns no loop of its own: it merges into the X-column
--- when the multiple is added, where 1 + (ω+1) = ω since 1 + 1 = 0.)
 --
 -- Degree 1 < 2, so the loop stops:
 --
