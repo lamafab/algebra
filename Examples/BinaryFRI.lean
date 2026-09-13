@@ -58,6 +58,7 @@ def mul (x y : G8) : G8 :=
 
 instance : Mul G8 := ⟨mul⟩
 
+-- TODO: Justify this odd comment(?)
 /-- Multiplicative inverse: x⁶, since x⁷ = 1 for every x ≠ 0 (the unit
 group has order 7), and 0⁶ = 0 is the usual junk value. -/
 def inv (x : G8) : G8 := x * x * x * x * x * x
@@ -105,6 +106,7 @@ def f : G8 → G8 := fun x => x * x * x + x + 1
 0, 1, α, α+1, α², α²+1, α²+α, α²+α+1. -/
 def L : List G8 := [0, 1, α, α + 1, α², α² + 1, α² + α, α² + α + 1]
 
+-- TODO: Do we need this? Maybe just use `def f` directly.
 /-- The codeword: evaluations of f on L. -/
 def cw : G8 → G8 := f
 
@@ -141,6 +143,7 @@ example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 /-- The additive fold map, local copy. -/
 def qmap (β x : G8) : G8 := x * x + β * x
 
+-- TODO: β => α?
 -- The kernel is exactly {0, α}: q vanishes only at 0 and β.
 example : ∀ x : G8, qmap α x = 0 ↔ x = 0 ∨ x = α := by decide
 
@@ -153,9 +156,17 @@ example : ∀ x : G8, qmap α (x + α) = qmap α x := by decide
 -- The fibers, concretely:
 --   {0, α} ↦ 0          {1, α+1} ↦ α+1
 --   {α², α²+α} ↦ α²+1   {α²+1, α²+α+1} ↦ α²+α
-example : qmap α 0 = 0 ∧ qmap α 1 = α + 1 ∧
-    qmap α α² = α² + 1 ∧ qmap α (α² + 1) = α² + α := by
-  decide
+example : qmap α 0 = 0 := by decide
+example : qmap α α = 0 := by decide
+--
+example : qmap α 1 = α + 1 := by decide
+example : qmap α (α+1) = α + 1 := by decide
+--
+example : qmap α α² = α² + 1 := by decide
+example : qmap α (α²+α) = α² + 1 := by decide
+--
+example : qmap α (α² + 1) = α² + α := by decide
+example : qmap α (α² + α + 1) = α² + α := by decide
 
 -- ----------------------------------------------------------------------------
 -- Aside: the long division behind the fold, worked end to end
