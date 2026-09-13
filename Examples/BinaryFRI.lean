@@ -153,8 +153,9 @@ example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (�
   decide
 
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
-p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β (foldWord in
-BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
+  p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
+
+(foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
 def foldW (β r : G4) (w : G4 → G4) (x : G4) : G4 :=
   w x + (x + r) * (w x + w (x + β)) * inv β
 
