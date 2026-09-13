@@ -159,22 +159,33 @@ degree < deg q such that:
 
   f = s·q + (aX + b)
 
-Consider the example message f(X) = X³ + X + 1. We need to cancel the
+First loop: Consider the example message f(X) = X³ + X + 1. We need to cancel the
 leading X³, so we multiply q(X) by X:
 
   s·q → X·q = X(X² + ω·X) = X³ + ωX²
 
-We now need to figure out (aX + b), and can hence compute f - X·q:
+We now need to figure out the remainder and hence compute f - X·q:
 
-  f - X·q = (X³ + X + 1) + (X³ + ωX²)     (char 2: subtract is add)
-          = (X³ + X³) + ωX² + X + 1
+  f - X·q = (X³ + X + 1) - (X³ + ωX²)
+          = (X³ - X³) + ωX² + X + 1
           = ωX² + X + 1
 
 We now have:
 
   f = X·q + (ωX² + X + 1)
       ╰─╯   ╰────┬────╯
-      s so far    "remainder"
+   s so far   "remainder"
+
+Second loop: we need to cancel the leading ωX² of the remainder, so we multiply q(X) by ω:
+
+  s·q → ω·q = ω(X² + ω·X) = ωX² + ω²X
+
+Compute r - X·q to get the next remainder:
+
+  r - ω·q = (ωX² + X + 1) - (ωX² + ω²X)
+          = (ωX² - ωX²) + ω²X + X + 1
+          = ω²X + X + 1
+
 ---
 
 The folded word's value at q(x), computed from the fiber {x, x + β}:
