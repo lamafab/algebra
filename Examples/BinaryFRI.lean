@@ -152,51 +152,55 @@ example : ∀ x : G4, qmap ω (x + ω) = qmap ω x := by decide
 example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (ω + 1) = ω + 1 := by
   decide
 
-/-- TODO: Clean this all up properly:
+-- ----------------------------------------------------------------------------
+-- Aside: the long division behind the fold, worked end to end
+-- ----------------------------------------------------------------------------
+--
+-- The components p₀, p₁ folded below come from writing the committed
+-- polynomial f in base q. Division theorem: given f and q ≠ 0 there are a
+-- unique quotient s and remainder aX + b with deg(aX + b) < deg q such
+-- that
+--
+--   f = s·q + (aX + b)
+--
+-- With deg q = 2 the remainder is always a digit aX + b. The loop below
+-- produces the digits one at a time; collecting their constant parts gives
+-- p₀, their X-coefficients give p₁.
+--
+-- Worked with f(X) = X³ + X + 1 and q(X) = X² + ωX. Minus is plus
+-- throughout (char 2). Each loop cancels the leading term of the current
+-- remainder; the multiplier that does so is the next term of the quotient.
+--
+-- Loop 1: cancel X³. Multiplier X, since X·X² = X³.
+--
+--   X·q = X·(X² + ωX) = X³ + ωX²
+--   remainder = f − X·q = (X³ + X + 1) + (X³ + ωX²) = ωX² + X + 1
+--
+--   f = X·q + (ωX² + X + 1)
+--        ╰─╯   ╰────┬────╯
+--     quotient   remainder has degree 2: not a digit yet, loop again
+--
+-- Loop 2: cancel ωX². Multiplier ω, since ω·X² = ωX².
+--
+--   ω·q = ω·(X² + ωX) = ωX² + ω²X = ωX² + (ω+1)X     (recall: ω² = ω+1)
+--   remainder = (ωX² + X + 1) + (ωX² + (ω+1)X)
+--             = (ω+ω)X² + (1 + ω+1)X + 1
+--             = ωX + 1
+--
+-- (The ω²X term spawns no loop of its own: it merges into the X-column
+-- when the multiple is added, where 1 + (ω+1) = ω since 1 + 1 = 0.)
+--
+-- Degree 1 < 2, so the loop stops:
+--
+--   f = (X + ω)·q + (ωX + 1)
+--        ╰──┬──╯     ╰───┬───╯
+--      quotient      digit: a = ω, b = 1
+--
+-- The quotient X + ω is itself degree < 2, so it is the second digit.
+-- Collecting both digits: p₀(t) = 1 + ωt from the constant parts,
+-- p₁(t) = ω + t from the X-coefficients, and indeed f = p₀(q) + X·p₁(q).
 
-Long division: given f and q, there exist unique s and aX + b with
-degree < deg q such that:
-
-  f = s·q + (aX + b)
-
-First loop: Consider the example message f(X) = X³ + X + 1. We need to cancel the
-leading X³, so we multiply q(X) by X:
-
-  s·q → X·q = X(X² + ω·X) = X³ + ωX²
-
-We now need to compute the remainder f - X·q:
-
-  f - X·q = (X³ + X + 1) - (X³ + ωX²)
-          = (X³ - X³) + ωX² + X + 1
-          = ωX² + X + 1
-
-We now have:
-
-  f = X·q + (ωX² + X + 1)
-      ╰─╯   ╰────┬────╯
-   s so far   "remainder"
-
-Second loop: we need to cancel the leading ωX² of the remainder, so we multiply q(X) by ω:
-
-  s·q → ω·q = ω(X² + ω·X) = ωX² + ω²X
-
-Compute r - X·q to get the next remainder:
-
-  r - ω·q = (ωX² + X + 1) - (ωX² + ω²X)
-          = (ωX² - ωX²) + ω²X + X + 1
-          = (ω+1)X + X + 1
-          = X(ω+1 + 1) + 1
-          = X(ω + 1 + 1) + 1
-          = ωX + 1
-
-We now have a polynomial of degree < 2, so the folding loop stops:
-
-  f = (X + ω)·q + (ωX + 1)
-      ╰──┬──╯    ╰───┬───╯
-      s = X + ω    a = ω, b = 1
----
-
-The folded word's value at q(x), computed from the fiber {x, x + β}:
+/-- The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
 
 (foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
