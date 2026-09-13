@@ -131,6 +131,8 @@ example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 -- TODO: Note that this is Binius specific, ie. enabling a 2-to-1 Frobenius
 -- map for characteristic 2 fields.
 --
+-- TODO: Remove β entirely(?)
+--
 -- The fold map q(x) = x² + α·x with β = α (foldMap in BinaryFRI.lean §1,
 -- redefined locally). Its kernel is {0, α}, so it pairs each x with x + α
 -- and halves the 8-element domain to the 4-element image
@@ -179,7 +181,7 @@ example : qmap α 0 = 0 ∧ qmap α 1 = α + 1 ∧
 -- Note α² is a free basis element here (unlike ω² = ω + 1 in GF(4)), so
 -- no relation fires.
 --
--- Loop 1: cancel X³. Multiplier X, since X·X² = X³.
+-- Loop 1: cancel X³ of f(X). Multiplier X, since X·X² = X³.
 --
 --   X·q = X·(X² + αX) = X³ + αX²
 --   remainder = f − X·q = (X³ + X + 1) + (X³ + αX²) = αX² + X + 1
