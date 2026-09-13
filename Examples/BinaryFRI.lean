@@ -164,7 +164,7 @@ leading X³, so we multiply q(X) by X:
 
   s·q → X·q = X(X² + ω·X) = X³ + ωX²
 
-We now need to figure out the remainder and hence compute f - X·q:
+We now need to compute the remainder f - X·q:
 
   f - X·q = (X³ + X + 1) - (X³ + ωX²)
           = (X³ - X³) + ωX² + X + 1
@@ -184,8 +184,16 @@ Compute r - X·q to get the next remainder:
 
   r - ω·q = (ωX² + X + 1) - (ωX² + ω²X)
           = (ωX² - ωX²) + ω²X + X + 1
-          = ω²X + X + 1
+          = (ω+1)X + X + 1
+          = X(ω+1 + 1) + 1
+          = X(ω + 1 + 1) + 1
+          = ωX + 1
 
+We now have a polynomial of degree < 2, so the folding loop stops:
+
+  f = (X + ω)·q + (ωX + 1)
+      ╰──┬──╯    ╰───┬───╯
+      s = X + ω    a = ω, b = 1
 ---
 
 The folded word's value at q(x), computed from the fiber {x, x + β}:
