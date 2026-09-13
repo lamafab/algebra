@@ -97,31 +97,35 @@ example : ∀ x : G4, inv x * x = if x = 0 then 0 else 1 := by decide
 -- Section 2: The message and its RS codeword
 -- ============================================================================
 --
--- The message is the degree-1 polynomial m(X) = X + 1 over GF(4). Its
--- Reed-Solomon codeword is the evaluation table on the domain
--- L = {0, 1, ω, ω+1} (ReedSolomonReedMuller.lean §1, written here as a
--- function rather than a Polynomial so everything stays decidable).
+-- The message is the degree-3 polynomial f(X) = X³ + X + 1 over GF(4),
+-- the same f whose base-q division is worked in §3. Its Reed-Solomon
+-- codeword is the evaluation table on the domain L = {0, 1, ω, ω+1}
+-- (ReedSolomonReedMuller.lean §1, written here as a function rather than
+-- a Polynomial so everything stays decidable).
 
-/-- The message polynomial m(X) = X + 1. -/
-def m : G4 → G4 := fun x => x + 1
+/-- The message polynomial f(X) = X³ + X + 1. -/
+def f : G4 → G4 := fun x => x * x * x + x + 1
 
 /-- The evaluation domain, ordered. -/
 def L : List G4 := [0, 1, ω, ω + 1]
 
-/-- The codeword: evaluations of m on L. -/
-def cw : G4 → G4 := m
+/-- The codeword: evaluations of f on L. -/
+def cw : G4 → G4 := f
 
 -- The codeword really is the evaluation table of the message.
-example : L.map cw = [1, 0, ω + 1, ω] := by decide
+example : L.map cw = [1, 1, ω, ω + 1] := by decide
 
--- Distance, concretely. A second message n(X) = ωX has codeword
--- [0, ω, ω+1, 1]; it agrees with cw in exactly 1 = d − 1 positions
--- (d = 2), the maximum the roots bound allows for distinct degree < 2
--- polynomials (rs_agreement_card_le in ReedSolomonReedMuller.lean).
-def n : G4 → G4 := fun x => ω * x
+-- Distance, concretely. With deg f = 3 = |L| − 1 the code has d = 1:
+-- every word on L is the table of some degree ≤ 3 polynomial, so there
+-- is no redundancy to detect errors with (real FRI takes |L| ≫ deg f;
+-- GF(4) has nothing larger to offer). What survives is the roots bound:
+-- distinct degree ≤ 3 polynomials agree in at most 3 positions
+-- (rs_agreement_card_le in ReedSolomonReedMuller.lean). The second
+-- message n(X) = (ω+1)X² + (ω+1)X + 1 agrees with f in exactly 3.
+def n : G4 → G4 := fun x => (ω + 1) * x * x + (ω + 1) * x + 1
 
-example : (L.filter fun x => cw x = n x).length = 1 := by decide
-example : (L.filter fun x => cw x = n x) = [ω] := by decide
+example : (L.filter fun x => cw x = n x).length = 3 := by decide
+example : (L.filter fun x => cw x = n x) = [0, 1, ω] := by decide
 
 -- ============================================================================
 -- Section 3: One fold round on the codeword
@@ -209,11 +213,11 @@ def foldW (β r : G4) (w : G4 → G4) (x : G4) : G4 :=
 example : foldW ω 1 cw 0 = foldW ω 1 cw ω := by decide
 example : foldW ω 1 cw 1 = foldW ω 1 cw (ω + 1) := by decide
 
--- And the folded word is the constant 0 on the image {0, ω+1}: the message
--- is m(X) = X + 1 = 1 + X·1, so the components are the constants p₀ = 1
--- and p₁ = 1, and the fold with challenge r = 1 gives p₀ + r·p₁ = 0
--- everywhere. One round folded a degree-1 word to a constant.
-example : foldW ω 1 cw 0 = 0 ∧ foldW ω 1 cw 1 = 0 := by decide
+-- The folded word on the image {0, ω+1}: with the Aside's digits
+-- p₀(t) = 1 + ωt and p₁(t) = ω + t, the fold with challenge r = 1 is
+-- p₀(t) + r·p₁(t) = (1 + ω) + (1 + ω)t, the values 1 + ω at t = 0 and
+-- 1 at t = ω+1. One round halved the degree from 3 to 1.
+example : foldW ω 1 cw 0 = 1 + ω ∧ foldW ω 1 cw 1 = 1 := by decide
 
 -- ============================================================================
 -- Section 4: Merkle commitment with a nonlinear hash
@@ -231,31 +235,31 @@ def hash1 (a b : G4) : G4 := a * a + b * b * b
 
 /-- The committed codeword tree, leaf order 0, 1, ω, ω+1. -/
 def codewordTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf 1) (.leaf 0)) (.node (.leaf (ω + 1)) (.leaf ω))
+  .node (.node (.leaf 1) (.leaf 1)) (.node (.leaf ω) (.leaf (ω + 1)))
 
--- The root is 0: level 1 gives h(1, 0) = 1 and h(ω+1, ω) = ω+1, and the
--- root is h(1, ω+1) = 1 + 1 = 0.
-example : codewordTree.root hash1 = 0 := by decide
+-- The root is 1: level 1 gives h(1, 1) = 1 + 1 = 0 and
+-- h(ω, ω+1) = ω² + (ω+1)³ = ω, and the root is h(0, ω) = 0 + ω³ = 1.
+example : codewordTree.root hash1 = 1 := by decide
 
--- The honest path to the ω-leaf (directions [false, false]), computed by
+-- The honest path to the ω-leaf (directions [false, true]), computed by
 -- Tree.path rather than written out by hand, verifies against the root.
-example : BinaryFRI.Tree.path hash1 codewordTree [false, false] =
-    some [(false, ω + 1), (false, 1)] := by decide
+example : BinaryFRI.Tree.path hash1 codewordTree [false, true] =
+    some [(true, ω + 1), (false, 0)] := by decide
 
-example : codewordTree.lookup [false, false] = some ω ∧
-    BinaryFRI.verify hash1 ω [(false, ω + 1), (false, 1)] = codewordTree.root hash1 :=
+example : codewordTree.lookup [false, true] = some ω ∧
+    BinaryFRI.verify hash1 ω [(true, ω + 1), (false, 0)] = codewordTree.root hash1 :=
   ⟨by decide, by decide⟩
 
 -- The same opening, discharged by the general honest-path theorem
 -- (verify_path, BinaryFRI.lean §3): the machinery is used as proved, not
 -- just as computed.
-example : BinaryFRI.verify hash1 ω [(false, ω + 1), (false, 1)] = codewordTree.root hash1 :=
-  BinaryFRI.verify_path hash1 codewordTree [false, false] ω
-    [(false, ω + 1), (false, 1)] (by decide) (by decide)
+example : BinaryFRI.verify hash1 ω [(true, ω + 1), (false, 0)] = codewordTree.root hash1 :=
+  BinaryFRI.verify_path hash1 codewordTree [false, true] ω
+    [(true, ω + 1), (false, 0)] (by decide) (by decide)
 
 -- Tampering is detected: flipping the first leaf 1 ↦ 0 changes the root.
 def tamperedTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf (ω + 1)) (.leaf ω))
+  .node (.node (.leaf 0) (.leaf 1)) (.node (.leaf ω) (.leaf (ω + 1)))
 
 example : tamperedTree.root hash1 ≠ codewordTree.root hash1 := by decide
 
