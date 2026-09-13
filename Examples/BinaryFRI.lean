@@ -82,11 +82,14 @@ instance : Fintype G4 where
 
 end G4
 
+/-- Read the constructors as field elements: 0, 1, ω, ω+1. -/
+notation "ω" => G4.w
+
 open G4
 
 -- Sanity: the defining relation, its consequences, and characteristic 2.
-example : w * w = u := by decide          -- ω² = ω+1
-example : w * u = e := by decide          -- ω(ω+1) = ω² + ω = 1; read backwards, ω⁻¹ = ω+1 (the `inv` table)
+example : ω * ω = ω + 1 := by decide      -- ω² = ω+1
+example : ω * (ω + 1) = 1 := by decide    -- ω(ω+1) = ω² + ω = 1; read backwards, ω⁻¹ = ω+1 (the `inv` table)
 example : ∀ x : G4, x + x = 0 := by decide
 example : ∀ x : G4, inv x * x = if x = 0 then 0 else 1 := by decide
 
@@ -103,22 +106,22 @@ example : ∀ x : G4, inv x * x = if x = 0 then 0 else 1 := by decide
 def m : G4 → G4 := fun x => x + 1
 
 /-- The evaluation domain, ordered. -/
-def L : List G4 := [.o, .e, .w, .u]
+def L : List G4 := [0, 1, ω, ω + 1]
 
 /-- The codeword: evaluations of m on L. -/
 def cw : G4 → G4 := m
 
 -- The codeword really is the evaluation table of the message.
-example : L.map cw = [.e, .o, .u, .w] := by decide
+example : L.map cw = [1, 0, ω + 1, ω] := by decide
 
 -- Distance, concretely. A second message n(X) = ωX has codeword
 -- [0, ω, ω+1, 1]; it agrees with cw in exactly 1 = d − 1 positions
 -- (d = 2), the maximum the roots bound allows for distinct degree < 2
 -- polynomials (rs_agreement_card_le in ReedSolomonReedMuller.lean).
-def n : G4 → G4 := fun x => w * x
+def n : G4 → G4 := fun x => ω * x
 
 example : (L.filter fun x => cw x = n x).length = 1 := by decide
-example : (L.filter fun x => cw x = n x) = [.w] := by decide
+example : (L.filter fun x => cw x = n x) = [ω] := by decide
 
 -- ============================================================================
 -- Section 3: One fold round on the codeword
@@ -132,15 +135,16 @@ example : (L.filter fun x => cw x = n x) = [.w] := by decide
 def qmap (β x : G4) : G4 := x * x + β * x
 
 -- The kernel is exactly {0, ω}: q vanishes only at 0 and β.
-example : ∀ x : G4, qmap w x = 0 ↔ x = 0 ∨ x = w := by decide
+example : ∀ x : G4, qmap ω x = 0 ↔ x = 0 ∨ x = ω := by decide
 
 -- The 2-to-1 collapse: q(x + ω) = q(x) for every x (foldMap_pair).
-example : ∀ x : G4, qmap w (x + w) = qmap w x := by decide
+example : ∀ x : G4, qmap ω (x + ω) = qmap ω x := by decide
 
 -- The fibers, concretely:
 --   {0, ω} ↦ 0    (q(0) = 0, q(ω) = ω² + ω² = 0)
 --   {1, ω+1} ↦ ω+1 (q(1) = 1 + ω, q(ω+1) = (ω+1)² + ω(ω+1) = ω + 1)
-example : qmap w o = 0 ∧ qmap w w = 0 ∧ qmap w e = u ∧ qmap w u = u := by decide
+example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (ω + 1) = ω + 1 := by
+  decide
 
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
 p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β (foldWord in
@@ -150,14 +154,14 @@ def foldW (β r : G4) (w : G4 → G4) (x : G4) : G4 :=
 
 -- The verifier's fold-consistency check: both representatives of a fiber
 -- give the same folded value (foldWord_pair, checked on all fibers).
-example : foldW w e cw o = foldW w e cw w := by decide
-example : foldW w e cw e = foldW w e cw u := by decide
+example : foldW ω 1 cw 0 = foldW ω 1 cw ω := by decide
+example : foldW ω 1 cw 1 = foldW ω 1 cw (ω + 1) := by decide
 
 -- And the folded word is the constant 0 on the image {0, ω+1}: the message
 -- is m(X) = X + 1 = 1 + X·1, so the components are the constants p₀ = 1
 -- and p₁ = 1, and the fold with challenge r = 1 gives p₀ + r·p₁ = 0
 -- everywhere. One round folded a degree-1 word to a constant.
-example : foldW w e cw o = 0 ∧ foldW w e cw e = 0 := by decide
+example : foldW ω 1 cw 0 = 0 ∧ foldW ω 1 cw 1 = 0 := by decide
 
 -- ============================================================================
 -- Section 4: Merkle commitment with a nonlinear hash
@@ -175,7 +179,7 @@ def hash1 (a b : G4) : G4 := a * a + b * b * b
 
 /-- The committed codeword tree, leaf order 0, 1, ω, ω+1. -/
 def codewordTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf .e) (.leaf .o)) (.node (.leaf .u) (.leaf .w))
+  .node (.node (.leaf 1) (.leaf 0)) (.node (.leaf (ω + 1)) (.leaf ω))
 
 -- The root is 0: level 1 gives h(1, 0) = 1 and h(ω+1, ω) = ω+1, and the
 -- root is h(1, ω+1) = 1 + 1 = 0.
@@ -184,22 +188,22 @@ example : codewordTree.root hash1 = 0 := by decide
 -- The honest path to the ω-leaf (directions [false, false]), computed by
 -- Tree.path rather than written out by hand, verifies against the root.
 example : BinaryFRI.Tree.path hash1 codewordTree [false, false] =
-    some [(false, .u), (false, .e)] := by decide
+    some [(false, ω + 1), (false, 1)] := by decide
 
-example : codewordTree.lookup [false, false] = some .w ∧
-    BinaryFRI.verify hash1 .w [(false, .u), (false, .e)] = codewordTree.root hash1 :=
+example : codewordTree.lookup [false, false] = some ω ∧
+    BinaryFRI.verify hash1 ω [(false, ω + 1), (false, 1)] = codewordTree.root hash1 :=
   ⟨by decide, by decide⟩
 
 -- The same opening, discharged by the general honest-path theorem
 -- (verify_path, BinaryFRI.lean §3): the machinery is used as proved, not
 -- just as computed.
-example : BinaryFRI.verify hash1 .w [(false, .u), (false, .e)] = codewordTree.root hash1 :=
-  BinaryFRI.verify_path hash1 codewordTree [false, false] .w
-    [(false, .u), (false, .e)] (by decide) (by decide)
+example : BinaryFRI.verify hash1 ω [(false, ω + 1), (false, 1)] = codewordTree.root hash1 :=
+  BinaryFRI.verify_path hash1 codewordTree [false, false] ω
+    [(false, ω + 1), (false, 1)] (by decide) (by decide)
 
 -- Tampering is detected: flipping the first leaf 1 ↦ 0 changes the root.
 def tamperedTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf .o) (.leaf .o)) (.node (.leaf .u) (.leaf .w))
+  .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf (ω + 1)) (.leaf ω))
 
 example : tamperedTree.root hash1 ≠ codewordTree.root hash1 := by decide
 
@@ -214,6 +218,6 @@ example (x x' y : G4) : ∃ y' : G4, x' + y' = x + y :=
 -- whose sibling value is 0, no sibling value y' restores the parent hash,
 -- because hash1(ω, ·) only ever outputs ω+1 or ω, never 0.
 example : ∃ x x' y : G4, ∀ y' : G4, hash1 x' y' ≠ hash1 x y :=
-  ⟨.o, .w, .o, fun y' => by cases y' <;> decide⟩
+  ⟨0, ω, 0, fun y' => by cases y' <;> decide⟩
 
 end Examples.BinaryFRI
