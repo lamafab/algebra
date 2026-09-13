@@ -6,21 +6,21 @@ import Crypto.ZK.BinaryFRI
 -- ============================================================================
 --
 -- Companion to Examples/Sumcheck.lean: a self-contained micro-run of binary
--- FRI (Crypto/ZK/BinaryFRI.lean) over a hand-rolled GF(4), outside the
+-- FRI (Crypto/ZK/BinaryFRI.lean) over a hand-rolled GF(8), outside the
 -- Binius context. Unlike BiniusToy.lean, the committed word is a genuine
 -- Reed-Solomon codeword encoding a message polynomial, and the Merkle hash
 -- is nonlinear, so the binding property is demonstrated rather than
 -- assumed away.
 --
---   §1  GF(4), hand-rolled for decidability
+--   §1  GF(8), hand-rolled for decidability
 --   §2  The message and its RS codeword
 --   §3  One fold round on the codeword
 --   §4  Merkle commitment with a nonlinear hash
 --
 -- Design notes. Mathlib's GaloisField and AdjoinRoot do not evaluate with
--- decide (their DecidableEq instances are classical), so GF(4) is built
--- here as an inductive type with table arithmetic. The fold map and folded
--- word are redefined locally (two lines each) because instantiating
+-- decide (their DecidableEq instances are classical), so GF(8) is built
+-- here as triples of bits with schoolbook multiplication. The fold map and
+-- folded word are redefined locally (two lines each) because instantiating
 -- BinaryFRI's Field-polymorphic definitions would need a Field instance on
 -- the hand-rolled type; the Merkle machinery (Tree, verify, Tree.path,
 -- verify_path) needs no instances and is reused verbatim.
@@ -28,104 +28,101 @@ import Crypto.ZK.BinaryFRI
 namespace Examples.BinaryFRI
 
 -- ============================================================================
--- Section 1: GF(4), hand-rolled
+-- Section 1: GF(8), hand-rolled
 -- ============================================================================
 
-/-- GF(4) = {0, 1, ω, ω+1} with ω² = ω + 1. `u` is ω+1. -/
-inductive G4 where
-  | o | e | w | u
-  deriving DecidableEq
+/-- GF(8) = GF(2)[α]/(α³ + α + 1). Elements are triples (b₀, b₁, b₂),
+read as b₀ + b₁α + b₂α². -/
+def G8 := Fin 2 × Fin 2 × Fin 2
 
-namespace G4
+namespace G8
 
-/-- Addition is bitwise XOR on the 𝔽₂-coordinates. -/
-def add : G4 → G4 → G4
-  | .o, x => x
-  | x, .o => x
-  | .e, .e => .o
-  | .w, .w => .o
-  | .u, .u => .o
-  | .e, .w => .u
-  | .w, .e => .u
-  | .e, .u => .w
-  | .u, .e => .w
-  | .w, .u => .e
-  | .u, .w => .e
+instance : Zero G8 := ⟨(0, 0, 0)⟩
 
-/-- Multiplication; the only nontrivial cells are ω² = ω+1, ω(ω+1) = 1,
-(ω+1)² = ω. -/
-def mul : G4 → G4 → G4
-  | .o, _ => .o
-  | _, .o => .o
-  | .e, x => x
-  | x, .e => x
-  | .w, .w => .u
-  | .w, .u => .e
-  | .u, .w => .e
-  | .u, .u => .w
+/-- The multiplicative identity is (1, 0, 0); the product type's own One
+instance would be (1, 1, 1), so it is defined explicitly. -/
+instance : One G8 := ⟨(1, 0, 0)⟩
 
-/-- Multiplicative inverse; 0 ↦ 0 is a junk value, as usual. -/
-def inv : G4 → G4
-  | .o => .o
-  | .e => .e
-  | .w => .u
-  | .u => .w
+/-- Addition is componentwise: XOR on the three 𝔽₂-coordinates. -/
+instance : Add G8 := ⟨fun x y => (x.1 + y.1, x.2.1 + y.2.1, x.2.2 + y.2.2)⟩
 
-instance : Zero G4 := ⟨.o⟩
-instance : One G4 := ⟨.e⟩
-instance : Add G4 := ⟨add⟩
-instance : Mul G4 := ⟨mul⟩
+/-- Multiplication: schoolbook in α, then reduce by α³ = α + 1 (hence
+α⁴ = α² + α). cᵢ is the pre-reduction coefficient of αⁱ; α³ folds into
+positions 0 and 1, α⁴ into positions 1 and 2. -/
+def mul (x y : G8) : G8 :=
+  let c₁ := x.1 * y.2.1 + x.2.1 * y.1
+  let c₂ := x.1 * y.2.2 + x.2.1 * y.2.1 + x.2.2 * y.1
+  let c₃ := x.2.1 * y.2.2 + x.2.2 * y.2.1
+  let c₄ := x.2.2 * y.2.2
+  (x.1 * y.1 + c₃, c₁ + c₃ + c₄, c₂ + c₄)
 
-instance : Fintype G4 where
-  elems := {.o, .e, .w, .u}
-  complete := fun x => by cases x <;> decide
+instance : Mul G8 := ⟨mul⟩
 
-end G4
+/-- Multiplicative inverse: x⁶, since x⁷ = 1 for every x ≠ 0 (the unit
+group has order 7), and 0⁶ = 0 is the usual junk value. -/
+def inv (x : G8) : G8 := x * x * x * x * x * x
 
-/-- Read the constructors as field elements: 0, 1, ω, ω+1. -/
-notation "ω" => G4.w
+/-- The primitive element α = (0, 1, 0), a root of X³ + X + 1. Kept as a
+def (not an ascribed tuple) so that terms built from it elaborate with
+type G8 and pick up the G8 instances above, not the product type's
+pointwise ones. -/
+def alpha : G8 := (0, 1, 0)
 
-open G4
+instance : DecidableEq G8 := inferInstanceAs (DecidableEq (Fin 2 × Fin 2 × Fin 2))
+instance : Fintype G8 := inferInstanceAs (Fintype (Fin 2 × Fin 2 × Fin 2))
 
--- Sanity: the defining relation, its consequences, and characteristic 2.
-example : ω * ω = ω + 1 := by decide      -- ω² = ω+1
-example : ω * (ω + 1) = 1 := by decide    -- ω(ω+1) = ω² + ω = 1; read backwards, ω⁻¹ = ω+1 (the `inv` table)
-example : ∀ x : G4, x + x = 0 := by decide
-example : ∀ x : G4, inv x * x = if x = 0 then 0 else 1 := by decide
+end G8
+
+/-- The primitive element. -/
+notation "α" => G8.alpha
+
+/-- α² = (0, 0, 1). -/
+notation "α²" => α * α
+
+open G8
+
+-- Sanity: the defining relation, the unit-group order used by `inv`,
+-- characteristic 2, and the inverse law.
+example : α * α * α = α + 1 := by decide
+example : ∀ x : G8, x ≠ 0 → x * x * x * x * x * x * x = 1 := by decide
+example : ∀ x : G8, x + x = 0 := by decide
+example : ∀ x : G8, inv x * x = if x = 0 then 0 else 1 := by decide
 
 -- ============================================================================
 -- Section 2: The message and its RS codeword
 -- ============================================================================
 --
--- The message is the degree-3 polynomial f(X) = X³ + X + 1 over GF(4),
+-- The message is the degree-3 polynomial f(X) = X³ + X + 1 over GF(8),
 -- the same f whose base-q division is worked in §3. Its Reed-Solomon
--- codeword is the evaluation table on the domain L = {0, 1, ω, ω+1}
+-- codeword is the evaluation table on the full domain L = GF(8)
 -- (ReedSolomonReedMuller.lean §1, written here as a function rather than
 -- a Polynomial so everything stays decidable).
 
 /-- The message polynomial f(X) = X³ + X + 1. -/
-def f : G4 → G4 := fun x => x * x * x + x + 1
+def f : G8 → G8 := fun x => x * x * x + x + 1
 
-/-- The evaluation domain, ordered. -/
-def L : List G4 := [0, 1, ω, ω + 1]
+/-- The evaluation domain: all of GF(8), ordered
+0, 1, α, α+1, α², α²+1, α²+α, α²+α+1. -/
+def L : List G8 := [0, 1, α, α + 1, α², α² + 1, α² + α, α² + α + 1]
 
 /-- The codeword: evaluations of f on L. -/
-def cw : G4 → G4 := f
+def cw : G8 → G8 := f
 
--- The codeword really is the evaluation table of the message.
-example : L.map cw = [1, 1, ω, ω + 1] := by decide
+-- The codeword really is the evaluation table of the message. The three
+-- zeros sit at α, α², α²+α = α⁴: exactly the roots of f, since f is the
+-- minimal polynomial of α over GF(2).
+example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 
--- Distance, concretely. With deg f = 3 = |L| − 1 the code has d = 1:
--- every word on L is the table of some degree ≤ 3 polynomial, so there
--- is no redundancy to detect errors with (real FRI takes |L| ≫ deg f;
--- GF(4) has nothing larger to offer). What survives is the roots bound:
--- distinct degree ≤ 3 polynomials agree in at most 3 positions
--- (rs_agreement_card_le in ReedSolomonReedMuller.lean). The second
--- message n(X) = (ω+1)X² + (ω+1)X + 1 agrees with f in exactly 3.
-def n : G4 → G4 := fun x => (ω + 1) * x * x + (ω + 1) * x + 1
+-- Distance, concretely. With deg f = 3 and |L| = 8 the code is
+-- RS [8, 4, 5]: rate 1/2, and two distinct codewords agree in at most
+-- n − d = 3 positions. The bound is tight: n(X) = (α+1)X² + (α+1)X + 1
+-- agrees with f in exactly 3 positions, since the difference
+-- f − n = X(X+1)(X+α) vanishes exactly at {0, 1, α}
+-- (rs_agreement_card_le in ReedSolomonReedMuller.lean).
+def n : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
 
-example : (L.filter fun x => cw x = n x).length = 3 := by decide
-example : (L.filter fun x => cw x = n x) = [0, 1, ω] := by decide
+example : (L.filter fun x => cw x = n x) = [0, 1, α] := by decide
+example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 
 -- ============================================================================
 -- Section 3: One fold round on the codeword
@@ -134,26 +131,28 @@ example : (L.filter fun x => cw x = n x) = [0, 1, ω] := by decide
 -- TODO: Note that this is Binius specific, ie. enabling a 2-to-1 Frobenius
 -- map for characteristic 2 fields.
 --
--- The fold map q(x) = x² + ω·x with β = ω (foldMap in BinaryFRI.lean §1,
--- redefined locally). Its kernel is {0, ω}, so it pairs each x with x + ω
--- and halves the domain {0, 1, ω, ω+1} to the image {0, ω+1}.
+-- The fold map q(x) = x² + α·x with β = α (foldMap in BinaryFRI.lean §1,
+-- redefined locally). Its kernel is {0, α}, so it pairs each x with x + α
+-- and halves the 8-element domain to the 4-element image
+-- {0, α+1, α²+1, α²+α}.
 
 /-- The additive fold map, local copy. -/
-def qmap (β x : G4) : G4 := x * x + β * x
+def qmap (β x : G8) : G8 := x * x + β * x
 
--- The kernel is exactly {0, ω}: q vanishes only at 0 and β.
-example : ∀ x : G4, qmap ω x = 0 ↔ x = 0 ∨ x = ω := by decide
+-- The kernel is exactly {0, α}: q vanishes only at 0 and β.
+example : ∀ x : G8, qmap α x = 0 ↔ x = 0 ∨ x = α := by decide
 
 -- TODO: We have a visual demonstration for this in Crypto/ZK/BinaryFRI.lean,
 -- theorem foldMap_pair
 --
--- The 2-to-1 collapse: q(x + ω) = q(x) for every x (foldMap_pair).
-example : ∀ x : G4, qmap ω (x + ω) = qmap ω x := by decide
+-- The 2-to-1 collapse: q(x + α) = q(x) for every x (foldMap_pair).
+example : ∀ x : G8, qmap α (x + α) = qmap α x := by decide
 
 -- The fibers, concretely:
---   {0, ω} ↦ 0    (q(0) = 0, q(ω) = ω² + ω² = 0)
---   {1, ω+1} ↦ ω+1 (q(1) = 1 + ω, q(ω+1) = (ω+1)² + ω(ω+1) = ω + 1)
-example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (ω + 1) = ω + 1 := by
+--   {0, α} ↦ 0          {1, α+1} ↦ α+1
+--   {α², α²+α} ↦ α²+1   {α²+1, α²+α+1} ↦ α²+α
+example : qmap α 0 = 0 ∧ qmap α 1 = α + 1 ∧
+    qmap α α² = α² + 1 ∧ qmap α (α² + 1) = α² + α := by
   decide
 
 -- ----------------------------------------------------------------------------
@@ -171,95 +170,112 @@ example : qmap ω 0 = 0 ∧ qmap ω ω = 0 ∧ qmap ω 1 = ω + 1 ∧ qmap ω (�
 -- produces the digits one at a time; collecting their constant parts gives
 -- p₀, their X-coefficients give p₁.
 --
--- Worked with f(X) = X³ + X + 1 and q(X) = X² + ωX. Minus is plus
+-- Worked with f(X) = X³ + X + 1 and q(X) = X² + αX. Minus is plus
 -- throughout (char 2). Each loop cancels the leading term of the current
 -- remainder; the multiplier that does so is the next term of the quotient.
+-- Note α² is a free basis element here (unlike ω² = ω + 1 in GF(4)), so
+-- no relation fires.
 --
 -- Loop 1: cancel X³. Multiplier X, since X·X² = X³.
 --
---   X·q = X·(X² + ωX) = X³ + ωX²
---   remainder = f − X·q = (X³ + X + 1) + (X³ + ωX²) = ωX² + X + 1
+--   X·q = X·(X² + αX) = X³ + αX²
+--   remainder = f − X·q = (X³ + X + 1) + (X³ + αX²) = αX² + X + 1
 --
---   f = X·q + (ωX² + X + 1)
+--   f = X·q + (αX² + X + 1)
 --        ╰─╯   ╰────┬────╯
 --     quotient   remainder has degree 2: not a digit yet, loop again
 --
--- Loop 2: cancel ωX². Multiplier ω, since ω·X² = ωX².
+-- Loop 2: cancel αX². Multiplier α, since α·X² = αX².
 --
---   ω·q = ω·(X² + ωX) = ωX² + ω²X = ωX² + (ω+1)X     (recall: ω² = ω+1)
---   remainder = (ωX² + X + 1) + (ωX² + (ω+1)X)
---             = (ωX² + ωX²) + (1 + ω+1)X + 1         (recall: x + x = 0)
---             = ωX + 1
+--   α·q = α·(X² + αX) = αX² + α²X
+--   remainder = (αX² + X + 1) + (αX² + α²X)
+--             = (αX² + αX²) + (1 + α²)X + 1       (recall: x + x = 0)
+--             = (α² + 1)X + 1
 --
 -- Degree 1 < 2, so the loop stops:
 --
---   f = (X + ω)·q + (ωX + 1)
---        ╰──┬──╯     ╰───┬───╯
---      quotient      digit: a = ω, b = 1
+--   f = (X + α)·q + ((α² + 1)X + 1)
+--        ╰──┬──╯      ╰─────┬─────╯
+--      quotient        digit: a = α² + 1, b = 1
 --
--- The quotient X + ω is itself degree < 2, so it is the second digit.
--- Collecting both digits: p₀(t) = 1 + ωt from the constant parts,
--- p₁(t) = ω + t from the X-coefficients, and indeed f = p₀(q) + X·p₁(q).
+-- The quotient X + α is itself degree < 2, so it is the second digit.
+-- Collecting both digits: p₀(t) = 1 + αt from the constant parts,
+-- p₁(t) = (α² + 1) + t from the X-coefficients. The conclusion
+-- f = p₀(q) + X·p₁(q) is checked by the example below.
+
+example : ∀ x : G8, f x = (1 + α * qmap α x) + x * ((α² + 1) + qmap α x) := by decide
 
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
 
 (foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
-def foldW (β r : G4) (w : G4 → G4) (x : G4) : G4 :=
+def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
   w x + (x + r) * (w x + w (x + β)) * inv β
 
--- The verifier's fold-consistency check: both representatives of a fiber
--- give the same folded value (foldWord_pair, checked on all fibers).
-example : foldW ω 1 cw 0 = foldW ω 1 cw ω := by decide
-example : foldW ω 1 cw 1 = foldW ω 1 cw (ω + 1) := by decide
+-- The verifier's fold-consistency check: both representatives of each
+-- fiber give the same folded value (foldWord_pair, checked on all fibers).
+example : foldW α 1 cw 0 = foldW α 1 cw α := by decide
+example : foldW α 1 cw 1 = foldW α 1 cw (α + 1) := by decide
+example : foldW α 1 cw α² = foldW α 1 cw (α² + α) := by decide
+example : foldW α 1 cw (α² + 1) = foldW α 1 cw (α² + α + 1) := by decide
 
--- The folded word on the image {0, ω+1}: with the Aside's digits
--- p₀(t) = 1 + ωt and p₁(t) = ω + t, the fold with challenge r = 1 is
--- p₀(t) + r·p₁(t) = (1 + ω) + (1 + ω)t, the values 1 + ω at t = 0 and
--- 1 at t = ω+1. One round halved the degree from 3 to 1.
-example : foldW ω 1 cw 0 = 1 + ω ∧ foldW ω 1 cw 1 = 1 := by decide
+-- The folded word on the image {0, α+1, α²+1, α²+α}: with the Aside's
+-- digits p₀(t) = 1 + αt and p₁(t) = (α²+1) + t, the fold with challenge
+-- r = 1 is p₀(t) + r·p₁(t) = α² + (α+1)t, taking the values α², 1, 0,
+-- α²+1 at the four image points (in the order listed). One round halved
+-- the degree from 3 to 1.
+example : foldW α 1 cw 0 = α² ∧ foldW α 1 cw 1 = 1 ∧
+    foldW α 1 cw α² = 0 ∧ foldW α 1 cw (α² + 1) = α² + 1 := by decide
 
 -- ============================================================================
 -- Section 4: Merkle commitment with a nonlinear hash
 -- ============================================================================
 --
--- The codeword is committed as a 4-leaf tree over GF(4). The compression
--- function h(a, b) = a² + b³ is nonlinear, unlike the toy a + b of
--- BiniusToy.lean, and the difference is demonstrated below: with a + b any
--- single-leaf change can be compensated by editing the sibling, while with
--- h there are uncompensatable edits. Binding is a real property of the
--- hash, not a free one.
+-- The codeword is committed as an 8-leaf tree over GF(8). The compression
+-- function is h(a, b) = a² + b² + b; the GF(4) choice a² + b³ would be
+-- vacuous here, because cubing is a bijection on GF(8) (gcd(3, 7) = 1),
+-- which makes every b-fiber surjective and every edit compensatable,
+-- exactly like the toy a + b of BiniusToy.lean. With b² + b the b-fiber
+-- lands in a coset of the 4-element subspace {t² + t}, so half the values
+-- are unreachable: binding is a real property of this hash, demonstrated
+-- below.
 
-/-- The compression function: h(a, b) = a² + b³. -/
-def hash1 (a b : G4) : G4 := a * a + b * b * b
+/-- The compression function: h(a, b) = a² + b² + b. -/
+def hash1 (a b : G8) : G8 := a * a + b * b + b
 
-/-- The committed codeword tree, leaf order 0, 1, ω, ω+1. -/
-def codewordTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf 1) (.leaf 1)) (.node (.leaf ω) (.leaf (ω + 1)))
+/-- The committed codeword tree, leaves in the order of L. -/
+def codewordTree : BinaryFRI.Tree G8 :=
+  .node (.node (.node (.leaf 1) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
+        (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
 
--- The root is 1: level 1 gives h(1, 1) = 1 + 1 = 0 and
--- h(ω, ω+1) = ω² + (ω+1)³ = ω, and the root is h(0, ω) = 0 + ω³ = 1.
-example : codewordTree.root hash1 = 1 := by decide
+-- The root is α⁵ = α²+α+1: level 1 gives h(1,1) = 1, h(0,α⁴) = α²,
+-- h(0,α) = α⁴, h(0,α²) = α; level 2 gives h(1,α²) = α³, h(α⁴,α) = α²;
+-- the root is h(α³, α²) = α⁶ + α⁴ + α² = α⁵.
+example : codewordTree.root hash1 = α² + α + 1 := by decide
 
--- The honest path to the ω-leaf (directions [false, true]), computed by
--- Tree.path rather than written out by hand, verifies against the root.
-example : BinaryFRI.Tree.path hash1 codewordTree [false, true] =
-    some [(true, ω + 1), (false, 0)] := by decide
+-- The honest path to the α-leaf (directions [false, true, false]),
+-- computed by Tree.path rather than written out by hand, verifies against
+-- the root.
+example : BinaryFRI.Tree.path hash1 codewordTree [false, true, false] =
+    some [(false, 0), (true, α), (false, α + 1)] := by decide
 
-example : codewordTree.lookup [false, true] = some ω ∧
-    BinaryFRI.verify hash1 ω [(true, ω + 1), (false, 0)] = codewordTree.root hash1 :=
+example : codewordTree.lookup [false, true, false] = some α ∧
+    BinaryFRI.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+      codewordTree.root hash1 :=
   ⟨by decide, by decide⟩
 
 -- The same opening, discharged by the general honest-path theorem
 -- (verify_path, BinaryFRI.lean §3): the machinery is used as proved, not
 -- just as computed.
-example : BinaryFRI.verify hash1 ω [(true, ω + 1), (false, 0)] = codewordTree.root hash1 :=
-  BinaryFRI.verify_path hash1 codewordTree [false, true] ω
-    [(true, ω + 1), (false, 0)] (by decide) (by decide)
+example : BinaryFRI.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+    codewordTree.root hash1 :=
+  BinaryFRI.verify_path hash1 codewordTree [false, true, false] α
+    [(false, 0), (true, α), (false, α + 1)] (by decide) (by decide)
 
 -- Tampering is detected: flipping the first leaf 1 ↦ 0 changes the root.
-def tamperedTree : BinaryFRI.Tree G4 :=
-  .node (.node (.leaf 0) (.leaf 1)) (.node (.leaf ω) (.leaf (ω + 1)))
+def tamperedTree : BinaryFRI.Tree G8 :=
+  .node (.node (.node (.leaf 0) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
+        (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
 
 example : tamperedTree.root hash1 ≠ codewordTree.root hash1 := by decide
 
@@ -267,13 +283,13 @@ example : tamperedTree.root hash1 ≠ codewordTree.root hash1 := by decide
 -- single-leaf edit x ↦ x' can be hidden by editing the sibling to
 -- y' = y + x + x': the parent hash is unchanged, so the root survives and
 -- the tree is not binding at all.
-example (x x' y : G4) : ∃ y' : G4, x' + y' = x + y :=
-  ⟨y + x + x', by cases x <;> cases x' <;> cases y <;> decide⟩
+example : ∀ x x' y : G8, ∃ y' : G8, x' + y' = x + y :=
+  fun x x' y => ⟨y + x + x', by revert x x' y; decide⟩
 
--- With hash1, compensation can fail: after the edit 0 ↦ ω at the leaf
+-- With hash1, compensation can fail: after the edit 0 ↦ 1 at the leaf
 -- whose sibling value is 0, no sibling value y' restores the parent hash,
--- because hash1(ω, ·) only ever outputs ω+1 or ω, never 0.
-example : ∃ x x' y : G4, ∀ y' : G4, hash1 x' y' ≠ hash1 x y :=
-  ⟨0, ω, 0, fun y' => by cases y' <;> decide⟩
+-- because hash1(1, ·) only ever outputs 1, α³, α⁵ or α⁶, never 0.
+example : ∃ x x' y : G8, ∀ y' : G8, hash1 x' y' ≠ hash1 x y :=
+  ⟨0, 1, 0, by decide⟩
 
 end Examples.BinaryFRI

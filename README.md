@@ -39,7 +39,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [BiniusToy](Examples/BiniusToy.lean): one AND-gate evaluation carried through the whole Binius pipeline: the arithmetized claim, the Merkle commitment, the sumcheck reduction to a single point, and the final opening check
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes
-  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over a hand-rolled decidable GF(4); a real RS codeword of a message polynomial, one fold round with fiber consistency checks, and a Merkle commitment whose nonlinear hash is shown to be binding where a+b is not
+  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over a hand-rolled decidable GF(8); a real RS [8, 4, 5] codeword of a message polynomial, one fold round with fiber consistency checks, and a Merkle commitment whose nonlinear hash is shown to be binding where a+b is not
 
 ## Build
 
