@@ -127,6 +127,9 @@ example : (L.filter fun x => cw x = n x) = [ω] := by decide
 -- Section 3: One fold round on the codeword
 -- ============================================================================
 --
+-- TODO: Note that this is Binius specific, ie. enabling a 2-to-1 Frobenius
+-- map for characteristic 2 fields.
+--
 -- The fold map q(x) = x² + ω·x with β = ω (foldMap in BinaryFRI.lean §1,
 -- redefined locally). Its kernel is {0, ω}, so it pairs each x with x + ω
 -- and halves the domain {0, 1, ω, ω+1} to the image {0, ω+1}.
@@ -137,6 +140,9 @@ def qmap (β x : G4) : G4 := x * x + β * x
 -- The kernel is exactly {0, ω}: q vanishes only at 0 and β.
 example : ∀ x : G4, qmap ω x = 0 ↔ x = 0 ∨ x = ω := by decide
 
+-- TODO: We have a visual demonstration for this in Crypto/ZK/BinaryFRI.lean,
+-- theorem foldMap_pair
+--
 -- The 2-to-1 collapse: q(x + ω) = q(x) for every x (foldMap_pair).
 example : ∀ x : G4, qmap ω (x + ω) = qmap ω x := by decide
 
