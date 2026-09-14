@@ -214,7 +214,25 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --
 -- NOTE: (α² + 1) is an element/scalar inside GF(8) and has degree 1.
 --
--- TODO" second digit" is a concept that comes out of nowhere.
+-- From the division to the fold. On the fiber {x, x + α} over
+-- y = q(x), the factor q evaluates to the scalar y and X stays as the
+-- fiber coordinate. Marking the remainder as digit 0 and the quotient
+-- as digit 1, with aᵢ the X-coefficient and bᵢ the constant:
+--
+--   f = (X + α)·q + ((α² + 1)X + 1)
+--        │   │    │   │          │
+--        a₁  b₁   y   a₀         b₀
+--
+--   f(x) = (b₀ + b₁·y) + x·(a₀ + a₁·y) = p₀(y) + x·p₁(y)
+--          ╰────┬────╯     ╰────┬────╯
+--          p₀(t) = 1 + αt    p₁(t) = (α² + 1) + t
+--
+-- foldW evaluates this fiber line at the challenge r instead of at x:
+--
+--   p₀(y) + r·p₁(y)    with slope    p₁(y) = (w(x) + w(x+α)) / α
+--
+-- The slope is recovered from the two fiber values alone: w(x) and
+-- w(x+α) differ by exactly α·p₁(y).
 --
 -- The quotient X + α is itself degree < 2, so it is the second digit.
 -- Collecting digits: p₀(t) = 1 + αt from the constant parts,
