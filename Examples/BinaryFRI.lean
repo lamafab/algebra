@@ -131,8 +131,8 @@ example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 -- Section 3: One fold round on the codeword
 -- ============================================================================
 --
--- TODO: Note that this is Binius specific, ie. enabling a 2-to-1 Frobenius
--- map for characteristic 2 fields.
+-- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
+-- characteristic 2 fields.
 --
 -- TODO: Remove β entirely(?)
 --
