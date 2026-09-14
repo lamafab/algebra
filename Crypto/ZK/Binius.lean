@@ -2,6 +2,7 @@ import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 import Algebra.Ring.Multilinear
+import Crypto.Merkle
 import Crypto.ZK.BinaryFRI
 
 open MvPolynomial
@@ -123,10 +124,10 @@ example : ∑ w : Fin 2 → ZMod 2, eval w (mle andCircuit) = 1 := by
 -- The AND truth table [0, 0, 0, 1] committed as a 4-leaf tree.
 example :
     let h : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
-    let t : BinaryFRI.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
+    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
     -- the leaf at (1,1) is 1, and its path opens correctly against the root
     t.lookup [false, false] = some 1 ∧
-      verify h 1 [(false, 0), (false, 0)] = t.root h := by
+      Merkle.verify h 1 [(false, 0), (false, 0)] = t.root h := by
   exact ⟨by decide, by decide⟩
 
 -- ============================================================================
@@ -154,6 +155,6 @@ example :
 #check @MvPolynomial.schwartz_zippel_totalDegree
 #check @rsEncode_injective
 #check @foldMap_pair
-#check @verify_path
+#check @Merkle.verify_path
 
 end Binius

@@ -25,21 +25,23 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [QuadraticResidues](Algebra/Field/QuadraticResidues.lean): squares in 𝔽ₚ, Euler's criterion, and the Legendre symbol
     - [RootsOfUnity](Algebra/Field/RootsOfUnity.lean): roots of unity in finite fields, primitive roots, and the connection to cyclic subgroups
     - [BinaryFields](Algebra/Field/BinaryFields.lean): GF(2) and GF(2ⁿ), boolean gates as polynomials, Freshman's dream, Frobenius, and trace map
+    - [G8](Algebra/Field/G8.lean): GF(8) hand-rolled as bit triples with schoolbook multiplication, so worked examples can evaluate with decide
 - [Crypto](Crypto/): cryptographic schemes built on the above
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
   - [Paillier](Crypto/Paillier.lean): additively homomorphic encryption, decryption correctness proven as algebra
   - [McEliece](Crypto/McEliece.lean): code-based encryption; scrambling by S·G·P, decryption correctness from a decoder hypothesis, and a fully executable [7,4,3] Hamming code instance
+  - [Merkle](Crypto/Merkle.lean): binary hash trees and authentication paths; honest paths verify (used by the FRI and Binius files)
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
-    - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, the base-q decomposition of the folded polynomial, the fold round on words and the fold chain, and Merkle paths with verified openings
+    - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, the base-q decomposition of the folded polynomial, the fold round on words, and the fold chain
     - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [BiniusToy](Examples/BiniusToy.lean): one AND-gate evaluation carried through the whole Binius pipeline: the arithmetized claim, the Merkle commitment, the sumcheck reduction to a single point, and the final opening check
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes
-  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over a hand-rolled decidable GF(8); a real RS [8, 4, 5] codeword of a message polynomial, one fold round with fiber consistency checks, and a Merkle commitment whose nonlinear hash is shown to be binding where a+b is not
+  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over GF(8) (Algebra/Field/G8.lean); a real RS [8, 4, 5] codeword of a message polynomial, one fold round with fiber consistency checks, and a Merkle commitment whose nonlinear hash is shown to be binding where a+b is not
 
 ## Build
 

@@ -2,6 +2,7 @@ import Mathlib.Algebra.CharP.Two
 import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 import Algebra.Code.ReedSolomonReedMuller
+import Crypto.Merkle
 
 -- ============================================================================
 -- Binary FRI: proximity testing by additive folding
@@ -29,8 +30,10 @@ import Algebra.Code.ReedSolomonReedMuller
 --   §1  The additive fold q(x) = x² + β·x: the map, one round on words,
 --       the fold chain
 --   §2  Committing: RS-encode the MLE table, Merkle-hash the leaves
---   §3  Merkle paths and their verification
---   §4  The query phase and the soundness sketch
+--   §3  The query phase and the soundness sketch
+--
+-- The Merkle machinery (Tree, verify, Tree.path, verify_path) lives in
+-- Crypto/Merkle.lean.
 --
 -- Prerequisites: Characteristic.lean (the squaring dichotomy §4, the
 -- freshman's dream §3), BinaryFields.lean (§3 no 2-power roots of unity,
@@ -261,13 +264,13 @@ theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
 -- The loop from the header, as a consistency predicate. word 0 is the
 -- committed RS codeword; in round i the prover commits word (i+1), the
 -- verifier samples r i, and `step` is the spot-check repeated at random
--- points in the query phase (§4): the sibling values of round i determine
+-- points in the query phase (§3): the sibling values of round i determine
 -- the parent value of round i+1. The last word's domain is a single point,
 -- so the verifier reads the final constant directly.
 --
 -- Not tracked in the type: the domains (word i is only meaningful on its
 -- image subspace of size 2^(m−i)) and the distance and soundness claims
--- (those live in §2 and §4).
+-- (those live in §2 and §3).
 
 /-- A fold chain of length m: words linked round by round by the fold. -/
 structure FoldChain (F : Type*) [Field F] [CharP F 2] (m : ℕ) where
@@ -314,7 +317,7 @@ end AdditiveFold
 --      Interpolating the table recovers p.
 --   2. Stretch: evaluate p on a larger domain L containing that subspace
 --      (ReedSolomonReedMuller.lean §1). The stretched table is the RS
---      codeword that gets Merkle-hashed in §3.
+--      codeword that gets Merkle-hashed (Crypto/Merkle.lean).
 --
 -- The stretching is what buys distance. Two different polynomials of degree
 -- < 2ᵐ agree on at most 2ᵐ − 1 points, so their codewords differ in at
@@ -353,101 +356,7 @@ example :
   simp
 
 -- ============================================================================
--- Section 3: Merkle paths
--- ============================================================================
---
--- The codeword leaves are committed with a binary hash tree. The compression
--- function h is an arbitrary function here; the binding property (a prover
--- cannot open one leaf two ways) is the random-oracle assumption on h,
--- idealized per repo style. What is proved: honest paths verify.
-
-section Merkle
-
--- TODO: Use a "Hash" type alias for F → F → F, or similar
-
-variable {F : Type*}
-
-/-- A binary tree of field elements; the codeword sits at the leaves. -/
-inductive Tree (F : Type*) where
-  | leaf : F → Tree F
-  | node : Tree F → (Tree F → Tree F)
-
-/-- The Merkle root: hash the two child roots at each internal node. -/
-def Tree.root (h : F → F → F) : Tree F → F
-  | leaf x => x
-  | node l r => h (root h l) (root h r)
-
-/-- Follow directions (true = left) down to a leaf value. -/
-def Tree.lookup : Tree F → (List Bool → Option F)
-  | leaf x, [] => some x
-  | node l _, true :: bs => lookup l bs
-  | node _ r, false :: bs => lookup r bs
-  | _, _ => none
-
-/-- An authentication path: at each level the sibling's root hash and a flag
-for whether the path went left. Ordered from the leaf up to the root. -/
-abbrev Path (F : Type*) := List (Bool × F)
-
-/-- Fold a leaf value up along an authentication path to a candidate root. -/
-def verify (h : F → F → F) (acc : F) (p : Path F) : F :=
-  p.foldl (fun a e => if e.1 then h a e.2 else h e.2 a) acc
-
-/-- The honest path for a direction list, leaf-to-root. -/
-def Tree.path (h : F → F → F) : Tree F → List Bool → Option (Path F)
-  | leaf _, [] => some []
-  | node l r, true :: bs => (Tree.path h l bs).map (· ++ [(true, Tree.root h r)])
-  | node l r, false :: bs => (Tree.path h r bs).map (· ++ [(false, Tree.root h l)])
-  | _, _ => none
-
-/-- Verifying one appended step matches the fold. -/
-theorem verify_append (h : F → F → F) (acc : F) (p : Path F) (b : Bool) (s : F) :
-    verify h acc (p ++ [(b, s)]) =
-      (if b then h (verify h acc p) s else h s (verify h acc p)) := by
-  simp [verify, List.foldl_append]
-
-/-- Honest paths verify: folding the leaf value along its authentication path
-lands on the Merkle root. Completeness of the opening; binding is idealized. -/
-theorem verify_path (h : F → F → F) :
-    ∀ (t : Tree F) (bs : List Bool) (x : F) (p : Path F),
-      t.lookup bs = some x → t.path h bs = some p → verify h x p = t.root h := by
-  intro t
-  induction t with
-  | leaf y =>
-      intro bs x p hl hp
-      cases bs with
-      | nil =>
-          simp [Tree.lookup] at hl
-          subst hl
-          simp [Tree.path] at hp
-          subst hp
-          rfl
-      | cons => simp [Tree.lookup] at hl
-  | node l r ihl ihr =>
-      intro bs x p hl hp
-      cases bs with
-      | nil => simp [Tree.lookup] at hl
-      | cons b bs =>
-          cases b
-          · -- go right into r; the sibling is l
-            simp only [Tree.lookup] at hl
-            simp only [Tree.path] at hp
-            obtain ⟨p', hp', rfl⟩ := Option.map_eq_some_iff.1 hp
-            rw [verify_append]
-            rw [ihr bs x p' hl hp']
-            rfl
-          · -- go left into l; the sibling is r
-            simp only [Tree.lookup] at hl
-            simp only [Tree.path] at hp
-            obtain ⟨p', hp', rfl⟩ := Option.map_eq_some_iff.1 hp
-            rw [verify_append]
-            simp only []
-            rw [ihl bs x p' hl hp']
-            rfl
-
-end Merkle
-
--- ============================================================================
--- Section 4: The query phase, concretely on a toy tree
+-- Section 3: The query phase, concretely on a toy tree
 -- ============================================================================
 --
 -- After the folding rounds the verifier queries at random points: it asks for
@@ -464,20 +373,20 @@ end Merkle
 
 -- The truth table of AND, committed as four leaves.
 example :
-    let t : Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
+    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
     t.lookup [false, false] = some 1 := by decide
 
 -- The honest path to the (1,1)-leaf verifies against the root.
 example :
     let h : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
-    let t : Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
-    verify h 1 [(false, 0), (false, 0)] = t.root h := by decide
+    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
+    Merkle.verify h 1 [(false, 0), (false, 0)] = t.root h := by decide
 
 -- The same check via the verified-path theorem.
 example (h : ZMod 2 → ZMod 2 → ZMod 2)
-    (t : Tree (ZMod 2)) (bs : List Bool) (x : ZMod 2) (p : Path (ZMod 2))
+    (t : Merkle.Tree (ZMod 2)) (bs : List Bool) (x : ZMod 2) (p : Merkle.Path (ZMod 2))
     (hl : t.lookup bs = some x) (hp : t.path h bs = some p) :
-    verify h x p = t.root h :=
-  verify_path h t bs x p hl hp
+    Merkle.verify h x p = t.root h :=
+  Merkle.verify_path h t bs x p hl hp
 
 end BinaryFRI

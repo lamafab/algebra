@@ -2,6 +2,7 @@ import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 import Algebra.Ring.Multilinear
+import Crypto.Merkle
 import Crypto.ZK.BinaryFRI
 
 open MvPolynomial
@@ -90,7 +91,7 @@ example : ∑ v : Fin 2 → ZMod 2, eval v (mle circuit) = 1 := by
 
 Internal nodes hold toyHash of their children (addition mod 2), so the
 root is the leaf parity (TODO: change this). -/
-def table : BinaryFRI.Tree (ZMod 2) :=
+def table : Merkle.Tree (ZMod 2) :=
   .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
 
 -- TODO: This should be a little more advanced, such as not just "ignoring" zeroes?
@@ -200,16 +201,16 @@ example : eval ![1, 1] (mle circuit) = 1 := by rw [eval_mle]; decide
 -- Sumcheck's final line needs the value of the committed table at r, from a
 -- prover the verifier does not trust. The prover reveals the leaf and its
 -- authentication path; the verifier folds the path and compares against
--- the root from Step 1 (verify_path, BinaryFRI.lean §3).
+-- the root from Step 1 (verify_path, Merkle.lean).
 
 /-- The prover's opening for r = (1, 1): the leaf value and the path
 (sibling hashes, leaf-to-root). With h = addition the siblings are both 0. -/
-def opening : ZMod 2 × BinaryFRI.Path (ZMod 2) := (1, [(false, 0), (false, 0)])
+def opening : ZMod 2 × Merkle.Path (ZMod 2) := (1, [(false, 0), (false, 0)])
 
 /-- The verifier's final check: the opened value is the v that sumcheck
 produced, and the path reconstructs the committed root. The second
 conjunct is the honest-run case of verify_path. -/
-example : opening.1 = 1 ∧ verify toyHash opening.1 opening.2 = table.root toyHash :=
+example : opening.1 = 1 ∧ Merkle.verify toyHash opening.1 opening.2 = table.root toyHash :=
   ⟨by decide, by decide⟩
 
 /-- The opened value is not arbitrary: it is the MLE at r (eval_mle),

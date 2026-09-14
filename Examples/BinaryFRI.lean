@@ -1,103 +1,38 @@
 import Mathlib.Tactic
-import Crypto.ZK.BinaryFRI
+import Algebra.Field.G8
+import Crypto.Merkle
 
 -- ============================================================================
 -- Binary FRI, end to end on a real codeword
 -- ============================================================================
 --
 -- Companion to Examples/Sumcheck.lean: a self-contained micro-run of binary
--- FRI (Crypto/ZK/BinaryFRI.lean) over a hand-rolled GF(8), outside the
--- Binius context. Unlike BiniusToy.lean, the committed word is a genuine
--- Reed-Solomon codeword encoding a message polynomial, and the Merkle hash
--- is nonlinear, so the binding property is demonstrated rather than
--- assumed away.
+-- FRI (Crypto/ZK/BinaryFRI.lean) over GF(8), outside the Binius context.
+-- Unlike BiniusToy.lean, the committed word is a genuine Reed-Solomon
+-- codeword encoding a message polynomial, and the Merkle hash is nonlinear,
+-- so the binding property is demonstrated rather than assumed away.
 --
---   §1  GF(8), hand-rolled for decidability
---   §2  The message and its RS codeword
---   §3  One fold round on the codeword
---   §4  Merkle commitment with a nonlinear hash
+--   §1  The message and its RS codeword
+--   §2  One fold round on the codeword
+--   §3  Merkle commitment with a nonlinear hash
 --
--- Design notes. Mathlib's GaloisField and AdjoinRoot do not evaluate with
--- decide (their DecidableEq instances are classical), so GF(8) is built
--- here as triples of bits with schoolbook multiplication. The fold map and
--- folded word are redefined locally (two lines each) because instantiating
--- BinaryFRI's Field-polymorphic definitions would need a Field instance on
--- the hand-rolled type; the Merkle machinery (Tree, verify, Tree.path,
--- verify_path) needs no instances and is reused verbatim.
+-- Design notes. GF(8) comes from Algebra/Field/G8.lean (hand-rolled for
+-- decidability). The fold map and folded word are redefined locally (two
+-- lines each) because instantiating BinaryFRI's Field-polymorphic
+-- definitions would need a Field instance on the hand-rolled type; the
+-- Merkle machinery (Tree, verify, Tree.path, verify_path) is reused
+-- verbatim from Crypto/Merkle.lean.
 
 namespace Examples.BinaryFRI
 
--- ============================================================================
--- Section 1: GF(8), hand-rolled
--- ============================================================================
-
--- TODO: Move GF(8) into an individual helper module; this file should be
--- compact and about binary FRI.
-
-/-- GF(8) = GF(2)[α]/(α³ + α + 1). Elements are triples (b₀, b₁, b₂),
-read as b₀ + b₁α + b₂α². -/
-def G8 := Fin 2 × Fin 2 × Fin 2
-
-namespace G8
-
-instance : Zero G8 := ⟨(0, 0, 0)⟩
-
-/-- The multiplicative identity is (1, 0, 0); the product type's own One
-instance would be (1, 1, 1), so it is defined explicitly. -/
-instance : One G8 := ⟨(1, 0, 0)⟩
-
-/-- Addition is componentwise: XOR on the three 𝔽₂-coordinates. -/
-instance : Add G8 := ⟨fun x y => (x.1 + y.1, x.2.1 + y.2.1, x.2.2 + y.2.2)⟩
-
-/-- Multiplication: schoolbook in α, then reduce by α³ = α + 1 (hence
-α⁴ = α² + α). cᵢ is the pre-reduction coefficient of αⁱ; α³ folds into
-positions 0 and 1, α⁴ into positions 1 and 2. -/
-def mul (x y : G8) : G8 :=
-  let c₁ := x.1 * y.2.1 + x.2.1 * y.1
-  let c₂ := x.1 * y.2.2 + x.2.1 * y.2.1 + x.2.2 * y.1
-  let c₃ := x.2.1 * y.2.2 + x.2.2 * y.2.1
-  let c₄ := x.2.2 * y.2.2
-  (x.1 * y.1 + c₃, c₁ + c₃ + c₄, c₂ + c₄)
-
-instance : Mul G8 := ⟨mul⟩
-
--- TODO: Justify this odd comment(?)
-/-- Multiplicative inverse: x⁶, since x⁷ = 1 for every x ≠ 0 (the unit
-group has order 7), and 0⁶ = 0 is the usual junk value. -/
-def inv (x : G8) : G8 := x * x * x * x * x * x
-
-/-- The primitive element α = (0, 1, 0), a root of X³ + X + 1. Kept as a
-def (not an ascribed tuple) so that terms built from it elaborate with
-type G8 and pick up the G8 instances above, not the product type's
-pointwise ones. -/
-def alpha : G8 := (0, 1, 0)
-
-instance : DecidableEq G8 := inferInstanceAs (DecidableEq (Fin 2 × Fin 2 × Fin 2))
-instance : Fintype G8 := inferInstanceAs (Fintype (Fin 2 × Fin 2 × Fin 2))
-
-end G8
-
-/-- The primitive element. -/
-notation "α" => G8.alpha
-
-/-- α² = (0, 0, 1). -/
-notation "α²" => α * α
-
 open G8
 
--- Sanity: the defining relation, the unit-group order used by `inv`,
--- characteristic 2, and the inverse law.
-example : α * α * α = α + 1 := by decide
-example : ∀ x : G8, x ≠ 0 → x * x * x * x * x * x * x = 1 := by decide
-example : ∀ x : G8, x + x = 0 := by decide
-example : ∀ x : G8, inv x * x = if x = 0 then 0 else 1 := by decide
-
 -- ============================================================================
--- Section 2: The message and its RS codeword
+-- Section 1: The message and its RS codeword
 -- ============================================================================
 --
 -- The message is the degree-3 polynomial m(X) = X³ + X + 1 over GF(8),
--- the same m whose base-q division is worked in §3. Its Reed-Solomon
+-- the same m whose base-q division is worked in §2. Its Reed-Solomon
 -- codeword is the evaluation table on the full domain L = GF(8)
 -- (ReedSolomonReedMuller.lean §1, written here as a function rather than
 -- a Polynomial so everything stays decidable).
@@ -132,7 +67,7 @@ example : (L.filter fun x => cw x = z x) = [0, 1, α] := by decide
 example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 
 -- ============================================================================
--- Section 3: One fold round on the codeword
+-- Section 2: One fold round on the codeword
 -- ============================================================================
 --
 -- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
@@ -297,7 +232,7 @@ example : foldW 1 cw 0 = α² ∧ foldW 1 cw 1 = 1 ∧
     foldW 1 cw α² = 0 ∧ foldW 1 cw (α² + 1) = α² + 1 := by decide
 
 -- ============================================================================
--- Section 4: Merkle commitment with a nonlinear hash
+-- Section 3: Merkle commitment with a nonlinear hash
 -- ============================================================================
 --
 -- The codeword is committed as an 8-leaf tree over GF(8). The compression
@@ -313,7 +248,7 @@ example : foldW 1 cw 0 = α² ∧ foldW 1 cw 1 = 1 ∧
 def hash1 (a b : G8) : G8 := a * a + b * b + b
 
 /-- The committed codeword tree, leaves in the order of L. -/
-def codewordTree : BinaryFRI.Tree G8 :=
+def codewordTree : Merkle.Tree G8 :=
   .node (.node (.node (.leaf 1) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
         (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
 
@@ -325,24 +260,24 @@ example : codewordTree.root hash1 = α² + α + 1 := by decide
 -- The honest path to the α-leaf (directions [false, true, false]),
 -- computed by Tree.path rather than written out by hand, verifies against
 -- the root.
-example : BinaryFRI.Tree.path hash1 codewordTree [false, true, false] =
+example : Merkle.Tree.path hash1 codewordTree [false, true, false] =
     some [(false, 0), (true, α), (false, α + 1)] := by decide
 
 example : codewordTree.lookup [false, true, false] = some α ∧
-    BinaryFRI.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+    Merkle.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
       codewordTree.root hash1 :=
   ⟨by decide, by decide⟩
 
 -- The same opening, discharged by the general honest-path theorem
--- (verify_path, BinaryFRI.lean §3): the machinery is used as proved, not
--- just as computed.
-example : BinaryFRI.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+-- (verify_path, Merkle.lean): the machinery is used as proved, not just
+-- as computed.
+example : Merkle.verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
     codewordTree.root hash1 :=
-  BinaryFRI.verify_path hash1 codewordTree [false, true, false] α
+  Merkle.verify_path hash1 codewordTree [false, true, false] α
     [(false, 0), (true, α), (false, α + 1)] (by decide) (by decide)
 
 -- Tampering is detected: flipping the first leaf 1 ↦ 0 changes the root.
-def tamperedTree : BinaryFRI.Tree G8 :=
+def tamperedTree : Merkle.Tree G8 :=
   .node (.node (.node (.leaf 0) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
         (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
 
