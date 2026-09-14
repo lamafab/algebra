@@ -72,6 +72,10 @@ example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 --
 -- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
 -- characteristic 2 fields.
+
+-- ----------------------------------------------------------------------------
+-- Round 1: folding the codeword
+-- ----------------------------------------------------------------------------
 --
 -- The fold map q(x) = x² + β·x with any nonzero β (foldMap in
 -- BinaryFRI.lean §1, redefined locally). Round 1 takes β₀ = α: the kernel
@@ -158,8 +162,6 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- ----------------------------------------------------------------------------
 -- From the digits to the fold: assembling foldW
 -- ----------------------------------------------------------------------------
---
--- TODO: Expand on "fiber coordinate"
 --
 -- The Aside packaged m into digits; here is what they are for. Read
 -- the two digits' parts as coefficients of two polynomials p₀, p₁ in
