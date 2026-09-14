@@ -70,6 +70,7 @@ example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 -- at {0, 1, α} (rs_agreement_card_le in ReedSolomonReedMuller.lean).
 def z : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
 
+example : m != z := by decide
 example : (L.filter fun x => cw x = z x) = [0, 1, α] := by decide
 example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 
@@ -98,10 +99,17 @@ example : ∀ x : G8, qmap α (x + α) = qmap α x := by decide
 -- The fibers, concretely:
 --   {0, α} ↦ 0          {1, α+1} ↦ α+1
 --   {α², α²+α} ↦ α²+1   {α²+1, α²+α+1} ↦ α²+α
-example : qmap α 0 = 0 ∧ qmap α α = 0 ∧ qmap α 1 = α + 1 ∧
-    qmap α (α + 1) = α + 1 := by decide
-example : qmap α α² = α² + 1 ∧ qmap α (α² + α) = α² + 1 ∧
-    qmap α (α² + 1) = α² + α ∧ qmap α (α² + α + 1) = α² + α := by decide
+example : qmap α 0 = 0 := by decide
+example : qmap α α = 0 := by decide
+--
+example : qmap α 1 = α + 1 := by decide
+example : qmap α (α + 1) = α + 1 := by decide
+--
+example : qmap α α² = α² + 1 := by decide
+example : qmap α (α² + α) = α² + 1 := by decide
+--
+example : qmap α (α² + 1) = α² + α := by decide
+example : qmap α (α² + α + 1) = α² + α := by decide
 
 -- The prover's fold, as polynomial arithmetic: writing m in base q
 -- (division by q, one digit at a time; exists_fold_decomp in
