@@ -157,6 +157,8 @@ example : qmap (α² + α + 1) = α² + α := by decide
 -- From the digits to the fold: assembling foldW
 -- ----------------------------------------------------------------------------
 --
+-- TODO: Expand on "fiber coordinate"
+--
 -- The Aside packaged m into digits; here is what they are for. Read
 -- the two digits' parts as coefficients of two polynomials p₀, p₁ in
 -- a fresh variable t marking the digit position: the constant parts
@@ -166,8 +168,8 @@ example : qmap (α² + α + 1) = α² + α := by decide
 -- constant of digit i:
 --
 --   m = (X + α)·q + ((α² + 1)X + 1)
---        │   │    │   │          │
---        a₁  b₁   y   a₀         b₀
+--        │   │  │     │          │
+--        a₁  b₁ y     a₀         b₀
 --
 --   m(x) = (b₀ + b₁·y) + x·(a₀ + a₁·y) = p₀(y) + x·p₁(y)
 --          ╰────┬────╯     ╰────┬────╯
@@ -192,13 +194,9 @@ example : qmap (α² + α + 1) = α² + α := by decide
 --
 -- Both expand to X·q + α·q + (α² + 1)X + 1.
 def m₁ : G8 → G8 := fun x => (x + α) * qmap x + ((α² + 1) * x + 1)
-
-/-- The digit form (1 + α·q) + X·((α²+1) + q) with the two roles of X
-separated: x is the fiber point (it determines q), t the fiber
-coordinate. m₂ x x is the digit form of m; m₂ r x is its fold at
-challenge r. -/
 def m₂ (t x : G8) : G8 := (1 + α * qmap x) + t * ((α² + 1) + qmap x)
 
+-- All different representations of m are the same function.
 example : ∀ x : G8, m x = m₁ x := by decide
 example : ∀ x : G8, m₁ x = m₂ x x := by decide
 
