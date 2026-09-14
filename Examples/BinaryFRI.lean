@@ -13,7 +13,7 @@ import Crypto.Merkle
 -- so the binding property is demonstrated rather than assumed away.
 --
 --   §1  The message and its RS codeword
---   §2  One fold round on the codeword
+--   §2  Two fold rounds on the codeword
 --   §3  Merkle commitment with a nonlinear hash
 --
 -- Design notes. GF(8) comes from Algebra/Field/G8.lean (hand-rolled for
@@ -67,42 +67,44 @@ example : (L.filter fun x => cw x = z x) = [0, 1, α] := by decide
 example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 
 -- ============================================================================
--- Section 2: One fold round on the codeword
+-- Section 2: Two fold rounds on the codeword
 -- ============================================================================
 --
 -- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
 -- characteristic 2 fields.
 --
--- The fold map q(x) = x² + α·x. Its kernel is {0, α}, so it pairs each x
--- with x + α and halves the 8-element domain to the 4-element image
--- {0, α+1, α²+1, α²+α}.
+-- The fold map q(x) = x² + β·x with any nonzero β (foldMap in
+-- BinaryFRI.lean §1, redefined locally). Round 1 takes β₀ = α: the kernel
+-- is {0, α}, so it pairs each x with x + α and halves the 8-element
+-- domain to the 4-element image {0, α+1, α²+1, α²+α}.
 
-/-- The additive fold map with β = α, local copy. -/
-def qmap (x : G8) : G8 := x * x + α * x
+/-- The additive fold map, local copy. Round i of the fold chain uses its
+own βᵢ (FoldChain in BinaryFRI.lean §1c); round 1 below has β₀ = α. -/
+def qmap (β x : G8) : G8 := x * x + β * x
 
 -- The kernel is exactly {0, α}: q vanishes only at 0 and α.
-example : ∀ x : G8, qmap x = 0 ↔ x = 0 ∨ x = α := by decide
+example : ∀ x : G8, qmap α x = 0 ↔ x = 0 ∨ x = α := by decide
 
 -- TODO: We have a visual demonstration for this in Crypto/ZK/BinaryFRI.lean,
 -- theorem foldMap_pair
 --
 -- The 2-to-1 collapse: q(x + α) = q(x) for every x (foldMap_pair).
-example : ∀ x : G8, qmap (x + α) = qmap x := by decide
+example : ∀ x : G8, qmap α (x + α) = qmap α x := by decide
 
 -- The fibers, concretely:
 --   {0, α} ↦ 0          {1, α+1} ↦ α+1
 --   {α², α²+α} ↦ α²+1   {α²+1, α²+α+1} ↦ α²+α
-example : qmap 0 = 0 := by decide
-example : qmap α = 0 := by decide
+example : qmap α 0 = 0 := by decide
+example : qmap α α = 0 := by decide
 --
-example : qmap 1 = α + 1 := by decide
-example : qmap (α+1) = α + 1 := by decide
+example : qmap α 1 = α + 1 := by decide
+example : qmap α (α+1) = α + 1 := by decide
 --
-example : qmap α² = α² + 1 := by decide
-example : qmap (α²+α) = α² + 1 := by decide
+example : qmap α α² = α² + 1 := by decide
+example : qmap α (α²+α) = α² + 1 := by decide
 --
-example : qmap (α² + 1) = α² + α := by decide
-example : qmap (α² + α + 1) = α² + α := by decide
+example : qmap α (α² + 1) = α² + α := by decide
+example : qmap α (α² + α + 1) = α² + α := by decide
 
 -- ----------------------------------------------------------------------------
 -- Aside: the long division behind the fold, worked end to end
@@ -193,41 +195,77 @@ example : qmap (α² + α + 1) = α² + α := by decide
 --           p₀(q)          p₁(q)
 --
 -- Both expand to X·q + α·q + (α² + 1)X + 1.
-def m₁ : G8 → G8 := fun x => (x + α) * qmap x + ((α² + 1) * x + 1)
-def m₂ (t x : G8) : G8 := (1 + α * qmap x) + t * ((α² + 1) + qmap x)
+def m₁ : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
+def m₂ (t x : G8) : G8 := (1 + α * qmap α x) + t * ((α² + 1) + qmap α x)
 
 -- All different representations of m are the same function.
 example : ∀ x : G8, m x = m₁ x := by decide
 example : ∀ x : G8, m₁ x = m₂ x x := by decide
 
-/-- The folded word's value at q(x), computed from the fiber {x, x + α}:
-  p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+α)) / α
+/-- The folded word's value at q(x), computed from the fiber {x, x + β}:
+  p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
 
-(foldWord in BinaryFRI.lean §1b with β = α, redefined locally; inv α is 1/α). -/
-def foldW (r : G8) (w : G8 → G8) (x : G8) : G8 :=
-  w x + (x + r) * (w x + w (x + α)) * inv α
+(foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
+def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
+  w x + (x + r) * (w x + w (x + β)) * inv β
 
 -- foldW on the honest word is the digit form m₂ with the fiber
 -- coordinate X replaced by the challenge r: at y = q(x) it returns
 -- m₂ r x = p₀(y) + r·p₁(y), computed from the fiber pair alone. The
 -- slope recovery (w(x) + w(x+α)) / α = p₁(y) is what makes the sides agree.
 
-example : ∀ r x : G8, foldW r cw x = m₂ r x := by decide
+example : ∀ r x : G8, foldW α r cw x = m₂ r x := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
-example : foldW 1 cw 0 = foldW 1 cw α := by decide
-example : foldW 1 cw 1 = foldW 1 cw (α + 1) := by decide
-example : foldW 1 cw α² = foldW 1 cw (α² + α) := by decide
-example : foldW 1 cw (α² + 1) = foldW 1 cw (α² + α + 1) := by decide
+example : foldW α 1 cw 0 = foldW α 1 cw α := by decide
+example : foldW α 1 cw 1 = foldW α 1 cw (α + 1) := by decide
+example : foldW α 1 cw α² = foldW α 1 cw (α² + α) := by decide
+example : foldW α 1 cw (α² + 1) = foldW α 1 cw (α² + α + 1) := by decide
 
 -- The folded word on the image {0, α+1, α²+1, α²+α}: with the Aside's
 -- digits p₀(t) = 1 + αt and p₁(t) = (α²+1) + t, the fold with challenge
 -- r = 1 is p₀(t) + r·p₁(t) = α² + (α+1)t, taking the values α², 1, 0,
 -- α²+1 at the four image points (in the order listed). One round halved
 -- the degree from 3 to 1.
-example : foldW 1 cw 0 = α² ∧ foldW 1 cw 1 = 1 ∧
-    foldW 1 cw α² = 0 ∧ foldW 1 cw (α² + 1) = α² + 1 := by decide
+example : foldW α 1 cw 0 = α² ∧ foldW α 1 cw 1 = 1 ∧
+    foldW α 1 cw α² = 0 ∧ foldW α 1 cw (α² + 1) = α² + 1 := by decide
+
+-- ----------------------------------------------------------------------------
+-- Round 2: folding the folded word to a constant
+-- ----------------------------------------------------------------------------
+--
+-- Round 1's image {0, α+1, α²+1, α²+α} is the new domain. The next fold
+-- needs its β₁ inside it (the fibers {y, y + β₁} must stay in the
+-- domain), and α is not in the image, so β₁ = α+1. This per-round choice
+-- is why qmap and foldW take β as a parameter (FoldChain in
+-- BinaryFRI.lean §1c). Take the fresh challenge r₁ = 1.
+
+/-- The round-1 folded word as a function: g(t) = α² + (α+1)t, the
+degree-1 polynomial from round 1's Aside. -/
+def g : G8 → G8 := fun t => α * α + (α + 1) * t
+
+-- g really is the round-1 folded word: at the four image points it
+-- agrees with foldW α 1 cw (checked in the previous example).
+example : ∀ x : G8, g (qmap α x) = foldW α 1 cw x := by decide
+
+-- Round 2's fold map q₁(y) = y² + (α+1)·y on the image: its kernel is
+-- {0, α+1}, the fibers are {0, α+1} and {α²+1, α²+α}, and the new image
+-- is the 2-element subspace {0, α+1}.
+example : qmap (α + 1) 0 = 0 ∧ qmap (α + 1) (α + 1) = 0 ∧
+    qmap (α + 1) (α² + 1) = α + 1 ∧ qmap (α + 1) (α² + α) = α + 1 := by decide
+
+-- Round 2's fold-consistency check on both fibers (foldWord_pair).
+example : foldW (α + 1) 1 g 0 = foldW (α + 1) 1 g (α + 1) := by decide
+example : foldW (α + 1) 1 g (α² + 1) = foldW (α + 1) 1 g (α² + α) := by decide
+
+-- The folded word on the new image {0, α+1}: g = α² + (α+1)t is itself
+-- a digit (degree 1 < 2), so its components are the constants p₀ = α²,
+-- p₁ = α+1, and the fold with r₁ = 1 is the constant p₀ + r₁·p₁ =
+-- α² + α + 1. Two rounds folded degree 3 → 1 → 0; the verifier now
+-- reads one constant from the prover's last message.
+example : foldW (α + 1) 1 g 0 = α² + α + 1 ∧
+    foldW (α + 1) 1 g (α² + 1) = α² + α + 1 := by decide
 
 -- ============================================================================
 -- Section 3: Merkle commitment with a nonlinear hash
