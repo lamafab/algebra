@@ -266,6 +266,9 @@ coordinate. f₂ x x is the digit form of f; f₂ r x is its fold at
 challenge r. -/
 def f₂ (t x : G8) : G8 := (1 + α * qmap α x) + t * ((α² + 1) + qmap α x)
 
+example : ∀ x : G8, f x = f₁ x := by decide
+example : ∀ x : G8, f₁ x = f₂ x x := by decide
+
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
 
@@ -278,8 +281,6 @@ def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
 -- f₂ r x = p₀(y) + r·p₁(y), computed from the fiber pair alone. The
 -- slope recovery (w(x) + w(x+α)) / α = p₁(y) is what makes the sides agree.
 
-example : ∀ x : G8, f x = f₁ x := by decide
-example : ∀ x : G8, f₁ x = f₂ x x := by decide
 example : ∀ r x : G8, foldW α r cw x = f₂ r x := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
