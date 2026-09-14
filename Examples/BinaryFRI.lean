@@ -93,34 +93,34 @@ example : ∀ x : G8, inv x * x = if x = 0 then 0 else 1 := by decide
 -- Section 2: The message and its RS codeword
 -- ============================================================================
 --
--- The message is the degree-3 polynomial f(X) = X³ + X + 1 over GF(8),
--- the same f whose base-q division is worked in §3. Its Reed-Solomon
+-- The message is the degree-3 polynomial m(X) = X³ + X + 1 over GF(8),
+-- the same m whose base-q division is worked in §3. Its Reed-Solomon
 -- codeword is the evaluation table on the full domain L = GF(8)
 -- (ReedSolomonReedMuller.lean §1, written here as a function rather than
 -- a Polynomial so everything stays decidable).
 
--- TODO: rename this to `def m`
-/-- The message polynomial f(X) = X³ + X + 1. -/
-def f : G8 → G8 := fun x => x * x * x + x + 1
+/-- The message polynomial m(X) = X³ + X + 1. -/
+def m : G8 → G8 := fun x => x * x * x + x + 1
 
 /-- The evaluation domain: all of GF(8), ordered
 0, 1, α, α+1, α², α²+1, α²+α, α²+α+1. -/
 def L : List G8 := [0, 1, α, α + 1, α², α² + 1, α² + α, α² + α + 1]
 
--- TODO: Do we need this? Maybe just use `def f` directly.
-/-- The codeword: evaluations of f on L. -/
-def cw : G8 → G8 := f
+/-- The codeword: evaluations of m on L. -/
+def cw : G8 → G8 := m
 
 -- The codeword really is the evaluation table of the message. The three
--- zeros sit at α, α², α²+α = α⁴: exactly the roots of f, since f is the
+-- zeros sit at α, α², α²+α = α⁴: exactly the roots of m, since m is the
 -- minimal polynomial of α over GF(2).
 example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 
--- Distance, concretely. With deg f = 3 and |L| = 8 the code is
+-- TODO: Briefly clarify the notation of RS [...]
+--
+-- Distance, concretely. With deg m = 3 and |L| = 8 the code is
 -- RS [8, 4, 5]: rate 1/2, and two distinct codewords agree in at most
 -- n − d = 3 positions. The bound is tight: n(X) = (α+1)X² + (α+1)X + 1
--- agrees with f in exactly 3 positions, since the difference
--- f − n = X(X+1)(X+α) vanishes exactly at {0, 1, α}
+-- agrees with m in exactly 3 positions, since the difference
+-- m − n = X(X+1)(X+α) vanishes exactly at {0, 1, α}
 -- (rs_agreement_card_le in ReedSolomonReedMuller.lean).
 def n : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
 
@@ -134,47 +134,44 @@ example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 -- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
 -- characteristic 2 fields.
 --
--- TODO: Remove β entirely(?)
---
--- The fold map q(x) = x² + α·x with β = α (foldMap in BinaryFRI.lean §1,
--- redefined locally). Its kernel is {0, α}, so it pairs each x with x + α
--- and halves the 8-element domain to the 4-element image
--- {0, α+1, α²+1, α²+α}.
+-- The fold map q(x) = x² + α·x (foldMap in BinaryFRI.lean §1, redefined
+-- locally with the parameter β fixed to α). Its kernel is {0, α}, so it
+-- pairs each x with x + α and halves the 8-element domain to the
+-- 4-element image {0, α+1, α²+1, α²+α}.
 
-/-- The additive fold map, local copy. -/
-def qmap (β x : G8) : G8 := x * x + β * x
+/-- The additive fold map with β = α, local copy. -/
+def qmap (x : G8) : G8 := x * x + α * x
 
--- TODO: β => α?
--- The kernel is exactly {0, α}: q vanishes only at 0 and β.
-example : ∀ x : G8, qmap α x = 0 ↔ x = 0 ∨ x = α := by decide
+-- The kernel is exactly {0, α}: q vanishes only at 0 and α.
+example : ∀ x : G8, qmap x = 0 ↔ x = 0 ∨ x = α := by decide
 
 -- TODO: We have a visual demonstration for this in Crypto/ZK/BinaryFRI.lean,
 -- theorem foldMap_pair
 --
 -- The 2-to-1 collapse: q(x + α) = q(x) for every x (foldMap_pair).
-example : ∀ x : G8, qmap α (x + α) = qmap α x := by decide
+example : ∀ x : G8, qmap (x + α) = qmap x := by decide
 
 -- The fibers, concretely:
 --   {0, α} ↦ 0          {1, α+1} ↦ α+1
 --   {α², α²+α} ↦ α²+1   {α²+1, α²+α+1} ↦ α²+α
-example : qmap α 0 = 0 := by decide
-example : qmap α α = 0 := by decide
+example : qmap 0 = 0 := by decide
+example : qmap α = 0 := by decide
 --
-example : qmap α 1 = α + 1 := by decide
-example : qmap α (α+1) = α + 1 := by decide
+example : qmap 1 = α + 1 := by decide
+example : qmap (α+1) = α + 1 := by decide
 --
-example : qmap α α² = α² + 1 := by decide
-example : qmap α (α²+α) = α² + 1 := by decide
+example : qmap α² = α² + 1 := by decide
+example : qmap (α²+α) = α² + 1 := by decide
 --
-example : qmap α (α² + 1) = α² + α := by decide
-example : qmap α (α² + α + 1) = α² + α := by decide
+example : qmap (α² + 1) = α² + α := by decide
+example : qmap (α² + α + 1) = α² + α := by decide
 
 -- ----------------------------------------------------------------------------
 -- Aside: the long division behind the fold, worked end to end
 -- ----------------------------------------------------------------------------
 --
 -- The components p₀, p₁ folded below come from writing the committed
--- polynomial f in base q. Division theorem: given f and q ≠ 0 there are a
+-- polynomial m in base q. Division theorem: given f and q ≠ 0 there are a
 -- unique quotient s and remainder aX + b with deg(aX + b) < deg q such
 -- that
 --
@@ -184,19 +181,20 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- produces the digits one at a time; collecting their constant parts gives
 -- p₀, their X-coefficients give p₁.
 --
--- TODO: Note that the f(X) polynomial is unrelated to the GF(8) quotient;
+-- TODO: Note that the m(X) polynomial is unrelated to the GF(8) quotient;
 -- they just happen to be the same. Considing changing this for clarity.
 --
--- Worked with f(X) = X³ + X + 1 and q(X) = X² + αX. Minus is plus
--- throughout (char 2). Each loop cancels the leading term of the current
--- remainder; the multiplier that does so is the next term of the quotient.
+-- Worked with the message m(X) = X³ + X + 1 and q(X) = X² + αX. Minus is
+-- plus throughout (char 2). Each loop cancels the leading term of the
+-- current remainder; the multiplier that does so is the next term of the
+-- quotient.
 --
--- Loop 1: cancel X³ of f(X). Multiplier X, since X·X² = X³.
+-- Loop 1: cancel X³ of m(X). Multiplier X, since X·X² = X³.
 --
 --   X·q = X·(X² + αX) = X³ + αX²
---   remainder = f − X·q = (X³ + X + 1) + (X³ + αX²) = αX² + X + 1
+--   remainder = m − X·q = (X³ + X + 1) + (X³ + αX²) = αX² + X + 1
 --
---   f = X·q + (αX² + X + 1)
+--   m = X·q + (αX² + X + 1)
 --        ╰─╯   ╰────┬────╯
 --     quotient   remainder has degree 2: not a digit yet, loop again
 --
@@ -209,7 +207,7 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --
 -- Degree 1 < 2, so the loop stops:
 --
---   f = (X + α)·q + ((α² + 1)X + 1)
+--   m = (X + α)·q + ((α² + 1)X + 1)
 --        ╰──┬──╯      ╰─────┬─────╯
 --      quotient        digit: a = (α² + 1), b = 1
 --
@@ -220,11 +218,11 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- fiber coordinate. Marking the remainder as digit 0 and the quotient
 -- as digit 1, with aᵢ the X-coefficient and bᵢ the constant:
 --
---   f = (X + α)·q + ((α² + 1)X + 1)
+--   m = (X + α)·q + ((α² + 1)X + 1)
 --        │   │    │   │          │
 --        a₁  b₁   y   a₀         b₀
 --
---   f(x) = (b₀ + b₁·y) + x·(a₀ + a₁·y) = p₀(y) + x·p₁(y)
+--   m(x) = (b₀ + b₁·y) + x·(a₀ + a₁·y) = p₀(y) + x·p₁(y)
 --          ╰────┬────╯     ╰────┬────╯
 --          p₀(t) = 1 + αt    p₁(t) = (α² + 1) + t
 --
@@ -239,7 +237,7 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- Collecting digits: p₀(t) = 1 + αt from the constant parts,
 -- p₁(t) = (α² + 1) + t from the X-coefficients. Both forms are checked
 -- below: the division (X + α)·q + ((α² + 1)X + 1) and the fiber-line
--- evaluation p₀(y) + x·p₁(y) at y = q(x), each equal to f(x).
+-- evaluation p₀(y) + x·p₁(y) at y = q(x), each equal to m(x).
 --
 -- foldW below is this division read fiber by fiber. On {x, x + α}
 -- over y = q(x), the decomposition is the line p₀(y) + X·p₁(y); its
@@ -250,53 +248,53 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- prover cannot pre-arrange a bad fiber whose error line passes
 -- through r.
 
--- Demonstration, the two forms of f:
+-- Demonstration, the two forms of m:
 --
---   f = (X + α)·q + ((α² + 1)X + 1)     the division
+--   m = (X + α)·q + ((α² + 1)X + 1)     the division
 --     = (1 + α·q) + X·((α² + 1) + q)    the digits collected
 --         ╰──┬──╯     ╰─────┬──────╯
 --           p₀(q)          p₁(q)
 --
 -- Both expand to X·q + α·q + (α² + 1)X + 1.
-def f₁ : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
+def m₁ : G8 → G8 := fun x => (x + α) * qmap x + ((α² + 1) * x + 1)
 
 /-- The digit form (1 + α·q) + X·((α²+1) + q) with the two roles of X
 separated: x is the fiber point (it determines q), t the fiber
-coordinate. f₂ x x is the digit form of f; f₂ r x is its fold at
+coordinate. m₂ x x is the digit form of m; m₂ r x is its fold at
 challenge r. -/
-def f₂ (t x : G8) : G8 := (1 + α * qmap α x) + t * ((α² + 1) + qmap α x)
+def m₂ (t x : G8) : G8 := (1 + α * qmap x) + t * ((α² + 1) + qmap x)
 
-example : ∀ x : G8, f x = f₁ x := by decide
-example : ∀ x : G8, f₁ x = f₂ x x := by decide
+example : ∀ x : G8, m x = m₁ x := by decide
+example : ∀ x : G8, m₁ x = m₂ x x := by decide
 
-/-- The folded word's value at q(x), computed from the fiber {x, x + β}:
-  p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
+/-- The folded word's value at q(x), computed from the fiber {x, x + α}:
+  p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+α)) / α
 
-(foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
-def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
-  w x + (x + r) * (w x + w (x + β)) * inv β
+(foldWord in BinaryFRI.lean §1b with β = α, redefined locally; inv α is 1/α). -/
+def foldW (r : G8) (w : G8 → G8) (x : G8) : G8 :=
+  w x + (x + r) * (w x + w (x + α)) * inv α
 
--- foldW on the honest word is the digit form f₂ with the fiber
+-- foldW on the honest word is the digit form m₂ with the fiber
 -- coordinate X replaced by the challenge r: at y = q(x) it returns
--- f₂ r x = p₀(y) + r·p₁(y), computed from the fiber pair alone. The
+-- m₂ r x = p₀(y) + r·p₁(y), computed from the fiber pair alone. The
 -- slope recovery (w(x) + w(x+α)) / α = p₁(y) is what makes the sides agree.
 
-example : ∀ r x : G8, foldW α r cw x = f₂ r x := by decide
+example : ∀ r x : G8, foldW r cw x = m₂ r x := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
-example : foldW α 1 cw 0 = foldW α 1 cw α := by decide
-example : foldW α 1 cw 1 = foldW α 1 cw (α + 1) := by decide
-example : foldW α 1 cw α² = foldW α 1 cw (α² + α) := by decide
-example : foldW α 1 cw (α² + 1) = foldW α 1 cw (α² + α + 1) := by decide
+example : foldW 1 cw 0 = foldW 1 cw α := by decide
+example : foldW 1 cw 1 = foldW 1 cw (α + 1) := by decide
+example : foldW 1 cw α² = foldW 1 cw (α² + α) := by decide
+example : foldW 1 cw (α² + 1) = foldW 1 cw (α² + α + 1) := by decide
 
 -- The folded word on the image {0, α+1, α²+1, α²+α}: with the Aside's
 -- digits p₀(t) = 1 + αt and p₁(t) = (α²+1) + t, the fold with challenge
 -- r = 1 is p₀(t) + r·p₁(t) = α² + (α+1)t, taking the values α², 1, 0,
 -- α²+1 at the four image points (in the order listed). One round halved
 -- the degree from 3 to 1.
-example : foldW α 1 cw 0 = α² ∧ foldW α 1 cw 1 = 1 ∧
-    foldW α 1 cw α² = 0 ∧ foldW α 1 cw (α² + 1) = α² + 1 := by decide
+example : foldW 1 cw 0 = α² ∧ foldW 1 cw 1 = 1 ∧
+    foldW 1 cw α² = 0 ∧ foldW 1 cw (α² + 1) = α² + 1 := by decide
 
 -- ============================================================================
 -- Section 4: Merkle commitment with a nonlinear hash
