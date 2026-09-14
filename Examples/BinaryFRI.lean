@@ -31,6 +31,9 @@ namespace Examples.BinaryFRI
 -- Section 1: GF(8), hand-rolled
 -- ============================================================================
 
+-- TODO: Move GF(8) into an individual helper module; this file should be
+-- compact and about binary FRI.
+
 /-- GF(8) = GF(2)[α]/(α³ + α + 1). Elements are triples (b₀, b₁, b₂),
 read as b₀ + b₁α + b₂α². -/
 def G8 := Fin 2 × Fin 2 × Fin 2
@@ -114,18 +117,19 @@ def cw : G8 → G8 := m
 -- minimal polynomial of α over GF(2).
 example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 
--- TODO: Briefly clarify the notation of RS [...]
+-- TODO: Briefly clarify the notation of RS [..]
 --
 -- Distance, concretely. With deg m = 3 and |L| = 8 the code is
--- RS [8, 4, 5]: rate 1/2, and two distinct codewords agree in at most
--- n − d = 3 positions. The bound is tight: n(X) = (α+1)X² + (α+1)X + 1
--- agrees with m in exactly 3 positions, since the difference
--- m − n = X(X+1)(X+α) vanishes exactly at {0, 1, α}
--- (rs_agreement_card_le in ReedSolomonReedMuller.lean).
-def n : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
+-- RS [8, 4, 5]: rate 1/2 (2-to-1), and two distinct codewords agree in at
+-- most n − d = 3 positions.
+--
+-- The bound is tight: z(X) = (α+1)X² + (α+1)X + 1 agrees with m in exactly 3
+-- positions, since the difference m − z = X(X+1)(X+α) vanishes exactly at
+-- {0, 1, α} (rs_agreement_card_le in ReedSolomonReedMuller.lean).
+def z : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
 
-example : (L.filter fun x => cw x = n x) = [0, 1, α] := by decide
-example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
+example : (L.filter fun x => cw x = z x) = [0, 1, α] := by decide
+example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 
 -- ============================================================================
 -- Section 3: One fold round on the codeword
@@ -134,10 +138,9 @@ example : (L.filter fun x => cw x ≠ n x).length = 5 := by decide
 -- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
 -- characteristic 2 fields.
 --
--- The fold map q(x) = x² + α·x (foldMap in BinaryFRI.lean §1, redefined
--- locally with the parameter β fixed to α). Its kernel is {0, α}, so it
--- pairs each x with x + α and halves the 8-element domain to the
--- 4-element image {0, α+1, α²+1, α²+α}.
+-- The fold map q(x) = x² + α·x. Its kernel is {0, α}, so it pairs each x
+-- with x + α and halves the 8-element domain to the 4-element image
+-- {0, α+1, α²+1, α²+α}.
 
 /-- The additive fold map with β = α, local copy. -/
 def qmap (x : G8) : G8 := x * x + α * x
