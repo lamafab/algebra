@@ -236,8 +236,9 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --
 -- The quotient X + α is itself degree < 2, so it is the second digit.
 -- Collecting digits: p₀(t) = 1 + αt from the constant parts,
--- p₁(t) = (α² + 1) + t from the X-coefficients; f = p₀(q) + X·p₁(q)
--- is checked below.
+-- p₁(t) = (α² + 1) + t from the X-coefficients. Both forms are checked
+-- below: the division (X + α)·q + ((α² + 1)X + 1) and the fiber-line
+-- evaluation p₀(y) + x·p₁(y) at y = q(x), each equal to f(x).
 --
 -- foldW below is this division read fiber by fiber. On {x, x + α}
 -- over y = q(x), the decomposition is the line p₀(y) + X·p₁(y); its
@@ -248,7 +249,17 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- prover cannot pre-arrange a bad fiber whose error line passes
 -- through r.
 
-example : ∀ x : G8, f x = (1 + α * qmap α x) + x * ((α² + 1) + qmap α x) := by decide
+-- Demonstration, the two forms of f:
+--
+--   f = (X + α)·q + ((α² + 1)X + 1)     the division
+--     = (1 + α·q) + X·((α² + 1) + q)    the digits collected
+--         ╰──┬──╯     ╰─────┬──────╯
+--           p₀(q)          p₁(q)
+--
+-- Both expand to X·q + α·q + (α² + 1)X + 1.
+example : ∀ x : G8,
+    f x = (x + α) * qmap α x + ((α² + 1) * x + 1) ∧
+    f x = (1 + α * qmap α x) + x * ((α² + 1) + qmap α x) := by decide
 
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
