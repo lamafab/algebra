@@ -258,9 +258,15 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --           p₀(q)          p₁(q)
 --
 -- Both expand to X·q + α·q + (α² + 1)X + 1.
-example : ∀ x : G8,
-    f x = (x + α) * qmap α x + ((α² + 1) * x + 1) ∧
-    f x = (1 + α * qmap α x) + x * ((α² + 1) + qmap α x) := by decide
+def f₁ : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
+
+/-- The digit form (1 + α·q) + X·((α²+1) + q) with the two roles of X
+separated: x is the fiber point (it determines q), t the fiber
+coordinate. f₂ x x is the digit form of f; f₂ r x is its fold at
+challenge r. -/
+def f₂ (t x : G8) : G8 := (1 + α * qmap α x) + t * ((α² + 1) + qmap α x)
+
+example : ∀ x : G8, f₁ x = f₂ x x := by decide
 
 /-- The folded word's value at q(x), computed from the fiber {x, x + β}:
   p₀(y) + r·p₁(y) with p₁(y) = (w(x) + w(x+β)) / β
@@ -269,12 +275,11 @@ example : ∀ x : G8,
 def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
   w x + (x + r) * (w x + w (x + β)) * inv β
 
--- foldW on the honest word is the digit form f = (1 + α·q) + X·((α²+1) + q)
--- with the fiber coordinate X replaced by the challenge r: at y = q(x)
--- it returns p₀(y) + r·p₁(y), computed from the fiber pair alone. The
+-- foldW on the honest word is the digit form f₂ with the fiber
+-- coordinate X replaced by the challenge r: at y = q(x) it returns
+-- f₂ r x = p₀(y) + r·p₁(y), computed from the fiber pair alone. The
 -- slope recovery (w(x) + w(x+α)) / α = p₁(y) is what makes the sides agree.
-example : ∀ r x : G8,
-    foldW α r cw x = (1 + α * qmap α x) + r * ((α² + 1) + qmap α x) := by decide
+example : ∀ r x : G8, foldW α r cw x = f₂ r x := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
