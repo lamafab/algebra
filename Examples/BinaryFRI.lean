@@ -189,8 +189,6 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- Worked with f(X) = X³ + X + 1 and q(X) = X² + αX. Minus is plus
 -- throughout (char 2). Each loop cancels the leading term of the current
 -- remainder; the multiplier that does so is the next term of the quotient.
--- Note α² is a free basis element here (unlike ω² = ω + 1 in GF(4)), so
--- no relation fires.
 --
 -- Loop 1: cancel X³ of f(X). Multiplier X, since X·X² = X³.
 --
@@ -214,8 +212,7 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --        ╰──┬──╯      ╰─────┬─────╯
 --      quotient        digit: a = (α² + 1), b = 1
 --
--- NOTE: (α² + 1) is a scalar inside GF(8) and has degree 1. Not to be confused
--- with a quadratic exponent.
+-- NOTE: (α² + 1) is an element/scalar inside GF(8) and has degree 1.
 --
 -- The quotient X + α is itself degree < 2, so it is the second digit.
 -- Collecting both digits: p₀(t) = 1 + αt from the constant parts,
