@@ -173,16 +173,14 @@ example : qmap (α² + α + 1) = α² + α := by decide
 -- Aside: the long division behind the fold, worked end to end
 -- ----------------------------------------------------------------------------
 --
--- The components p₀, p₁ folded below come from writing the committed
--- polynomial m in base q. Division theorem: given f and q ≠ 0 there are a
--- unique quotient s and remainder aX + b with deg(aX + b) < deg q such
--- that
+-- Division theorem: given f and q ≠ 0 there are a unique quotient s
+-- and remainder aX + b with deg(aX + b) < deg q such that
 --
 --   f = s·q + (aX + b)
 --
--- With deg q = 2 the remainder is always a digit aX + b. The loop below
--- produces the digits one at a time; collecting their constant parts gives
--- p₀, their X-coefficients give p₁.
+-- With deg q = 2 a digit has the shape aX + b, degree < 2. The loop
+-- below cancels leading terms until the remainder is a digit; if the
+-- quotient is not itself a digit, it is divided in turn.
 --
 -- TODO: Note that the m(X) polynomial is unrelated to the GF(8) quotient;
 -- they just happen to be the same. Considing changing this for clarity.
@@ -216,10 +214,21 @@ example : qmap (α² + α + 1) = α² + α := by decide
 --
 -- NOTE: (α² + 1) is an element/scalar inside GF(8) and has degree 1.
 --
--- From the division to the fold. On the fiber {x, x + α} over
--- y = q(x), the factor q evaluates to the scalar y and X stays as the
--- fiber coordinate. Marking the remainder as digit 0 and the quotient
--- as digit 1, with aᵢ the X-coefficient and bᵢ the constant:
+-- The quotient X + α is itself degree < 2, so it is the second digit.
+-- The loop has packaged m into its base-q digits; how they become the
+-- fold is the business of foldW below.
+
+-- ----------------------------------------------------------------------------
+-- From the digits to the fold: assembling foldW
+-- ----------------------------------------------------------------------------
+--
+-- The Aside packaged m into digits; here is what they are for. Read
+-- the two digits' parts as coefficients of two polynomials p₀, p₁ in
+-- a fresh variable t marking the digit position: the constant parts
+-- go into p₀, the X-coefficients into p₁. On the fiber {x, x + α}
+-- over y = q(x), the factor q evaluates to the scalar y and X stays
+-- as the fiber coordinate; aᵢ and bᵢ mark the X-coefficient and the
+-- constant of digit i:
 --
 --   m = (X + α)·q + ((α² + 1)X + 1)
 --        │   │    │   │          │
@@ -229,27 +238,15 @@ example : qmap (α² + α + 1) = α² + α := by decide
 --          ╰────┬────╯     ╰────┬────╯
 --          p₀(t) = 1 + αt    p₁(t) = (α² + 1) + t
 --
--- foldW evaluates this fiber line at the challenge r instead of at x:
+-- foldW below reads this fiber line fiber by fiber: it recovers the
+-- slope from the two fiber values alone, which differ by exactly
+-- α·p₁(y), and evaluates the line at the challenge r instead of at x:
 --
 --   p₀(y) + r·p₁(y)    with slope    p₁(y) = (w(x) + w(x+α)) / α
 --
--- The slope is recovered from the two fiber values alone: w(x) and
--- w(x+α) differ by exactly α·p₁(y).
---
--- The quotient X + α is itself degree < 2, so it is the second digit.
--- Collecting digits: p₀(t) = 1 + αt from the constant parts,
--- p₁(t) = (α² + 1) + t from the X-coefficients. Both forms are checked
--- below: the division (X + α)·q + ((α² + 1)X + 1) and the fiber-line
--- evaluation p₀(y) + x·p₁(y) at y = q(x), each equal to m(x).
---
--- foldW below is this division read fiber by fiber. On {x, x + α}
--- over y = q(x), the decomposition is the line p₀(y) + X·p₁(y); its
--- slope p₁(y) = (w(x) + w(x+α)) / α comes from the two fiber values.
--- foldW evaluates that line at X = r, in point-slope form anchored at
--- (x, w(x)): w x + (x + r)·slope = p₀(y) + r·p₁(y). The challenge r
--- is the verifier's random choice, revealed after commitment, so the
--- prover cannot pre-arrange a bad fiber whose error line passes
--- through r.
+-- The challenge r is the verifier's random choice, revealed after
+-- commitment, so the prover cannot pre-arrange a bad fiber whose error
+-- line passes through r.
 
 -- Demonstration, the two forms of m:
 --
