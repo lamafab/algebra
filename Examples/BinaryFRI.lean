@@ -111,12 +111,17 @@ example : qmap α (α² + α) = α² + 1 := by decide
 example : qmap α (α² + 1) = α² + α := by decide
 example : qmap α (α² + α + 1) = α² + α := by decide
 
--- The prover's fold, as polynomial arithmetic: writing m in base q
--- (division by q, one digit at a time; exists_fold_decomp in
--- BinaryFRI.lean §1b proves this generally) splits m into two half-degree
--- components p₀(t) = 1 + αt and p₁(t) = (α² + 1) + t, collected from the
--- digits' constant parts and X-coefficients, with m = p₀(q) + X·p₁(q).
--- m₁ is the division, m₂ the digit form.
+-- The prover's fold, as polynomial arithmetic. Divide m by q:
+--
+--   m = (X + α)·q + ((α² + 1)X + 1) = p₀(q) + X·p₁(q)
+--
+-- NOTE: (α² + 1) is an element in GF(8) and has degree 1.
+--
+-- The quotient and remainder are digits (degree < deg q = 2). Their
+-- constant parts collect into p₀(t) = 1 + αt, their X-coefficients
+-- into p₁(t) = (α² + 1) + t: the two half-degree components of the
+-- fold. The general statement is exists_fold_decomp in
+-- BinaryFRI.lean §1b. Below, m₁ is the division, m₂ the digit form.
 def m₁ : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
 
 /-- The digit form (1 + α·q) + X·((α²+1) + q) with the two roles of X
