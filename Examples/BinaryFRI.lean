@@ -214,10 +214,21 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 --
 -- NOTE: (α² + 1) is an element/scalar inside GF(8) and has degree 1.
 --
+-- TODO" second digit" is a concept that comes out of nowhere.
+--
 -- The quotient X + α is itself degree < 2, so it is the second digit.
--- Collecting both digits: p₀(t) = 1 + αt from the constant parts,
--- p₁(t) = (α² + 1) + t from the X-coefficients. The conclusion
--- f = p₀(q) + X·p₁(q) is checked by the example below.
+-- Collecting digits: p₀(t) = 1 + αt from the constant parts,
+-- p₁(t) = (α² + 1) + t from the X-coefficients; f = p₀(q) + X·p₁(q)
+-- is checked below.
+--
+-- foldW below is this division read fiber by fiber. On {x, x + α}
+-- over y = q(x), the decomposition is the line p₀(y) + X·p₁(y); its
+-- slope p₁(y) = (w(x) + w(x+α)) / α comes from the two fiber values.
+-- foldW evaluates that line at X = r, in point-slope form anchored at
+-- (x, w(x)): w x + (x + r)·slope = p₀(y) + r·p₁(y). The challenge r
+-- is the verifier's random choice, revealed after commitment, so the
+-- prover cannot pre-arrange a bad fiber whose error line passes
+-- through r.
 
 example : ∀ x : G8, f x = (1 + α * qmap α x) + x * ((α² + 1) + qmap α x) := by decide
 
