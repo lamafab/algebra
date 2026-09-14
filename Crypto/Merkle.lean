@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Algebra.Field.G8
 
 -- ============================================================================
 -- Merkle paths and their verification
@@ -92,5 +93,70 @@ theorem verify_path (h : F → F → F) :
             simp only []
             rw [ihl bs x p' hl hp']
             rfl
+
+-- ============================================================================
+-- Workshop: a concrete tree over GF(8), and why the hash must be nonlinear
+-- ============================================================================
+--
+-- The machinery above is field-agnostic; here it is exercised over G8
+-- (Algebra/Field/G8.lean), committed leaves being the codeword of
+-- Examples/BinaryFRI.lean. The compression function is h(a, b) = a² + b² + b;
+-- the simpler a² + b³ would be vacuous on GF(8), because cubing is a
+-- bijection there (gcd(3, 7) = 1), which makes every b-fiber surjective
+-- and every edit compensatable, exactly like the toy a + b of
+-- BiniusToy.lean. With b² + b the b-fiber lands in a coset of the
+-- 4-element subspace {t² + t}, so half the values are unreachable:
+-- binding is a real property of this hash, demonstrated below.
+
+open G8 -- activates the α, α² notations
+
+/-- The compression function: h(a, b) = a² + b² + b. -/
+def hash1 (a b : G8) : G8 := a * a + b * b + b
+
+/-- The committed word, leaves [1, 1, 0, α²+α, 0, α, 0, α²]. -/
+def codewordTree : Tree G8 :=
+  .node (.node (.node (.leaf 1) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
+        (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
+
+-- The root is α⁵ = α²+α+1: level 1 gives h(1,1) = 1, h(0,α⁴) = α²,
+-- h(0,α) = α⁴, h(0,α²) = α; level 2 gives h(1,α²) = α³, h(α⁴,α) = α²;
+-- the root is h(α³, α²) = α⁶ + α⁴ + α² = α⁵.
+example : codewordTree.root hash1 = α² + α + 1 := by decide
+
+-- The honest path to the α-leaf (directions [false, true, false]),
+-- computed by Tree.path rather than written out by hand, verifies against
+-- the root, both by decide and by the general honest-path theorem.
+example : Tree.path hash1 codewordTree [false, true, false] =
+    some [(false, 0), (true, α), (false, α + 1)] := by decide
+
+example : codewordTree.lookup [false, true, false] = some α ∧
+    verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+      codewordTree.root hash1 :=
+  ⟨by decide, by decide⟩
+
+example : verify hash1 α [(false, 0), (true, α), (false, α + 1)] =
+    codewordTree.root hash1 :=
+  verify_path hash1 codewordTree [false, true, false] α
+    [(false, 0), (true, α), (false, α + 1)] (by decide) (by decide)
+
+-- Tampering is detected: flipping the first leaf 1 ↦ 0 changes the root.
+def tamperedTree : Tree G8 :=
+  .node (.node (.node (.leaf 0) (.leaf 1)) (.node (.leaf 0) (.leaf (α² + α))))
+        (.node (.node (.leaf 0) (.leaf α)) (.node (.leaf 0) (.leaf α²)))
+
+example : tamperedTree.root hash1 ≠ codewordTree.root hash1 := by decide
+
+-- Why the hash matters. With h₀(a, b) = a + b (the BiniusToy toy), EVERY
+-- single-leaf edit x ↦ x' can be hidden by editing the sibling to
+-- y' = y + x + x': the parent hash is unchanged, so the root survives and
+-- the tree is not binding at all.
+example : ∀ x x' y : G8, ∃ y' : G8, x' + y' = x + y :=
+  fun x x' y => ⟨y + x + x', by revert x x' y; decide⟩
+
+-- With hash1, compensation can fail: after the edit 0 ↦ 1 at the leaf
+-- whose sibling value is 0, no sibling value y' restores the parent hash,
+-- because hash1(1, ·) only ever outputs 1, α³, α⁵ or α⁶, never 0.
+example : ∃ x x' y : G8, ∀ y' : G8, hash1 x' y' ≠ hash1 x y :=
+  ⟨0, 1, 0, by decide⟩
 
 end Merkle

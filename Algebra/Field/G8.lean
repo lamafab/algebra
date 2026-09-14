@@ -52,13 +52,14 @@ def alpha : G8 := (0, 1, 0)
 instance : DecidableEq G8 := inferInstanceAs (DecidableEq (Fin 2 × Fin 2 × Fin 2))
 instance : Fintype G8 := inferInstanceAs (Fintype (Fin 2 × Fin 2 × Fin 2))
 
-end G8
-
-/-- The primitive element. -/
-notation "α" => G8.alpha
+/-- The primitive element. Scoped so importers opt in with `open G8`;
+plain notation would forbid α as a binder name downstream. -/
+scoped notation "α" => G8.alpha
 
 /-- α² = (0, 0, 1). -/
-notation "α²" => α * α
+scoped notation "α²" => α * α
+
+end G8
 
 open G8
 

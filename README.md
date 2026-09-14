@@ -32,7 +32,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
   - [Paillier](Crypto/Paillier.lean): additively homomorphic encryption, decryption correctness proven as algebra
   - [McEliece](Crypto/McEliece.lean): code-based encryption; scrambling by S·G·P, decryption correctness from a decoder hypothesis, and a fully executable [7,4,3] Hamming code instance
-  - [Merkle](Crypto/Merkle.lean): binary hash trees and authentication paths; honest paths verify (used by the FRI and Binius files)
+  - [Merkle](Crypto/Merkle.lean): binary hash trees and authentication paths; honest paths verify, plus a concrete tree over GF(8) showing a nonlinear hash is binding where a+b is not
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
@@ -41,7 +41,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [BiniusToy](Examples/BiniusToy.lean): one AND-gate evaluation carried through the whole Binius pipeline: the arithmetized claim, the Merkle commitment, the sumcheck reduction to a single point, and the final opening check
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes
-  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over GF(8) (Algebra/Field/G8.lean); a real RS [8, 4, 5] codeword of a message polynomial, one fold round with fiber consistency checks, and a Merkle commitment whose nonlinear hash is shown to be binding where a+b is not
+  - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over GF(8) (Algebra/Field/G8.lean); a real RS [8, 4, 5] codeword of a message polynomial and two fold rounds down to a constant, with the verifier's fiber checks at each round
 
 ## Build
 
