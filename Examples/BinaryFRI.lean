@@ -266,8 +266,8 @@ example : foldW (α + 1) 1 g (α² + 1) = foldW (α + 1) 1 g (α² + α) := by d
 -- p₁ = α+1, and the fold with r₁ = 1 is the constant p₀ + r₁·p₁ =
 -- α² + α + 1. Two rounds folded degree 3 → 1 → 0; the verifier now
 -- reads one constant from the prover's last message.
-example : foldW (α + 1) 1 g 0 = α² + α + 1 ∧
-    foldW (α + 1) 1 g (α² + 1) = α² + α + 1 := by decide
+example : foldW (α + 1) 1 g 0 = α² + α + 1 := by decide
+example : foldW (α + 1) 1 g (α² + 1) = α² + α + 1 := by decide
 
 -- ============================================================================
 -- Section 3: Merkle commitment with a nonlinear hash
