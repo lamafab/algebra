@@ -99,6 +99,7 @@ example : ∀ x : G8, inv x * x = if x = 0 then 0 else 1 := by decide
 -- (ReedSolomonReedMuller.lean §1, written here as a function rather than
 -- a Polynomial so everything stays decidable).
 
+-- TODO: rename this to `def m`
 /-- The message polynomial f(X) = X³ + X + 1. -/
 def f : G8 → G8 := fun x => x * x * x + x + 1
 
@@ -267,6 +268,13 @@ example : ∀ x : G8,
 (foldWord in BinaryFRI.lean §1b, redefined locally; inv β is 1/β). -/
 def foldW (β r : G8) (w : G8 → G8) (x : G8) : G8 :=
   w x + (x + r) * (w x + w (x + β)) * inv β
+
+-- foldW on the honest word is the digit form f = (1 + α·q) + X·((α²+1) + q)
+-- with the fiber coordinate X replaced by the challenge r: at y = q(x)
+-- it returns p₀(y) + r·p₁(y), computed from the fiber pair alone. The
+-- slope recovery (w(x) + w(x+α)) / α = p₁(y) is what makes the sides agree.
+example : ∀ r x : G8,
+    foldW α r cw x = (1 + α * qmap α x) + r * ((α² + 1) + qmap α x) := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
