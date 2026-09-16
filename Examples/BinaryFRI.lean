@@ -182,20 +182,29 @@ example : ∀ x : G8, word₁ (qmap α x) = foldW α r₀ word₀ x := by decide
 
 -- Round 2's fold map q₁(y) = y² + (α+1)·y: kernel {0, α+1}, fibers
 -- {0, α+1} and {α²+1, α²+α}, new image the 2-element subspace {0, α+1}.
-example : qmap (α + 1) 0 = 0 ∧ qmap (α + 1) (α + 1) = 0 ∧
-    qmap (α + 1) (α² + 1) = α + 1 ∧ qmap (α + 1) (α² + α) = α + 1 := by decide
+example : qmap (α + 1) 0 = qmap (α + 1) (α + 1) := by decide
+example : qmap (α + 1) (α² + 1) = qmap (α + 1) (α² + α) := by decide
 
 -- Fold-consistency on both fibers (foldWord_pair).
 example : foldW (α + 1) r₁ word₁ 0 = foldW (α + 1) r₁ word₁ (α + 1) := by decide
-example : foldW (α + 1) r₁ word₁ (α² + 1) =
-    foldW (α + 1) r₁ word₁ (α² + α) := by decide
+example : foldW (α + 1) r₁ word₁ (α² + 1) = foldW (α + 1) r₁ word₁ (α² + α) := by decide
 
 -- The final word: word₁ is itself a digit (degree 1 < 2), so its
 -- components are the constants p₀ = α², p₁ = α+1, and the fold with
--- r₁ = α is the constant p₀ + r₁·p₁ = α. Two rounds folded degree
--- 3 → 1 → 0; the verifier reads one constant from the prover's last
--- message.
-example : foldW (α + 1) r₁ word₁ 0 = α ∧
-    foldW (α + 1) r₁ word₁ (α² + 1) = α := by decide
+-- r₁ = α outputs one value: word₂, the constant α on the final domain
+-- {0, α+1}. Two rounds folded degree 3 → 1 → 0; the verifier reads
+-- word₂ outright.
+
+/-- Word 2: the constant α, the fold chain's last word. -/
+def word₂ : G8 → G8 := fun _ => α
+
+-- The second link, pointwise at every y of word₁'s domain:
+-- word₂(q₁(y)) is the fold of word₁'s fiber over y.
+example : ∀ y : G8, word₂ (qmap (α + 1) y) = foldW (α + 1) r₁ word₁ y := by decide
+
+-- Telescoped back to word₀: at the doubly folded image point q₁(q₀(x)),
+-- the outer fold of word₁ over the round-1 fiber of x.
+example : ∀ x : G8, word₂ (qmap (α + 1) (qmap α x)) =
+    foldW (α + 1) r₁ word₁ (qmap α x) := by decide
 
 end Examples.BinaryFRI
