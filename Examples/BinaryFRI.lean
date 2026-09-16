@@ -78,13 +78,13 @@ example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
 -- Section 2: Round 1, folding the codeword
 -- ============================================================================
 --
--- NOTE: this is Binius specific, ie. enabling a 2-to-1 Frobenius map for
+-- NOTE: `def qmap` is Binius specific, ie. enabling a 2-to-1 Frobenius map for
 -- characteristic 2 fields.
 --
--- The fold map q(x) = x² + β·x with any nonzero β (foldMap in
--- BinaryFRI.lean §1, redefined locally). Round 1 takes β₀ = α: the kernel
--- is {0, α}, so it pairs each x with x + α and halves the 8-element
--- domain to the 4-element image {0, α+1, α²+1, α²+α}.
+-- The fold map q(x) = x² + β·x with any nonzero β (foldMap in BinaryFRI.lean
+-- §1, redefined locally). Round 1 takes β₀ = α: the kernel is {0, α}, so it
+-- pairs each x with x + α and halves the 8-element domain to the 4-element
+-- image {0, α+1, α²+1, α²+α}.
 
 /-- The additive fold map, local copy. Round i of the fold chain uses its
 own βᵢ (FoldChain in BinaryFRI.lean §1c); round 1 below has β₀ = α. -/
@@ -124,6 +124,7 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- BinaryFRI.lean §1b. Below, m₁ is the division, m₂ the digit form.
 def m₁ : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
 
+-- TODO: Clarify this one
 /-- The digit form (1 + α·q) + X·((α²+1) + q) with the two roles of X
 separated: x is the fiber point (it determines q), t the fiber
 coordinate. m₂ x x is the digit form of m; m₂ r x is its fold at
@@ -167,6 +168,8 @@ example : foldW α 1 cw 0 = α² ∧ foldW α 1 cw 1 = 1 ∧
 -- needs its β₁ inside it (the fibers {y, y + β₁} must stay in the
 -- domain), and α is not in the image, so β₁ = α+1. Fresh challenge
 -- r₁ = 1.
+
+-- TODO: Create an alias for r₁ and use it directly.
 
 /-- The round-1 folded word as a function: g(t) = α² + (α+1)t, the
 degree-1 polynomial from round 1. -/
