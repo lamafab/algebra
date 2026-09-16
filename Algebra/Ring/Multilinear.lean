@@ -11,6 +11,9 @@ open scoped BigOperators
 open MvPolynomial
 open Finset Fintype
 
+-- TODO: Some sections mention "sumcheck" out of nowhere; they're too context
+-- specific and should be further generalized.
+
 -- ============================================================================
 -- Multivariate Polynomials and the Boolean Hypercube
 -- ============================================================================
