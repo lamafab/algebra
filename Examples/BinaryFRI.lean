@@ -18,11 +18,11 @@ import Algebra.Field.G8
 -- The run (the prover computes every word; the verifier only samples
 -- challenges and spot-checks):
 --
---   claim:      word 0 = cw is the table of a degree < 4 polynomial on L
---   round 1:    verifier sends r₀ = 1; prover folds cw → folded on q(L)
---               check: foldW α r₀ cw x = folded (qmap α x), any fiber
---   round 2:    verifier sends r₁ = α; prover folds folded → a constant
---               check: foldW (α+1) r₁ folded y = const, any fiber
+--   claim:      word₀ is the table of a degree < 4 polynomial on L
+--   round 1:    verifier sends r₀ = 1; prover folds word₀ → word₁ on q(L)
+--               check: foldW α r₀ word₀ x = word₁ (qmap α x), any fiber
+--   round 2:    verifier sends r₁ = α; prover folds word₁ → a constant
+--               check: foldW (α+1) r₁ word₁ y = const, any fiber
 --   final:      the last word is the constant α
 --
 -- In the real protocol each word is committed as a Merkle root before the
@@ -52,13 +52,13 @@ def m : G8 → G8 := fun x => x * x * x + x + 1
 0, 1, α, α+1, α², α²+1, α²+α, α²+α+1. -/
 def L : List G8 := [0, 1, α, α + 1, α², α² + 1, α² + α, α² + α + 1]
 
-/-- The codeword: evaluations of m on L. -/
-def cw : G8 → G8 := m
+/-- Word 0 of the fold chain: evaluations of m on L. -/
+def word₀ : G8 → G8 := m
 
 -- The codeword really is the evaluation table of the message. The three
 -- zeros sit at α, α², α²+α = α⁴: exactly the roots of m, since m is the
 -- minimal polynomial of α over GF(2).
-example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
+example : L.map word₀ = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 
 -- TODO: Briefly clarify the notation of RS [..]
 --
@@ -72,8 +72,8 @@ example : L.map cw = [1, 1, 0, α² + α, 0, α, 0, α²] := by decide
 def z : G8 → G8 := fun x => (α + 1) * x * x + (α + 1) * x + 1
 
 example : m != z := by decide
-example : (L.filter fun x => cw x = z x) = [0, 1, α] := by decide
-example : (L.filter fun x => cw x ≠ z x).length = 5 := by decide
+example : (L.filter fun x => word₀ x = z x) = [0, 1, α] := by decide
+example : (L.filter fun x => word₀ x ≠ z x).length = 5 := by decide
 
 -- ============================================================================
 -- Section 2: The fold map and its fibers
@@ -126,16 +126,7 @@ example : qmap α (α² + α + 1) = α² + α := by decide
 -- constant parts collect into p₀(t) = 1 + αt, their X-coefficients
 -- into p₁(t) = (α² + 1) + t: the two half-degree components of the
 -- fold. The general statement is exists_fold_decomp in
--- BinaryFRI.lean §1b. Below, divM is the division, foldM the digit form.
-def divM : G8 → G8 := fun x => (x + α) * qmap α x + ((α² + 1) * x + 1)
-
-/-- The fold of m at challenge t, as p₀(q(x)) + t·p₁(q(x)): x is the
-fiber point (it determines q), t the challenge. foldM x x is m's digit
-form; foldM r x is its fold at challenge r. -/
-def foldM (t x : G8) : G8 := (1 + α * qmap α x) + t * ((α² + 1) + qmap α x)
-
-example : ∀ x : G8, m x = divM x := by decide
-example : ∀ x : G8, divM x = foldM x x := by decide
+-- BinaryFRI.lean §1b; the digit form below is written inline.
 
 /-- The verifier's per-fiber check, recomputed from two opened values:
 the folded word's value at q(x) is p₀(y) + r·p₁(y) with slope
@@ -151,25 +142,26 @@ value. -/
 def r₀ : G8 := 1
 
 -- The choice matters: a different challenge folds differently.
-example : foldW α r₀ cw 0 = α² ∧ foldW α α cw 0 = 0 := by decide
+example : foldW α r₀ word₀ 0 = α² ∧ foldW α α word₀ 0 = 0 := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
-example : foldW α r₀ cw 0 = foldW α r₀ cw α := by decide
-example : foldW α r₀ cw 1 = foldW α r₀ cw (α + 1) := by decide
-example : foldW α r₀ cw α² = foldW α r₀ cw (α² + α) := by decide
-example : foldW α r₀ cw (α² + 1) = foldW α r₀ cw (α² + α + 1) := by decide
+example : foldW α r₀ word₀ 0 = foldW α r₀ word₀ α := by decide
+example : foldW α r₀ word₀ 1 = foldW α r₀ word₀ (α + 1) := by decide
+example : foldW α r₀ word₀ α² = foldW α r₀ word₀ (α² + α) := by decide
+example : foldW α r₀ word₀ (α² + 1) = foldW α r₀ word₀ (α² + α + 1) := by decide
 
 -- The verifier's fiber-local computation agrees with the prover's fold
 -- at every point and every challenge: p₀(y) + r·p₁(y) with the fiber
 -- coordinate replaced by r.
-example : ∀ r x : G8, foldW α r cw x = foldM r x := by decide
+example : ∀ r x : G8, foldW α r word₀ x =
+    (1 + α * qmap α x) + r * ((α² + 1) + qmap α x) := by decide
 
 -- Round 1's output on the image {0, α+1, α²+1, α²+α}: with r₀ = 1 the
 -- fold is p₀(t) + r₀·p₁(t) = α² + (α+1)t, the values α², 1, 0, α²+1
 -- (in the order listed). The degree halved: 3 → 1.
-example : foldW α r₀ cw 0 = α² ∧ foldW α r₀ cw 1 = 1 ∧
-    foldW α r₀ cw α² = 0 ∧ foldW α r₀ cw (α² + 1) = α² + 1 := by decide
+example : foldW α r₀ word₀ 0 = α² ∧ foldW α r₀ word₀ 1 = 1 ∧
+    foldW α r₀ word₀ α² = 0 ∧ foldW α r₀ word₀ (α² + 1) = α² + 1 := by decide
 
 -- ============================================================================
 -- Section 4: Round 2, folding to a constant
@@ -181,13 +173,12 @@ example : foldW α r₀ cw 0 = α² ∧ foldW α r₀ cw 1 = 1 ∧
 
 /-- The round-2 challenge r₁ = α, chosen independently of r₀ = 1. -/
 def r₁ : G8 := α
+/-- The word after round 1: word₁(t) = α² + (α+1)t, the degree-1
+polynomial that round 2 below folds again. -/
+def word₁ : G8 → G8 := fun t => α * α + (α + 1) * t
 
-/-- The round-1 folded word as a function: folded(t) = α² + (α+1)t, the
-degree-1 polynomial from round 1. -/
-def folded : G8 → G8 := fun t => α * α + (α + 1) * t
-
--- folded really is the round-1 folded word, at every point.
-example : ∀ x : G8, folded (qmap α x) = foldW α r₀ cw x := by decide
+-- word₁ really is the round-1 folded word, at every point.
+example : ∀ x : G8, word₁ (qmap α x) = foldW α r₀ word₀ x := by decide
 
 -- Round 2's fold map q₁(y) = y² + (α+1)·y: kernel {0, α+1}, fibers
 -- {0, α+1} and {α²+1, α²+α}, new image the 2-element subspace {0, α+1}.
@@ -195,15 +186,16 @@ example : qmap (α + 1) 0 = 0 ∧ qmap (α + 1) (α + 1) = 0 ∧
     qmap (α + 1) (α² + 1) = α + 1 ∧ qmap (α + 1) (α² + α) = α + 1 := by decide
 
 -- Fold-consistency on both fibers (foldWord_pair).
-example : foldW (α + 1) r₁ folded 0 = foldW (α + 1) r₁ folded (α + 1) := by decide
-example : foldW (α + 1) r₁ folded (α² + 1) = foldW (α + 1) r₁ folded (α² + α) := by decide
+example : foldW (α + 1) r₁ word₁ 0 = foldW (α + 1) r₁ word₁ (α + 1) := by decide
+example : foldW (α + 1) r₁ word₁ (α² + 1) =
+    foldW (α + 1) r₁ word₁ (α² + α) := by decide
 
--- The final word: folded is itself a digit (degree 1 < 2), so its
+-- The final word: word₁ is itself a digit (degree 1 < 2), so its
 -- components are the constants p₀ = α², p₁ = α+1, and the fold with
 -- r₁ = α is the constant p₀ + r₁·p₁ = α. Two rounds folded degree
 -- 3 → 1 → 0; the verifier reads one constant from the prover's last
 -- message.
-example : foldW (α + 1) r₁ folded 0 = α ∧
-    foldW (α + 1) r₁ folded (α² + 1) = α := by decide
+example : foldW (α + 1) r₁ word₁ 0 = α ∧
+    foldW (α + 1) r₁ word₁ (α² + 1) = α := by decide
 
 end Examples.BinaryFRI
