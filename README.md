@@ -10,7 +10,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [Code](Algebra/Code/)
     - [Hamming](Algebra/Code/Hamming.lean): the [7,4,3] Hamming code; generator and parity-check matrices, codewords, syndrome decoding, single-error correction, and a worked example
     - [Hypergraph](Algebra/Code/Hypergraph.lean): hypergraph incidence matrix as a parity-check matrix, k-uniformity, minimum distance, unique syndrome decoding theorem, and the Hamming [7,4,3] code as a 4-uniform hypergraph
-    - [ReedSolomonReedMuller](Algebra/Code/ReedSolomonReedMuller.lean): Reed-Solomon codes (univariate polynomial evaluation over GF(2ᵏ), injectivity bound) and Reed-Muller codes (multivariate polynomial evaluation on the boolean hypercube, with RM(1,2) example)
+    - [ReedSolomonReedMuller](Algebra/Code/ReedSolomonReedMuller.lean): Reed-Solomon codes (univariate polynomial evaluation over GF(2ᵏ), injectivity and minimum-distance bounds, computed GF(8) demonstration) and Reed-Muller codes (multivariate polynomial evaluation on the boolean hypercube, with RM(1,2) example)
   - [Group](Algebra/Group/)
     - [Cyclic](Algebra/Group/Cyclic.lean): cyclic groups and their connection to ℤ/nℤ
   - [Ring](Algebra/Ring/)
@@ -36,7 +36,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
-    - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, and Merkle paths with verified openings
+    - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, the fold chain, and the Reed-Solomon distance properties behind the proximity question
     - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes

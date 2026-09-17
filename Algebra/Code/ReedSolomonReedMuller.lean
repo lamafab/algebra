@@ -5,6 +5,7 @@ import Mathlib.Algebra.MvPolynomial.Eval
 import Mathlib.Data.ZMod.Basic
 import Mathlib.FieldTheory.Finite.GaloisField
 import Mathlib.Tactic
+import Algebra.Field.G8
 
 open Polynomial
 open MvPolynomial
@@ -12,27 +13,21 @@ open Finset
 
 noncomputable section
 
--- TODO: This entire file needs to be reworked; it's too messy and all over the
--- place. Additionally, more visual demonstrations should be used.
-
--- TODO: More substance on error recovery and efficient decoding.
+-- TODO: Note that we have a section on (Lagrange) interpolation in
+-- RootsInterpolation.lean, relevant here.
 
 -- ============================================================================
--- Reed-Solomon and Reed-Muller codes over binary fields
+-- Reed-Solomon and Reed-Muller codes
 -- ============================================================================
 --
--- Reed-Solomon (RS) codes evaluate univariate polynomials of bounded degree
--- on a finite subset of GF(2ᵏ). For binary FRI (Fast Reed-Solomon Interactive
--- Oracle Proofs of Proximity) the evaluation domain is typically an affine
--- subspace L ⊆ GF(2ᵏ) (an 𝔽₂-coset of a linear subspace), so that folding
--- (via the trace map) halves the dimension each round.
+-- A Reed-Solomon (RS) code evaluates univariate polynomials of bounded
+-- degree on a finite subset of a field; here GF(2ᵏ). A Reed-Muller (RM)
+-- code evaluates multivariate polynomials of bounded total degree on the
+-- boolean hypercube {0,1}ᵐ.
 --
--- Reed-Muller (RM) codes evaluate multivariate polynomials of bounded total
--- degree on the entire boolean hypercube 𝔽₂ᵐ. They are the natural codes
--- for multilinear extensions and sumcheck.
---
--- Prerequisites: BinaryFields.lean for GF(2ᵏ); Multilinear.lean for the
--- hypercube and MLE.
+-- Encoding is just evaluation, so the mathematical content is the distance
+-- bound: how few points two distinct messages can agree on. Decoding
+-- (error recovery) is implementation-specific and out of scope.
 --
 --   §1  Reed-Solomon codes over GF(2ᵏ)
 --   §2  Reed-Muller codes over 𝔽₂
@@ -44,9 +39,8 @@ instance : Fact (Nat.Prime 2) := ⟨by norm_num⟩
 -- Section 1: Reed-Solomon codes over GF(2ᵏ)
 -- ============================================================================
 --
--- Let L ⊆ GF(2ᵏ) be a finite subset (typically an affine subspace over 𝔽₂).
--- The RS code RS[L, d] encodes a polynomial p ∈ GF(2ᵏ)[X] of degree < d as
--- the vector (p(α))_{α∈L} ∈ (GF(2ᵏ))^L.
+-- Let L ⊆ GF(2ᵏ) be a finite subset. The RS code RS[L, d] encodes a
+-- polynomial p ∈ GF(2ᵏ)[X] of degree < d as the vector (p(α))_{α∈L}.
 --
 -- Because a nonzero polynomial of degree < d has at most d−1 roots in any
 -- field (RootsInterpolation.lean §1), two distinct such polynomials agree
@@ -54,21 +48,6 @@ instance : Fact (Nat.Prime 2) := ⟨by norm_num⟩
 -- |L| − d + 1, proved as `rs_min_distance` at the end of the section.
 -- The injectivity theorem below is the uniqueness corollary: two codewords
 -- at distance 0 come from the same polynomial.
---
--- Visual example for k = 2, L = {0, 1, ω, ω+1} ⊆ GF(4), and p(X) = X + 1:
---
---   α       │ p(α) = α + 1
---   ────────┼────────────
---   0       │   1
---   1       │   0
---   ω       │  ω+1
---   ω+1     │   ω
---
--- The codeword is the vector [1, 0, ω+1, ω] ∈ GF(4)⁴. A different polynomial
--- of degree < 2 would give a different vector on at least one point.
---
--- GF(4) has characteristic 2, so x = -x and x ↦ x + 1 swaps the pairs
--- 0 ↔ 1 and ω ↔ ω+1 in the table (Characteristic.lean §2).
 
 section ReedSolomon
 variable {k d : ℕ}
@@ -145,76 +124,63 @@ theorem rs_min_distance
   have h := rs_agreement_card_le L d p q hp hq hpq
   omega
 
--- ============================================================================
--- Walkthrough: encode, corrupt, observe over GF(4)
--- ============================================================================
---
--- `GaloisField` carries no DecidableEq instance in Mathlib, so unlike
--- Hamming.lean nothing here is computed by `decide`; each step is proved
--- from the field axioms. The two char-2 facts below are the tools the
--- later steps use. The message polynomial is p(X) = X + 1.
-
--- Tool 1: in characteristic 2, adding 1 twice returns to the start. This is
--- why the codeword of X + 1 pairs 0 with 1 and ω with ω+1.
-example (x : GaloisField 2 2) : (x + 1) + 1 = x := by
-  have h : (1 + 1 : GaloisField 2 2) = 0 := by
-    have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
-    norm_num at h2 ⊢; exact h2
-  calc (x + 1) + 1 = x + (1 + 1) := by ring
-       _ = x := by rw [h, add_zero]
-
--- Tool 2: subtraction is addition, so a received word minus the codeword is
--- their sum.
-example (x y : GaloisField 2 2) : x - y = x + y := by
-  suffices h : y + y = 0 by
-    calc x - y = x + (y + y) - y := by rw [h, add_zero]
-         _ = x + y := by ring
-  have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
-  calc y + y = 2 * y := by ring
-       _ = 0 := by rw [h2, zero_mul]
-
--- Encode: on any domain L the codeword of X + 1 is the pointwise map α ↦ α+1.
-example (L : Finset (GaloisField 2 2)) :
-    rsEncode L (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1) =
-      fun α : L => (α : GaloisField 2 2) + 1 := by
-  funext α
-  show (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
-      (α : GaloisField 2 2) = (α : GaloisField 2 2) + 1
-  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_X]
-  simp
-
--- Two entries of the codeword: p(0) = 1 and p(1) = 0.
-example : (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
-    (0 : GaloisField 2 2) = 1 := by
-  simp
-
-example : (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
-    (1 : GaloisField 2 2) = 0 := by
-  simp
-  have h2 : (2 : GaloisField 2 2) = 0 := CharP.cast_eq_zero _ 2
-  norm_num at h2 ⊢; exact h2
-
 end ReedSolomon
+
+-- ----------------------------------------------------------------------------
+-- Demonstration over GF(8), computed by decide
+-- ----------------------------------------------------------------------------
+--
+-- The hand-rolled G8 (Algebra/Field/G8.lean) evaluates with decide, so the
+-- codeword and the distance bound can be checked entry by entry. The
+-- messages are written as functions: p is X² + 1 and q is X² + X + 1,
+-- both of degree 2 < d = 3.
+
+namespace RSDemo
+
+open G8
+
+/-- The message p(X) = X² + 1 over GF(8), as a function. -/
+def p : G8 → G8 := fun x => x * x + 1
+
+/-- The message q(X) = X² + X + 1 over GF(8), as a function. -/
+def q : G8 → G8 := fun x => x * x + x + 1
+
+/-- The evaluation domain: all of GF(8), ordered
+0, 1, α, α+1, α², α²+1, α²+α, α²+α+1. -/
+def L : List G8 := [0, 1, α, α + 1, α², α² + 1, α² + α, α² + α + 1]
+
+-- The codeword of p is its evaluation table. Squaring is injective in
+-- characteristic 2, so all eight entries are distinct.
+example : L.map p = [1, 0, α² + 1, α², α² + α + 1, α² + α, α + 1, α] := by decide
+
+-- Distinct polynomials of degree < 3 agree on at most 2 = d − 1 points
+-- (rs_agreement_card_le); p and q agree only at 0, since p(x) = q(x)
+-- iff x = 0.
+example : (L.filter fun x => p x = q x) = [0] := by decide
+
+-- So their codewords differ in 7 of 8 positions; rs_min_distance
+-- guarantees at least 8 − 3 + 1 = 6.
+example : (L.filter fun x => p x ≠ q x).length = 7 := by decide
+
+end RSDemo
 
 -- ============================================================================
 -- Section 2: Reed-Muller codes over 𝔽₂
 -- ============================================================================
 --
--- Reed-Muller code RM(r, m) ⊆ 𝔽₂^{𝔽₂ᵐ}, ie. f: 𝔽₂ᵐ → 𝔽₂. It evaluates
--- multivariate polynomials of total degree ≤ r on the entire boolean hypercube
--- 𝔽₂ᵐ.
+-- The Reed-Muller code RM(r, m) ⊆ 𝔽₂^{𝔽₂ᵐ} evaluates multivariate
+-- polynomials of total degree ≤ r on the entire boolean hypercube 𝔽₂ᵐ.
 --
 --   Dimension = Σ_{i=0}^{r} C(m, i)
 --   Minimum distance = 2^{m-r}
 --
--- For the minimum distance: a nonzero polynomial of total degree ≤ r vanishes
--- on at most 2ᵐ − 2^{m-r} hypercube points. The proof uses the standard
--- induction RM(r,m) ≅ RM(r,m-1) + xₘ · RM(r-1,m-1).
+-- For the minimum distance: a nonzero polynomial of total degree ≤ r
+-- vanishes on at most 2ᵐ − 2^{m-r} hypercube points. The proof uses the
+-- induction RM(r,m) ≅ RM(r,m-1) + xₘ · RM(r-1,m-1); it is not formalized
+-- here.
 
 section ReedMuller
 variable {m r : ℕ}
-
-lemma one_plus_one_zmod2 : (1 : ZMod 2) + (1 : ZMod 2) = (0 : ZMod 2) := by decide
 
 /-- The evaluation of a multivariate polynomial over 𝔽₂ on the boolean
 hypercube {0,1}ᵐ. -/
@@ -226,11 +192,8 @@ degree ≤ r on the hypercube. -/
 def rmCode (r : ℕ) : Set ((Fin m → ZMod 2) → ZMod 2) :=
   rmEncode '' {p : MvPolynomial (Fin m) (ZMod 2) | totalDegree p ≤ r}
 
-/-- The hypercube domain 𝔽₂ᵐ as a Finset. -/
-def hypercubeDomain (m : ℕ) : Finset (Fin m → ZMod 2) := Finset.univ
-
--- RM(1, 2) example: the linear polynomial x₀ + x₁.
--- Its evaluations on the 4 points of 𝔽₂² match the truth table of XOR.
+-- RM(1, 2) example: the linear polynomial x₀ + x₁. Its evaluations on the
+-- four points of 𝔽₂² are the truth table of XOR.
 
 example : rmEncode (X (0 : Fin 2) + X 1) (fun _ : Fin 2 => (0 : ZMod 2)) = (0 : ZMod 2) := by
   simp [rmEncode]
@@ -244,12 +207,11 @@ example : rmEncode (X (0 : Fin 2) + X 1)
   simp [rmEncode]
 
 example : rmEncode (X (0 : Fin 2) + X 1) (fun _ : Fin 2 => (1 : ZMod 2)) = (0 : ZMod 2) := by
-  simp [rmEncode, one_plus_one_zmod2]
+  simp [rmEncode, show (1 : ZMod 2) + 1 = 0 by decide]
 
 -- The four evaluations above form the codeword of x₀ + x₁: it has weight
--- 2 = 2^{2−1}, the minimum distance of RM(1, 2). The general distance
--- formula 2^{m−r} is stated in the section header; its induction on m is
--- not formalized here. That this codeword lies in the code:
+-- 2 = 2^{2−1}, the minimum distance of RM(1, 2). That this codeword lies
+-- in the code:
 example : rmEncode (X (0 : Fin 2) + X 1) ∈ rmCode (m := 2) 1 := by
   refine ⟨X 0 + X 1, ?_, rfl⟩
   simp only [Set.mem_setOf_eq]
