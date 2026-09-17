@@ -37,6 +37,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
     - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, the fold chain, and the Reed-Solomon distance properties behind the proximity question
+    - [EvalOpening](Crypto/ZK/EvalOpening.lean): the evaluation opening p(r) = v at a point outside the committed domain, via the quotient (p − v)/(X − r); a false claim is far from every codeword of the smaller code
     - [Binius](Crypto/ZK/Binius.lean): the full binary-field argument for a boolean circuit, end to end on an AND gate; MLE → sumcheck → binary FRI → Merkle, with the soundness budget
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes

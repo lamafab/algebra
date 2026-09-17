@@ -34,7 +34,8 @@ open BinaryFRI
 --   Merkle:    binding of h, the random-oracle assumption (idealized)
 --
 -- Prerequisites: Multilinear.lean (Step 2), ReedSolomonReedMuller.lean
--- (Step 3), Sumcheck.lean (Step 4), BinaryFRI.lean (Step 5).
+-- (Step 3), Sumcheck.lean (Step 4), BinaryFRI.lean and EvalOpening.lean
+-- (Step 5).
 --
 --   §1  A small boolean circuit
 --   §2  Its multilinear extension
@@ -103,7 +104,10 @@ example : ∑ w : Fin 2 → ZMod 2, eval w (mle andCircuit) = 1 := by
 -- To answer the final evaluation claim, the prover must have committed to the
 -- MLE before seeing the challenges. The commitment is the Merkle root of the
 -- RS encoding of the evaluation table (ReedSolomonReedMuller.lean §1,
--- Crypto/Merkle.lean). Toy instance over
+-- Crypto/Merkle.lean). The opening at r is proved, not read: r lies
+-- outside the committed domain with high probability, so the prover
+-- tabulates the quotient (p − v)/(X − r) (EvalOpening.lean). Toy instance
+-- over
 -- 𝔽₂ with h = addition: not binding, only exercising the arithmetic.
 
 -- The AND truth table [0, 0, 0, 1] committed as a 4-leaf tree.
