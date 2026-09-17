@@ -2,6 +2,7 @@ import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 import Algebra.Ring.Multilinear
+import Crypto.Merkle
 import Crypto.ZK.BinaryFRI
 
 open MvPolynomial
@@ -20,9 +21,10 @@ open BinaryFRI
 --   sumcheck (Sumcheck.lean): a claim about all 2ⁿ gate evaluations
 --     │  reduces, round by round, to one evaluation claim p̃(r) = v
 --     ▼
---   polynomial commitment (BinaryFRI.lean): the MLE table is RS-encoded
---     │  over GF(2ᵏ), Merkle-committed, and proximity-tested by additive
---     │  folding; the verifier opens the committed table at r
+--   polynomial commitment (BinaryFRI.lean, Crypto/Merkle.lean): the MLE
+--     │  table is RS-encoded over GF(2ᵏ), Merkle-committed, and
+--     │  proximity-tested by additive folding; the verifier opens the
+--     │  committed table at r
 --     ▼
 --   verifier accepts iff the opened value equals v
 --
@@ -100,16 +102,17 @@ example : ∑ w : Fin 2 → ZMod 2, eval w (mle andCircuit) = 1 := by
 --
 -- To answer the final evaluation claim, the prover must have committed to the
 -- MLE before seeing the challenges. The commitment is the Merkle root of the
--- RS encoding of the evaluation table (BinaryFRI.lean §2). Toy instance over
+-- RS encoding of the evaluation table (ReedSolomonReedMuller.lean §1,
+-- Crypto/Merkle.lean). Toy instance over
 -- 𝔽₂ with h = addition: not binding, only exercising the arithmetic.
 
 -- The AND truth table [0, 0, 0, 1] committed as a 4-leaf tree.
 example :
     let h : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
-    let t : BinaryFRI.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
+    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
     -- the leaf at (1,1) is 1, and its path opens correctly against the root
     t.lookup [false, false] = some 1 ∧
-      verify h 1 [(false, 0), (false, 0)] = t.root h := by
+      Merkle.verify h 1 [(false, 0), (false, 0)] = t.root h := by
   exact ⟨by decide, by decide⟩
 
 -- ============================================================================
@@ -137,6 +140,6 @@ example :
 #check @MvPolynomial.schwartz_zippel_totalDegree
 #check @rsEncode_injective
 #check @foldMap_pair
-#check @verify_path
+#check @Merkle.verify_path
 
 end Binius
