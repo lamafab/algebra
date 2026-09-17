@@ -31,6 +31,16 @@ noncomputable section
 -- (quotientWord_agreement_le, §2), which is what the proximity test
 -- catches.
 --
+-- The full opening, as a protocol. Once the claim (r, v) exists, the
+-- prover commits the quotient word as a fresh root; the quotient's fold
+-- chain is then committed round by round (BinaryFRI.lean §1c) against
+-- the smaller degree bound. At each query the verifier opens both
+-- roots, w(x) from word 0 and q(x) from the quotient, and checks
+-- q(x)·(x − r) = w(x) − v: this binds the quotient to the polynomial
+-- committed before any challenges existed. A fabricated quotient fails
+-- this equation at query points; a consistent-but-false one fails the
+-- proximity test (§2).
+--
 --   §1  The quotient word and its consistency
 --   §2  The distance bound for a false claim
 --   §3  Computed demonstration over GF(8)
