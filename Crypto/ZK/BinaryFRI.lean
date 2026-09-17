@@ -2,49 +2,40 @@ import Mathlib.Algebra.CharP.Two
 import Mathlib.Data.ZMod.Basic
 import Mathlib.Tactic
 import Algebra.Code.ReedSolomonReedMuller
-import Crypto.Merkle
-
--- TODO: compact aggressively so binary FRI stands alone. The file is still
--- tied to the grander Binius context (Merkle import, committing narrative)
--- and the prover/verifier line is blurred: say who computes the words and
--- who samples challenges and point-checks. Examples/BinaryFRI.lean has the
--- worked end-to-end run; keep it in sync.
 
 -- ============================================================================
 -- Binary FRI: proximity testing by additive folding
 -- ============================================================================
 --
--- FRI (Fast Reed-Solomon Interactive oracle proof of proximity) convinces a
+-- FRI (Fast Reed-Solomon interactive oracle proof of proximity) convinces a
 -- verifier that a committed word is close to a Reed-Solomon codeword, by
 -- repeatedly folding the polynomial to half its degree until only a constant
--- remains. Prime-field FRI folds along the squaring map x ↦ x² on a
--- multiplicative subgroup; squaring is 2-to-1 there, the odd-characteristic
--- half of the dichotomy (Characteristic.lean §4). Binary fields cannot do
--- that: GF(2ᵏ)ˣ has odd order, so there are no 2-power roots of unity to
--- halve around (BinaryFields.lean §3), and squaring is injective rather than
--- 2-to-1 in characteristic 2 (BinaryFields.lean §4b, Characteristic.lean §4).
+-- remains. The prover computes and commits each folded word; the verifier
+-- only samples the challenges and spot-checks fold consistency at random
+-- points.
+--
+-- Prime-field FRI folds along the squaring map x ↦ x² on a multiplicative
+-- subgroup; squaring is 2-to-1 there, the odd-characteristic half of the
+-- dichotomy (Characteristic.lean §4). Binary fields cannot do that: GF(2ᵏ)ˣ
+-- has odd order, so there are no 2-power roots of unity to halve around
+-- (BinaryFields.lean §3), and squaring is injective rather than 2-to-1 in
+-- characteristic 2 (BinaryFields.lean §4b, Characteristic.lean §4).
 --
 -- Binary FRI folds along the additive map q(x) = x² + β·x instead. In
 -- characteristic 2 this map is 𝔽₂-linear, its kernel is {0, β}, and it
 -- sends each pair {x, x + β} to a single value. Applied to an 𝔽₂-subspace
 -- domain of size 2ᵐ, it collapses the domain to size 2^{m−1}: one round of
--- folding.
---
--- Iterating with fresh β's halves the domain each round until one point is
--- left.
+-- folding. Iterating with fresh β's halves the domain each round until one
+-- point is left.
 --
 --   §1  The additive fold q(x) = x² + β·x: the map, one round on words,
 --       the fold chain
---   §2  Committing: RS-encode the MLE table, Merkle-hash the leaves
---   §3  The query phase and the soundness sketch
---
--- The Merkle machinery (Tree, verify, Tree.path, verify_path) lives in
--- Crypto/Merkle.lean.
+--   §2  The Reed-Solomon properties behind the proximity question
 --
 -- Prerequisites: Characteristic.lean (the squaring dichotomy §4, the
 -- freshman's dream §3), BinaryFields.lean (§3 no 2-power roots of unity,
--- §4b squaring cannot fold), ReedSolomonReedMuller.lean (the RS code),
--- Multilinear.lean (the MLE table being committed to).
+-- §4b squaring cannot fold), ReedSolomonReedMuller.lean (the RS code).
+-- Examples/BinaryFRI.lean has a worked end-to-end run over GF(8).
 
 namespace BinaryFRI
 
@@ -73,7 +64,7 @@ theorem foldMap_add (β x y : F) : foldMap β (x + y) = foldMap β x + foldMap �
   ring
 
 /-- The kernel of q is {0, β}: q(x) = x·(x+β) vanishes exactly at 0 and β.
-Remember that -β = β when the characteristic is 2 (Characteristic.lean §2) -/
+Remember that β = -β when the characteristic is 2 (Characteristic.lean §2) -/
 theorem foldMap_eq_zero_iff (β x : F) :
     foldMap β x = 0 ↔ x = 0 ∨ x = β := by
   rw [foldMap_eq_mul_add, mul_eq_zero]
@@ -127,18 +118,39 @@ theorem foldMap_pair (β x : F) : foldMap β (x + β) = foldMap β x := by
 -- ----------------------------------------------------------------------------
 --
 -- The verifier holds words, not polynomials. One round folds a word
--- w : F → F along the fibers of q: on the fiber {x, x + β} over y = q(x)
--- the values w(x), w(x + β) determine the two half-degree components of p
--- at y by a 2×2 solve, and the challenge r combines them into the next
--- layer's value:
+-- w : F → F along the fibers of q. Write the polynomial behind w in
+-- base q (exists_fold_decomp below):
 --
---   w(x)     = p₀(y) + x·p₁(y)         p₁(y) = (w(x) + w(x+β)) / β
---   w(x + β) = p₀(y) + (x+β)·p₁(y)     p₀(y) = w(x) + x·p₁(y)
+--   f(X) = p₀(q(X)) + X·p₁(q(X))     with 2·deg pᵢ ≤ deg f
+--
+-- On the fiber {x, x + β} over y = q(x) = q(x + β) (foldMap_pair above),
+-- evaluating at the two fiber points gives two equations in the two
+-- unknowns p₀(y), p₁(y):
+--
+--   w(x)     = p₀(y) + x·p₁(y)
+--   w(x + β) = p₀(y) + (x+β)·p₁(y)
+--
+-- Solving recovers the unknowns per fiber, by adding the equations:
+--
+--   w(x) + w(x + β) = (p₀(y) + x·p₁(y)) + (p₀(y) + (x+β)·p₁(y))
+--                   = (1 + 1)·p₀(y) + (x + (x + β))·p₁(y)
+--
+-- The p₀ coefficient is 1 + 1 = 0 and the p₁ coefficient is
+-- x + (x + β) = β, leaving β·p₁(y) = w(x) + w(x + β). Dividing through
+-- and back-substituting:
+--
+--   p₁(y) = (w(x) + w(x+β)) / β        p₀(y) = w(x) + x·p₁(y)
+--
+-- The division by β is why β ≠ 0 is assumed throughout (FoldChain.β_ne_zero):
+-- β = 0 collapses the fiber to one point and the two equations coincide.
+--
+-- The challenge r combines the components into the next layer's value,
+-- the half-degree folded polynomial p₀ + r·p₁ evaluated at y:
 --
 --   folded value at y := p₀(y) + r·p₁(y)
 --
--- The components come from dividing p by q (base-q digits, see
--- exists_fold_decomp below); the word fold itself is field arithmetic only.
+-- The word fold itself is field arithmetic only (foldWord); the 2×2
+-- solve is the fiber-local reading of the global division by foldQ.
 
 open Polynomial
 
@@ -183,7 +195,8 @@ theorem exists_fold_decomp (β : F) (f : Polynomial F) :
     ∃ p₀ p₁ : Polynomial F,
       -- f(X) = p₀(q(X)) + X·p₁(q(X))
       f = p₀.comp (foldQ β) + X * p₁.comp (foldQ β) ∧
-      2 * p₀.natDegree ≤ f.natDegree ∧ 2 * p₁.natDegree ≤ f.natDegree := by
+      2 * p₀.natDegree ≤ f.natDegree ∧
+      2 * p₁.natDegree ≤ f.natDegree := by
   induction' h : f.natDegree using Nat.strong_induction_on with n ih generalizing f
   by_cases hdeg : f.natDegree < 2
   · rw [eq_digit_of_natDegree_lt_two hdeg]
@@ -225,7 +238,7 @@ theorem exists_fold_decomp (β : F) (f : Polynomial F) :
 
 /-- The folded word's value at y = q(x), computed from the fiber {x, x+β}
 of the current word w. This is p₀(y) + r·p₁(y) with the components read
-off the 2×2 solve above; field arithmetic only. -/
+off the 2×2 solve above (§1b) -/
 def foldWord (β r : F) (w : F → F) (x : F) : F :=
   w x + (x + r) * (w x + w (x + β)) / β
 
@@ -242,7 +255,7 @@ theorem foldWord_pair (β r : F) (hβ : β ≠ 0) (w : F → F) (x : F) :
   linear_combination hs + CharTwo.add_self_eq_zero (w (x + β))
 
 /-- Fold consistency: if w is the evaluation table of f and f decomposes
-along q as (p₀, p₁) — always possible, by exists_fold_decomp — then the
+along q as (p₀, p₁), which is always possible, by exists_fold_decomp, then the
 folded word at x is the folded polynomial p₀ + r·p₁ evaluated at q(x).
 The verifier's per-round check is this equality at random points. -/
 theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
@@ -270,13 +283,13 @@ theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
 -- The loop from the header, as a consistency predicate. word 0 is the
 -- committed RS codeword; in round i the prover commits word (i+1), the
 -- verifier samples r i, and `step` is the spot-check repeated at random
--- points in the query phase (§3): the sibling values of round i determine
--- the parent value of round i+1. The last word's domain is a single point,
+-- points in the query phase: the sibling values of round i determine the
+-- parent value of round i+1. The last word's domain is a single point,
 -- so the verifier reads the final constant directly.
 --
 -- Not tracked in the type: the domains (word i is only meaningful on its
 -- image subspace of size 2^(m−i)) and the distance and soundness claims
--- (those live in §2 and §3).
+-- (those live in §2).
 
 /-- A fold chain of length m: words linked round by round by the fold. -/
 structure FoldChain (F : Type*) [Field F] [CharP F 2] (m : ℕ) where
@@ -290,9 +303,10 @@ structure FoldChain (F : Type*) [Field F] [CharP F 2] (m : ℕ) where
 -- domain, so one round folds any word to a constant.
 example : foldMap (1 : ZMod 2) 0 = 0 ∧ foldMap (1 : ZMod 2) 1 = 0 := by decide
 
--- The word w = [0, 1] (the evaluation table of X) folds with β = 1 and
--- challenge r₀ = 1 to the constant 1: X = 0·q + X·1, so p₀ = 0, p₁ = 1
--- and the folded value is 0 + 1·1. Both fiber representatives agree.
+-- The word w = [0, 1], the evaluation table of X on the two-point domain
+-- 𝔽₂ (its RS codeword), folds with β = 1 and challenge r₀ = 1 to the
+-- constant 1: X = 0·q + X·1, so p₀ = 0, p₁ = 1 and the folded value is
+-- 0 + 1·1. Both fiber representatives agree.
 example : foldWord (1 : ZMod 2) 1 (fun x => x) 0 = 1 := by decide
 example : foldWord (1 : ZMod 2) 1 (fun x => x) 1 = 1 := by decide
 
@@ -310,89 +324,53 @@ example : Nonempty (FoldChain (F := ZMod 2) 1) :=
 end AdditiveFold
 
 -- ============================================================================
--- Section 2: Committing to the MLE table
+-- Section 2: The Reed-Solomon properties behind the proximity question
 -- ============================================================================
 --
--- The prover's message is one field element: the Merkle root of a Reed-Solomon
--- codeword. The codeword is built in two steps:
+-- TODO: Rework this section; might be better to demonstrate this using
+-- a commitment layer like Merkle.lean, or in the context of the larger
+-- Binius mechanism.
 --
---   1. The MLE table (Multilinear.lean) assigns a field element to each
---      point of the hypercube 𝔽₂ᵐ. Viewed on an 𝔽₂-subspace of size 2ᵐ
---      inside GF(2ᵏ), that table is the evaluation table of a unique
---      univariate polynomial p of degree < 2ᵐ (RootsInterpolation.lean).
---      Interpolating the table recovers p.
---   2. Stretch: evaluate p on a larger domain L containing that subspace
---      (ReedSolomonReedMuller.lean §1). The stretched table is the RS
---      codeword that gets Merkle-hashed (Crypto/Merkle.lean).
+-- The verifier's question, "is the committed word close to some codeword?",
+-- only has content because of two properties of the RS code RS[L, d]
+-- (ReedSolomonReedMuller.lean §1, where they are proved and demonstrated
+-- with a computed GF(8) example):
 --
--- The stretching is what buys distance. Two different polynomials of degree
--- < 2ᵐ agree on at most 2ᵐ − 1 points, so their codewords differ in at
--- least |L| − 2ᵐ + 1 positions. FRI's proximity question, "is the committed
--- word close to some codeword?", only has content because codewords are
--- this far apart: a word near the code is near exactly one codeword, so
--- the polynomial it came from is pinned down.
+--   rsEncode_injective : a codeword comes from exactly one polynomial of
+--     degree < d, so a word near the code pins down the message.
+--   rs_min_distance    : distinct codewords differ in at least |L| − d + 1
+--     positions, so a word can be close to at most one codeword.
 --
---   `rsEncode L p`       : the codeword, evaluations of p on L
---   `rsEncode_injective` : the codeword determines the polynomial
---     (the roots bound from RootsInterpolation.lean, applied to p − q)
---   `rs_min_distance`    : distinct codewords differ in at least
---     |L| − d + 1 positions
+-- What the verifier checks. It never sees the polynomial and never
+-- measures a degree directly. The prover commits each folded word (the
+-- commitment layer lives outside this file), the verifier samples the
+-- challenge rᵢ, and after m rounds it queries: pick a random point of
+-- the initial domain, open the two fiber values of each round along its
+-- fold path, and check FoldChain.step at every link. The last word has
+-- a one-point domain and is read outright. A chain that passes is
+-- accepted as "word 0 is close to a degree < 2ᵐ codeword": the degree
+-- is certified by the m halvings ending in a constant, not by
+-- interpolating anything.
+--
+-- Why the constraints hold up during the fold. Completeness: folding
+-- preserves the code. If word i is the table of f with deg f < 2^{m−i},
+-- the folded polynomial p₀ + rᵢ·p₁ has degree < 2^{m−i−1} (the degree
+-- bounds of exists_fold_decomp) and word (i+1) is its table on the
+-- halved domain (foldWord_eval): every honest word is again an RS
+-- codeword of the same rate, so every check passes. Soundness (not
+-- formalized here): folding also preserves distance with high
+-- probability over the challenges, so a word 0 far from every codeword
+-- has some round inheriting that distance, and a random query catches
+-- the inconsistency there.
+--
+-- How many samples. One query catches a word at distance δ with
+-- probability ≈ δ, so s independent queries drop the soundness error
+-- to ≈ (1 − δ)ˢ; s ≈ λ/δ gives 2⁻λ. The distance bound is what the
+-- prover cannot fake: far from the code, no fold chain stays
+-- consistent all the way down to the constant.
 
 #check @rsEncode
 #check @rsEncode_injective
 #check @rs_min_distance
-
--- Encoding over GF(4), concretely: p(X) = X + 1 becomes the pointwise map
--- α ↦ α + 1 on any domain (the full walkthrough, with the four-entry
--- codeword table, is ReedSolomonReedMuller.lean §1).
-example (L : Finset (GaloisField 2 2)) :
-    rsEncode L (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1) =
-      fun α : L => (α : GaloisField 2 2) + 1 := by
-  funext α
-  show (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
-      (α : GaloisField 2 2) = (α : GaloisField 2 2) + 1
-  rw [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_X]
-  simp
-
--- Distinct polynomials give codewords that disagree: X + 1 and X already
--- differ at α = 0, and by rs_min_distance they differ almost everywhere.
-example :
-    (Polynomial.C (1 : GaloisField 2 2) * Polynomial.X + Polynomial.C 1).eval
-      (0 : GaloisField 2 2) ≠ Polynomial.X.eval (0 : GaloisField 2 2) := by
-  simp
-
--- ============================================================================
--- Section 3: The query phase, concretely on a toy tree
--- ============================================================================
---
--- After the folding rounds the verifier queries at random points: it asks for
--- a leaf value plus its authentication path, and checks (a) the path verifies
--- against the committed root, and (b) the value is consistent with the fold
--- chain (FoldChain.step, §1c), i.e. the two sibling values of one round
--- determine the parent value of the next. Soundness: if the committed word is
--- far from every codeword,
--- some fold round inherits that distance, and a random query catches an
--- inconsistency with constant probability per query.
---
--- Toy arithmetic sanity checks over 𝔽₂ with h = addition (not binding, just
--- to exercise the definitions).
-
--- The truth table of AND, committed as four leaves.
-example :
-    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
-    t.lookup [false, false] = some 1 := by decide
-
--- The honest path to the (1,1)-leaf verifies against the root.
-example :
-    let h : ZMod 2 → ZMod 2 → ZMod 2 := fun a b => a + b
-    let t : Merkle.Tree (ZMod 2) := .node (.node (.leaf 0) (.leaf 0)) (.node (.leaf 0) (.leaf 1))
-    Merkle.verify h 1 [(false, 0), (false, 0)] = t.root h := by decide
-
--- The same check via the verified-path theorem.
-example (h : ZMod 2 → ZMod 2 → ZMod 2)
-    (t : Merkle.Tree (ZMod 2)) (bs : List Bool) (x : ZMod 2) (p : Merkle.Path (ZMod 2))
-    (hl : t.lookup bs = some x) (hp : t.path h bs = some p) :
-    Merkle.verify h x p = t.root h :=
-  Merkle.verify_path h t bs x p hl hp
 
 end BinaryFRI
