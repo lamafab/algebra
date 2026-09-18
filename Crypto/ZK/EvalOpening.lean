@@ -131,11 +131,17 @@ p(r) ≠ v, any polynomial q' of degree < d − 1 agrees with the quotient
 word on at most d − 1 points of L. The proximity test against RS[L, d−1]
 therefore catches the false claim. -/
 theorem quotientWord_agreement_le
-    (L : Finset (GaloisField 2 k)) (d : ℕ)
-    (p q' : Polynomial (GaloisField 2 k)) (r v : GaloisField 2 k)
-    (hp : p.natDegree < d) (hq' : q'.natDegree < d - 1)
-    (hvr : p.eval r ≠ v) (hrL : r ∉ L)
-    (w : GaloisField 2 k → GaloisField 2 k) (hw : ∀ x, w x = p.eval x) :
+    (L : Finset (GaloisField 2 k))
+    (d : ℕ)
+    (p q' : Polynomial (GaloisField 2 k))
+    (r v : GaloisField 2 k)
+    (hp : p.natDegree < d)
+    (hq' : q'.natDegree < d - 1)
+    (hvr : p.eval r ≠ v)
+    (hrL : r ∉ L)
+    (w : GaloisField 2 k → GaloisField 2 k)
+    (hw : ∀ x, w x = p.eval x)
+  :
     (quotientAgreement L w r v q').card ≤ d - 1 := by
   classical
   have hsub : quotientAgreement L w r v q' ⊆

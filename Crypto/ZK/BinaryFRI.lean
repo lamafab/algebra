@@ -258,12 +258,18 @@ theorem foldWord_pair (β c : F) (hβ : β ≠ 0) (w : F → F) (x : F) :
   linear_combination hs + CharTwo.add_self_eq_zero (w (x + β))
 
 /-- Fold consistency: if w is the evaluation table of f and f decomposes
-along q as (p₀, p₁), which is always possible, by exists_fold_decomp, then the
+along q as (p₀, p₁), which is always possible (exists_fold_decomp), then the
 folded word at x is the folded polynomial p₀ + c·p₁ evaluated at q(x).
 The verifier's per-round check is this equality at random points. -/
-theorem foldWord_eval (β c : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
+theorem foldWord_eval
+    (β c : F)
+    (hβ : β ≠ 0)
+    (f p₀ p₁ : Polynomial F)
     (hcomp : f = p₀.comp (foldQ β) + X * p₁.comp (foldQ β))
-    (w : F → F) (hw : ∀ x, w x = f.eval x) (x : F) :
+    (w : F → F)
+    (hw : ∀ x, w x = f.eval x)
+    (x : F)
+  :
     foldWord β c w x = (p₀ + C c * p₁).eval (foldMap β x) := by
   have e1 : w x = p₀.eval (foldMap β x) + x * p₁.eval (foldMap β x) := by
     rw [hw x, hcomp, eval_add, eval_mul, eval_X, eval_comp, eval_comp, foldQ_eval]
