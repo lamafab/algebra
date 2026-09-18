@@ -36,6 +36,9 @@ import Algebra.Code.ReedSolomonReedMuller
 -- freshman's dream §3), BinaryFields.lean (§3 no 2-power roots of unity,
 -- §4b squaring cannot fold), ReedSolomonReedMuller.lean (the RS code).
 -- Examples/BinaryFRI.lean has a worked end-to-end run over GF(8).
+--
+-- EvalOpening.lean turns the proximity test into an evaluation opening
+-- of a claim p(r) = v (the quotient trick) in combination with Sumcheck.lean.
 
 namespace BinaryFRI
 
@@ -144,10 +147,10 @@ theorem foldMap_pair (β x : F) : foldMap β (x + β) = foldMap β x := by
 -- The division by β is why β ≠ 0 is assumed throughout (FoldChain.β_ne_zero):
 -- β = 0 collapses the fiber to one point and the two equations coincide.
 --
--- The challenge r combines the components into the next layer's value,
--- the half-degree folded polynomial p₀ + r·p₁ evaluated at y:
+-- The challenge c combines the components into the next layer's value,
+-- the half-degree folded polynomial p₀ + c·p₁ evaluated at y:
 --
---   folded value at y := p₀(y) + r·p₁(y)
+--   folded value at y := p₀(y) + c·p₁(y)
 --
 -- The word fold itself is field arithmetic only (foldWord); the 2×2
 -- solve is the fiber-local reading of the global division by foldQ.
@@ -237,15 +240,15 @@ theorem exists_fold_decomp (β : F) (f : Polynomial F) :
       omega
 
 /-- The folded word's value at y = q(x), computed from the fiber {x, x+β}
-of the current word w. This is p₀(y) + r·p₁(y) with the components read
+of the current word w. This is p₀(y) + c·p₁(y) with the components read
 off the 2×2 solve above (§1b) -/
-def foldWord (β r : F) (w : F → F) (x : F) : F :=
-  w x + (x + r) * (w x + w (x + β)) / β
+def foldWord (β c : F) (w : F → F) (x : F) : F :=
+  w x + (x + c) * (w x + w (x + β)) / β
 
 /-- The folded value is the same from either representative of a fiber, so
 foldWord defines a word on the halved image domain q(L). -/
-theorem foldWord_pair (β r : F) (hβ : β ≠ 0) (w : F → F) (x : F) :
-    foldWord β r w (x + β) = foldWord β r w x := by
+theorem foldWord_pair (β c : F) (hβ : β ≠ 0) (w : F → F) (x : F) :
+    foldWord β c w (x + β) = foldWord β c w x := by
   have hfib : x + β + β = x := by
     rw [add_assoc, CharTwo.add_self_eq_zero, add_zero]
   have hs : β * ((w x + w (x + β)) / β) = w x + w (x + β) :=
@@ -256,12 +259,12 @@ theorem foldWord_pair (β r : F) (hβ : β ≠ 0) (w : F → F) (x : F) :
 
 /-- Fold consistency: if w is the evaluation table of f and f decomposes
 along q as (p₀, p₁), which is always possible, by exists_fold_decomp, then the
-folded word at x is the folded polynomial p₀ + r·p₁ evaluated at q(x).
+folded word at x is the folded polynomial p₀ + c·p₁ evaluated at q(x).
 The verifier's per-round check is this equality at random points. -/
-theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
+theorem foldWord_eval (β c : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
     (hcomp : f = p₀.comp (foldQ β) + X * p₁.comp (foldQ β))
     (w : F → F) (hw : ∀ x, w x = f.eval x) (x : F) :
-    foldWord β r w x = (p₀ + C r * p₁).eval (foldMap β x) := by
+    foldWord β c w x = (p₀ + C c * p₁).eval (foldMap β x) := by
   have e1 : w x = p₀.eval (foldMap β x) + x * p₁.eval (foldMap β x) := by
     rw [hw x, hcomp, eval_add, eval_mul, eval_X, eval_comp, eval_comp, foldQ_eval]
   have e2 : w (x + β) = p₀.eval (foldMap β x) + (x + β) * p₁.eval (foldMap β x) := by
@@ -282,7 +285,7 @@ theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
 --
 -- The loop from the header, as a consistency predicate. word 0 is the
 -- committed RS codeword; in round i the prover commits word (i+1), the
--- verifier samples r i, and `step` is the spot-check repeated at random
+-- verifier samples c i, and `step` is the spot-check repeated at random
 -- points in the query phase: the sibling values of round i determine the
 -- parent value of round i+1. The last word's domain is a single point,
 -- so the verifier reads the final constant directly.
@@ -295,16 +298,16 @@ theorem foldWord_eval (β r : F) (hβ : β ≠ 0) (f p₀ p₁ : Polynomial F)
 structure FoldChain (F : Type*) [Field F] [CharP F 2] (m : ℕ) where
   word : ℕ → F → F
   β : ℕ → F
-  r : ℕ → F
+  c : ℕ → F
   β_ne_zero : ∀ i, β i ≠ 0
-  step : ∀ i, i < m → ∀ x, word (i + 1) (foldMap (β i) x) = foldWord (β i) (r i) (word i) x
+  step : ∀ i, i < m → ∀ x, word (i + 1) (foldMap (β i) x) = foldWord (β i) (c i) (word i) x
 
 -- Sanity over 𝔽₂: q(x) = x² + x has kernel {0, 1}, the whole two-point
 -- domain, so one round folds any word to a constant.
 example : foldMap (1 : ZMod 2) 0 = 0 ∧ foldMap (1 : ZMod 2) 1 = 0 := by decide
 
 -- The word w = [0, 1], the evaluation table of X on the two-point domain
--- 𝔽₂ (its RS codeword), folds with β = 1 and challenge r₀ = 1 to the
+-- 𝔽₂ (its RS codeword), folds with β = 1 and challenge c₀ = 1 to the
 -- constant 1: X = 0·q + X·1, so p₀ = 0, p₁ = 1 and the folded value is
 -- 0 + 1·1. Both fiber representatives agree.
 example : foldWord (1 : ZMod 2) 1 (fun x => x) 0 = 1 := by decide
@@ -314,7 +317,7 @@ example : foldWord (1 : ZMod 2) 1 (fun x => x) 1 = 1 := by decide
 example : Nonempty (FoldChain (F := ZMod 2) 1) :=
   ⟨{  word := fun i => if i = 0 then (fun x : ZMod 2 => x) else fun _ => 1
       β := fun _ => 1
-      r := fun _ => 1
+      c := fun _ => 1
       β_ne_zero := fun _ => one_ne_zero
       step := by
         intro i hi x
@@ -344,17 +347,19 @@ end AdditiveFold
 -- What the verifier checks. It never sees the polynomial and never
 -- measures a degree directly. The prover commits each folded word (the
 -- commitment layer lives outside this file), the verifier samples the
--- challenge rᵢ, and after m rounds it queries: pick a random point of
+-- challenge cᵢ, and after m rounds it queries: pick a random point of
 -- the initial domain, open the two fiber values of each round along its
 -- fold path, and check FoldChain.step at every link. The last word has
 -- a one-point domain and is read outright. A chain that passes is
 -- accepted as "word 0 is close to a degree < 2ᵐ codeword": the degree
 -- is certified by the m halvings ending in a constant, not by
--- interpolating anything.
+-- interpolating anything. The evaluation claim p(r) = v itself, at a
+-- point r almost surely outside the committed domain, is discharged by
+-- the quotient opening (EvalOpening.lean).
 --
 -- Why the constraints hold up during the fold. Completeness: folding
 -- preserves the code. If word i is the table of f with deg f < 2^{m−i},
--- the folded polynomial p₀ + rᵢ·p₁ has degree < 2^{m−i−1} (the degree
+-- the folded polynomial p₀ + cᵢ·p₁ has degree < 2^{m−i−1} (the degree
 -- bounds of exists_fold_decomp) and word (i+1) is its table on the
 -- halved domain (foldWord_eval): every honest word is again an RS
 -- codeword of the same rate, so every check passes. Soundness (not
