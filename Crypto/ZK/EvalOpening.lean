@@ -66,8 +66,15 @@ def quotientWord (w : F → F) (r v : F) (x : F) : F := (w x - v) / (x - r)
 /-- Consistency: if w is the table of p and the claim p(r) = v holds, the
 quotient word is the table of the genuine polynomial quotient
 (p − v)/(X − r), at every x ≠ r. -/
-theorem quotientWord_eval (p : Polynomial F) (r v : F) (hvr : p.eval r = v)
-    (w : F → F) (hw : ∀ x, w x = p.eval x) (x : F) (hx : x ≠ r) :
+theorem quotientWord_eval
+    (p : Polynomial F)
+    (r v : F)
+    (hvr : p.eval r = v)
+    (w : F → F)
+    (hw : ∀ x, w x = p.eval x)
+    (x : F)
+    (hx : x ≠ r)
+  :
     quotientWord w r v x = ((p - C v) /ₘ (X - C r)).eval x := by
   have hdvd : X - C r ∣ p - C v := by
     rw [dvd_iff_isRoot, IsRoot.def, eval_sub, eval_C, hvr, sub_self]

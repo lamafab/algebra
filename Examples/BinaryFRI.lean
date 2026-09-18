@@ -142,7 +142,8 @@ value. -/
 def c₀ : G8 := 1
 
 -- The choice matters: a different challenge folds differently.
-example : foldW α c₀ word₀ 0 = α² ∧ foldW α α word₀ 0 = 0 := by decide
+example : foldW α c₀ word₀ 0 = α² := by decide
+example : foldW α α word₀ 0 = 0 := by decide
 
 -- The verifier's fold-consistency check: both representatives of each
 -- fiber give the same folded value (foldWord_pair, checked on all fibers).
