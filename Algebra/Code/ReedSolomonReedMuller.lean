@@ -94,9 +94,13 @@ noncomputable def rsAgreement (L : Finset (GaloisField 2 k))
 d−1 points of L. Every agreement point is a root of the nonzero difference
 p − q, whose degree is < d. -/
 theorem rs_agreement_card_le
-    (L : Finset (GaloisField 2 k)) (d : ℕ)
+    (L : Finset (GaloisField 2 k))
+    (d : ℕ)
     (p q : Polynomial (GaloisField 2 k))
-    (hp : p.natDegree < d) (hq : q.natDegree < d) (hpq : p ≠ q) :
+    (hp : p.natDegree < d)
+    (hq : q.natDegree < d)
+    (hpq : p ≠ q)
+  :
     (rsAgreement L p q).card ≤ d - 1 := by
   classical
   have hpq' : p - q ≠ 0 := sub_ne_zero.mpr hpq
@@ -117,9 +121,14 @@ theorem rs_agreement_card_le
 |L| − d + 1 positions. The injectivity theorem above is the special case
 "distance 0 implies equal polynomials". -/
 theorem rs_min_distance
-    (L : Finset (GaloisField 2 k)) (d : ℕ) (hd : d ≤ L.card)
+    (L : Finset (GaloisField 2 k))
+    (d : ℕ)
+    (hd : d ≤ L.card)
     (p q : Polynomial (GaloisField 2 k))
-    (hp : p.natDegree < d) (hq : q.natDegree < d) (hpq : p ≠ q) :
+    (hp : p.natDegree < d)
+    (hq : q.natDegree < d)
+    (hpq : p ≠ q)
+  :
     L.card - d + 1 ≤ L.card - (rsAgreement L p q).card := by
   have h := rs_agreement_card_le L d p q hp hq hpq
   omega
