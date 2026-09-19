@@ -187,6 +187,8 @@ theorem eq_digit_of_natDegree_lt_two {p : Polynomial F} (h : p.natDegree < 2) :
   · rw [coeff_eq_zero_of_natDegree_lt (show p.natDegree < n + 2 by omega)]
     simp
 
+-- TODO: Uniqueness *should* be formalized, or at least explicitly stated
+-- via a proxy `sorry` theorem.
 omit [CharP F 2] in
 /-- Base-q decomposition: f = p₀(q(X)) + X·p₁(q(X)) with halved degrees.
 Existence is polynomial long division in base q, one digit at a time; the
