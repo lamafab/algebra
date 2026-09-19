@@ -116,6 +116,9 @@ theorem foldMap_pair (β x : F) : foldMap β (x + β) = foldMap β x := by
     exact CharTwo.add_self_eq_zero _
   linear_combination hββ
 
+-- TODO: Expand on how a high-degree polynomial does not survive the fold
+-- (via coefficient canceling).
+--
 -- ----------------------------------------------------------------------------
 -- §1b: One fold round, on words
 -- ----------------------------------------------------------------------------
@@ -140,9 +143,9 @@ theorem foldMap_pair (β x : F) : foldMap β (x + β) = foldMap β x := by
 --
 -- The p₀ coefficient is 1 + 1 = 0 and the p₁ coefficient is
 -- x + (x + β) = β, leaving β·p₁(y) = w(x) + w(x + β). Dividing through
--- and back-substituting:
+-- and back-substituting (minus is plus in char 2):
 --
---   p₁(y) = (w(x) + w(x+β)) / β        p₀(y) = w(x) + x·p₁(y)
+--   p₁(y) = (w(x) + w(x+β)) / β     p₀(y) = w(x) + x·p₁(y)
 --
 -- The division by β is why β ≠ 0 is assumed throughout (FoldChain.β_ne_zero):
 -- β = 0 collapses the fiber to one point and the two equations coincide.
