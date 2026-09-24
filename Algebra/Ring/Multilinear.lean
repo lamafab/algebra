@@ -521,14 +521,14 @@ end MLEOverBinary
 -- Section 4: Subset basis and Moebius transform (ANF over 𝔽₂)
 -- ============================================================================
 --
+-- TODO: Should this section be here?
+--
 -- The subset monomials χ_S = ∏_{i∈S} x_i form a basis for the space of
 -- multilinear polynomials. Evaluating χ_S at the characteristic vector of T
 -- gives 1 exactly when S ⊆ T, so the change of basis from "values on the
 -- hypercube" to "ANF coefficients" is the Moebius inversion on the boolean
 -- lattice. Over 𝔽₂ the coefficient of χ_S is the sum of the values f(1_T)
 -- over all T ⊆ S, and this reconstructs f.
---
--- TODO: Demonstrate a visual example as well.
 
 section SubsetBasis
 variable {n : ℕ}

@@ -213,6 +213,8 @@ example (x : GaloisField 2 4) (k : ℕ) :
   · simp
   · simp [ih, pow_succ, pow_mul]
 
+-- TODO: Simplify/Clarify this.
+--
 -- The trace map Tr_{GF(2ⁿ)/𝔽₂} : GF(2ⁿ) → 𝔽₂ is the sum of the Galois
 -- conjugates: Tr(x) = x + x² + x⁴ + ... + x^{2ⁿ⁻¹}.
 --
@@ -239,6 +241,8 @@ example (n : ℕ) (x : GaloisField 2 n) :
 -- ============================================================================
 -- Section 4b: Squaring is a bijection, so it cannot fold
 -- ============================================================================
+--
+-- TODO: This is too BinaryFRI context specific; generalize?
 --
 -- This is the characteristic-2 half of the squaring dichotomy; the general
 -- statement and the odd-characteristic half are in Characteristic.lean §4,
