@@ -180,6 +180,8 @@ example (F : Type*) [Field F] [CharP F 2] (x : F) (r : ℕ)
 -- Section 4: Freshman's dream, Frobenius, and the trace map
 -- ============================================================================
 --
+-- TODO: On Frobenius; reference Galois.lean, which should be expanded.
+--
 -- In characteristic 2, squaring is a ring homomorphism: (x + y)² = x² + y²
 -- (freshman's dream, Characteristic.lean). The map x ↦ x² is the Frobenius
 -- automorphism.
