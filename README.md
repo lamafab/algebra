@@ -30,6 +30,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
   - [EllipticCurves](Crypto/EllipticCurves.lean): Weierstrass curves over finite fields
+  - [Pairings](Crypto/Pairings.lean): bilinear pairings as an abstract interface; derived exponent laws, a toy multiplication pairing over 𝔽ₚ, the decisional Diffie-Hellman check, Joux tripartite key agreement, and BLS signature verification
   - [Paillier](Crypto/Paillier.lean): additively homomorphic encryption, decryption correctness proven as algebra
   - [McEliece](Crypto/McEliece.lean): code-based encryption; scrambling by S·G·P, decryption correctness from a decoder hypothesis, and a fully executable [7,4,3] Hamming code instance
   - [Merkle](Crypto/Merkle.lean): binary hash trees and authentication paths; honest paths verify, plus a concrete tree over GF(8) showing a nonlinear hash is binding where a+b is not
