@@ -69,7 +69,7 @@ open Finset Fintype
 --   §1  MvPolynomial basics and degree bounds
 --   §2  Multivariate Schwartz-Zippel lemma
 --   §3  Multilinear extension (MLE) over 𝔽₂
---   §4  Subset basis and Moebius transform (ANF over 𝔽₂)
+--   §4  Subset basis, Moebius transform (ANF over 𝔽₂), uniqueness of the MLE
 --   §5  Hypercube sum and vanishing
 -- ============================================================================
 
@@ -528,7 +528,8 @@ end MLEOverBinary
 -- gives 1 exactly when S ⊆ T, so the change of basis from "values on the
 -- hypercube" to "ANF coefficients" is the Moebius inversion on the boolean
 -- lattice. Over 𝔽₂ the coefficient of χ_S is the sum of the values f(1_T)
--- over all T ⊆ S, and this reconstructs f.
+-- over all T ⊆ S, and this reconstructs f. The same inversion also yields
+-- uniqueness of the MLE at the end of the section.
 
 section SubsetBasis
 variable {n : ℕ}
@@ -701,6 +702,166 @@ theorem anf_reconstruct (f : (Fin n → ZMod 2) → ZMod 2) (w : Fin n → ZMod 
     _ = ∑ S ∈ (supportOf w).powerset, mleCoef f S := by
           simp [mleCoef]
     _ = ∑ S : Finset (Fin n), mleCoef f S * eval w (subsetMonomial S) := hsum.symm
+
+-- ----------------------------------------------------------------------------
+-- Uniqueness of the MLE
+-- ----------------------------------------------------------------------------
+--
+-- The Moebius formula inverts evaluation: the coefficient of χ_A in a
+-- multilinear p is the sum of the values of p over the subcube of A
+-- (`coeff_expVec_eq_mleCoef`). Hence the values on {0,1}ⁿ determine every
+-- coefficient: a multilinear polynomial vanishing on the cube is zero, and
+-- two multilinear polynomials agreeing on the cube are equal. Applied to
+-- `mle f`, the MLE is the unique multilinear extension of f; this is the
+-- "unique" in the file header.
+
+/-- The exponent vector of a subset: 1 on S, 0 elsewhere. Every exponent
+vector occurring in a multilinear polynomial is of this form. -/
+def expVec (S : Finset (Fin n)) : Fin n →₀ ℕ :=
+  Finsupp.equivFunOnFinite.symm fun i => if i ∈ S then 1 else 0
+
+theorem expVec_apply (S : Finset (Fin n)) (i : Fin n) :
+    expVec S i = if i ∈ S then 1 else 0 := rfl
+
+theorem support_expVec (S : Finset (Fin n)) : (expVec S).support = S := by
+  ext i
+  simp only [Finsupp.mem_support_iff, expVec_apply]
+  by_cases hi : i ∈ S <;> simp [hi]
+
+-- A multilinear exponent vector is determined by its support.
+theorem expVec_support_eq {m : Fin n →₀ ℕ} (hm : ∀ i, m i ≤ 1) :
+    expVec m.support = m := by
+  ext i
+  rw [expVec_apply]
+  by_cases h : m i = 0
+  · have hni : i ∉ m.support := by rwa [Finsupp.mem_support_iff, not_not]
+    simp [h, hni]
+  · have hni : i ∈ m.support := Finsupp.mem_support_iff.mpr h
+    have h1 : m i = 1 := le_antisymm (hm i) (Nat.one_le_iff_ne_zero.mpr h)
+    simp [hni, h1]
+
+-- Summing over the support of a multilinear p against a function of the
+-- exponent's support is the same as summing over all subsets against the
+-- exponent vector: the two index sets are in bijection, and terms whose
+-- exponent vector lies outside p.support contribute nothing.
+theorem sum_support_eq_sum_expVec (p : MvPolynomial (Fin n) (ZMod 2))
+    (hp : IsMultilinear p) (H : Finset (Fin n) → ZMod 2) :
+    ∑ m ∈ p.support, coeff m p * H m.support
+      = ∑ T : Finset (Fin n), coeff (expVec T) p * H T := by
+  classical
+  have hfilter : (∑ T : Finset (Fin n), coeff (expVec T) p * H T)
+      = ∑ T ∈ Finset.univ.filter (fun T => expVec T ∈ p.support),
+          coeff (expVec T) p * H T := by
+    rw [Finset.sum_filter]
+    apply Finset.sum_congr rfl
+    intro T _
+    by_cases hT : expVec T ∈ p.support
+    · simp [hT]
+    · have hc : coeff (expVec T) p = 0 := by
+        have h := hT
+        rw [mem_support_iff, ne_eq, not_not] at h
+        exact h
+      simp [hT, hc]
+  rw [hfilter]
+  have himg : Finset.univ.filter (fun T => expVec T ∈ p.support)
+      = p.support.image (fun m => m.support) := by
+    ext T
+    constructor
+    · intro hT
+      rw [Finset.mem_filter] at hT
+      exact Finset.mem_image.mpr ⟨expVec T, hT.2, support_expVec T⟩
+    · intro hT
+      rw [Finset.mem_image] at hT
+      obtain ⟨m, hm, rfl⟩ := hT
+      rw [Finset.mem_filter]
+      exact ⟨Finset.mem_univ _, by rw [expVec_support_eq (hp m hm)]; exact hm⟩
+  have hinj : ∀ m₁ ∈ p.support, ∀ m₂ ∈ p.support,
+      m₁.support = m₂.support → m₁ = m₂ := by
+    intro m₁ hm₁ m₂ hm₂ h
+    have hc := congrArg expVec h
+    rwa [expVec_support_eq (hp m₁ hm₁), expVec_support_eq (hp m₂ hm₂)] at hc
+  rw [himg, Finset.sum_image hinj]
+  apply Finset.sum_congr rfl
+  intro m hm
+  rw [expVec_support_eq (hp m hm)]
+
+-- Evaluation at a characteristic vector picks out the coefficients of the
+-- subsets contained in S.
+theorem eval_charFn_eq_sum_coeff (p : MvPolynomial (Fin n) (ZMod 2))
+    (hp : IsMultilinear p) (S : Finset (Fin n)) :
+    eval (charFn S) p = ∑ T ∈ S.powerset, coeff (expVec T) p := by
+  classical
+  rw [eval_eq]
+  trans ∑ m ∈ p.support, coeff m p * (if m.support ⊆ S then 1 else 0)
+  · apply Finset.sum_congr rfl
+    intro m hm
+    congr 1
+    have h1 : ∀ i ∈ m.support, m i = 1 :=
+      fun i hi => le_antisymm (hp m hm i)
+        (Nat.one_le_iff_ne_zero.mpr (Finsupp.mem_support_iff.mp hi))
+    calc ∏ i ∈ m.support, charFn S i ^ m i
+        = ∏ i ∈ m.support, charFn S i :=
+          Finset.prod_congr rfl fun i hi => by rw [h1 i hi, pow_one]
+      _ = eval (charFn S) (subsetMonomial m.support) :=
+          (eval_subsetMonomial m.support (charFn S)).symm
+      _ = if m.support ⊆ S then 1 else 0 := eval_charFn_subsetMonomial m.support S
+  · rw [sum_support_eq_sum_expVec p hp (fun T => if T ⊆ S then 1 else 0)]
+    have hite : (∑ T : Finset (Fin n), coeff (expVec T) p * (if T ⊆ S then 1 else 0))
+        = ∑ T : Finset (Fin n), if T ⊆ S then coeff (expVec T) p else 0 := by
+      apply Finset.sum_congr rfl
+      intro T _
+      by_cases hT : T ⊆ S <;> simp [hT]
+    rw [hite, ← Finset.sum_filter]
+    congr 1
+    ext T
+    simp [Finset.mem_powerset]
+
+-- The coefficient of χ_A in p is the Moebius sum of the values of p.
+theorem coeff_expVec_eq_mleCoef (p : MvPolynomial (Fin n) (ZMod 2))
+    (hp : IsMultilinear p) (A : Finset (Fin n)) :
+    coeff (expVec A) p = mleCoef (fun w => eval w p) A := by
+  have h : (∑ S ∈ A.powerset, ∑ T ∈ S.powerset, coeff (expVec T) p)
+      = coeff (expVec A) p := moebius_inversion n A _
+  rw [← h, mleCoef]
+  apply Finset.sum_congr rfl
+  intro S _
+  exact (eval_charFn_eq_sum_coeff p hp S).symm
+
+-- A multilinear polynomial that vanishes on the whole cube is zero.
+theorem eq_zero_of_isMultilinear_of_eval_zero {p : MvPolynomial (Fin n) (ZMod 2)}
+    (hp : IsMultilinear p) (h0 : ∀ w : Fin n → ZMod 2, eval w p = 0) : p = 0 := by
+  ext m
+  rw [coeff_zero]
+  by_cases hm : ∀ i, m i ≤ 1
+  · rw [← expVec_support_eq hm, coeff_expVec_eq_mleCoef p hp m.support]
+    simp [mleCoef, h0]
+  · by_contra hc
+    exact hm (hp m (mem_support_iff.mpr hc))
+
+/-- Two multilinear polynomials that agree on the boolean hypercube are
+equal: the multilinear extension is unique. -/
+theorem isMultilinear_eq_of_eval_eq {p q : MvPolynomial (Fin n) (ZMod 2)}
+    (hp : IsMultilinear p) (hq : IsMultilinear q)
+    (h : ∀ w : Fin n → ZMod 2, eval w p = eval w q) : p = q := by
+  have hsum : p + q = 0 := by
+    apply eq_zero_of_isMultilinear_of_eval_zero (isMultilinear_add hp hq)
+    intro w
+    rw [eval_add, h w, ← two_mul]
+    simp [show (2 : ZMod 2) = 0 by decide]
+  have hneg2 : ∀ x : ZMod 2, -x = x := fun x => by fin_cases x <;> decide
+  have hneg : (-q : MvPolynomial (Fin n) (ZMod 2)) = q := by
+    ext m
+    rw [coeff_neg]
+    exact hneg2 _
+  calc p = -q := eq_neg_of_add_eq_zero_left hsum
+    _ = q := hneg
+
+/-- The MLE is the unique multilinear extension: any multilinear p agreeing
+with f on the hypercube equals `mle f`. -/
+theorem eq_mle_of_isMultilinear_of_eval (f : (Fin n → ZMod 2) → ZMod 2)
+    {p : MvPolynomial (Fin n) (ZMod 2)} (hp : IsMultilinear p)
+    (h : ∀ w : Fin n → ZMod 2, eval w p = f w) : p = mle f :=
+  isMultilinear_eq_of_eval_eq hp (isMultilinear_mle f) fun w => by rw [h w, eval_mle]
 
 end SubsetBasis
 
