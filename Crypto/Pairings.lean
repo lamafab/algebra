@@ -20,7 +20,9 @@ import Mathlib.Tactic
 -- symmetrically. In cryptography all three groups share one prime order r.
 --
 -- The workhorse consequence is the exponent law of §2:
+--
 --   e(a • P, b • Q) = e(P, Q)^(a·b).
+--
 -- A hidden scalar in each input turns into one multiplication in the
 -- exponent. That single multiplication, checkable by anyone, is what
 -- pairings buy over plain groups: §4 (decisional Diffie-Hellman becomes
