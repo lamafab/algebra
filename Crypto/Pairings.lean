@@ -194,7 +194,9 @@ end Toy
 -- Diffie-Hellman assumption behind DiffieHellman.lean and EllipticCurves.lean.
 --
 -- A symmetric pairing dissolves it. Compare:
+--
 --   e(a•P, b•P) = e(P, P)^(a·b)     with     e(P, c•P) = e(P, P)^c.
+--
 -- The tuple is a real DH tuple iff the two values agree. So in
 -- pairing groups DDH is easy while the computational problem (produce
 -- (a·b)•P from scratch) stays hard: the pairing multiplies exponents once,
