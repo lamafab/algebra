@@ -157,8 +157,12 @@ example (n : ℕ) : IsCyclic (Units (GaloisField 2 n)) := by infer_instance
 --
 -- Formally, in any characteristic-2 field, by induction on r. The squaring
 -- step uses y² = 1 → y ∈ {1, −1}, and −1 = 1 in characteristic 2.
-example (F : Type*) [Field F] [CharP F 2] (x : F) (r : ℕ)
-    (h : x ^ (2 ^ r) = 1) : x = 1 := by
+example (F : Type*) [Field F] [CharP F 2]
+    (x : F)
+    (r : ℕ)
+    (h : x ^ (2 ^ r) = 1)
+  :
+    x = 1 := by
   induction r generalizing x with
   | zero => simpa using h
   | succ r ih =>
@@ -179,6 +183,8 @@ example (F : Type*) [Field F] [CharP F 2] (x : F) (r : ℕ)
 -- ============================================================================
 -- Section 4: Freshman's dream, Frobenius, and the trace map
 -- ============================================================================
+--
+-- TODO: On Frobenius; reference Galois.lean, which should be expanded.
 --
 -- In characteristic 2, squaring is a ring homomorphism: (x + y)² = x² + y²
 -- (freshman's dream, Characteristic.lean). The map x ↦ x² is the Frobenius
@@ -211,6 +217,8 @@ example (x : GaloisField 2 4) (k : ℕ) :
   · simp
   · simp [ih, pow_succ, pow_mul]
 
+-- TODO: Simplify/Clarify this.
+--
 -- The trace map Tr_{GF(2ⁿ)/𝔽₂} : GF(2ⁿ) → 𝔽₂ is the sum of the Galois
 -- conjugates: Tr(x) = x + x² + x⁴ + ... + x^{2ⁿ⁻¹}.
 --
@@ -237,6 +245,8 @@ example (n : ℕ) (x : GaloisField 2 n) :
 -- ============================================================================
 -- Section 4b: Squaring is a bijection, so it cannot fold
 -- ============================================================================
+--
+-- TODO: This is too BinaryFRI context specific; generalize?
 --
 -- This is the characteristic-2 half of the squaring dichotomy; the general
 -- statement and the odd-characteristic half are in Characteristic.lean §4,
