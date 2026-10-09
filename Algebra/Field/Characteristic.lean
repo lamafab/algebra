@@ -93,6 +93,8 @@ example (F : Type*) [Field F] [CharP F 2] (c : F) (x : F) :
 -- Section 3: The freshman's dream and Frobenius
 -- ============================================================================
 --
+-- TODO: On Frobenius; reference Galois.lean, which should be expanded.
+--
 -- In characteristic p the binomial coefficients C(p, i) for 0 < i < p are
 -- all divisible by p, so the middle terms of (a + b)ᵖ vanish:
 --
