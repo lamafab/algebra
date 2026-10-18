@@ -74,6 +74,8 @@ example (a b : 𝔽₃) : (a + b) ^ 3 = a ^ 3 + b ^ 3 := add_pow_char a b 3
 -- Section 3: Fermat's little theorem in GF(p)
 -- ============================================================================
 --
+-- TODO: Also note that in GF(p^n), a^{p^n} = a.
+--
 -- For any a in GF(p), a^p = a. This is a fundamental identity in finite fields.
 example : (0 : 𝔽₃) ^ 3 = 0 := by decide
 example : (1 : 𝔽₃) ^ 3 = 1 := by decide
