@@ -373,17 +373,86 @@ end AdditiveFold
 -- the folded polynomial p₀ + cᵢ·p₁ has degree < 2^{m−i−1} (the degree
 -- bounds of exists_fold_decomp) and word (i+1) is its table on the
 -- halved domain (foldWord_eval): every honest word is again an RS
--- codeword of the same rate, so every check passes. Soundness (not
--- formalized here): folding also preserves distance with high
--- probability over the challenges, so a word 0 far from every codeword
--- has some round inheriting that distance, and a random query catches
--- the inconsistency there.
+-- codeword of the same rate, so every check passes. Soundness (stated
+-- below, with sorry: fold_correlated_agreement): folding also preserves
+-- distance with high probability over the challenges, so a word 0 far
+-- from every codeword has some round inheriting that distance, and a
+-- random query catches the inconsistency there.
 --
 -- How many samples. One query catches a word at distance δ with
 -- probability ≈ δ, so s independent queries drop the soundness error
 -- to ≈ (1 − δ)ˢ; s ≈ λ/δ gives 2⁻λ. The distance bound is what the
 -- prover cannot fake: far from the code, no fold chain stays
 -- consistent all the way down to the constant.
+
+-- ----------------------------------------------------------------------------
+-- The distance-preservation statement (correlated agreement)
+-- ----------------------------------------------------------------------------
+--
+-- TODO: Note that this is based on the "On Reed–Solomon Proximity Gaps Conjectures"
+-- paper (Crites-Stewart, December 2025).
+--
+-- TODO: This section has primarily moved to another repo for further study;
+-- either remove this or introduce the important/compacted definitions here.
+--
+-- The soundness claim above, made precise for one fold round. The
+-- "small probability over the challenge" is then a corollary: the bad
+-- challenges form at most a singleton.
+
+section CorrelatedAgreement
+
+variable {F : Type*} [Field F] [CharP F 2]
+
+/-- A word is δ-close to RS[L, k]: it agrees with the table of some
+polynomial of natDegree < k on at least a (1 − δ)-fraction of L. -/
+def rsClose [DecidableEq F] (L : Finset F) (k : ℕ) (δ : ℝ) (w : F → F) : Prop :=
+  ∃ p : Polynomial F, p.natDegree < k ∧
+    ((L.filter fun x => w x = p.eval x).card : ℝ) ≥ (1 - δ) * (L.card : ℝ)
+
+/-- A word on L is δ-close to the code on the folded domain q(L): it
+agrees at q(x) with some polynomial p of natDegree < k on at least a
+(1 − δ)-fraction of the points x ∈ L. Both sides of the comparison are
+constant on the fibers {x, x + β} (foldMap_pair), so the good set is a
+union of fibers; equivalently this is rsClose of the folded word on
+q(L), pulled back to L to keep the preimage explicit. -/
+def rsCloseImage [DecidableEq F] (L : Finset F) (k : ℕ) (δ : ℝ)
+    (β : F) (w : F → F) : Prop :=
+  ∃ p : Polynomial F, p.natDegree < k ∧
+    ((L.filter fun x => w x = p.eval (foldMap β x)).card : ℝ) ≥ (1 - δ) * (L.card : ℝ)
+
+/-- Correlated agreement, the deterministic core of one round (BCIKS20):
+if the folds under two distinct challenges are each δ-close to the code
+on the folded domain, the word itself is 2δ-close to the original code.
+On the intersection of the two agreement sets the fiber components
+p₀(y), p₁(y) are solved as fixed linear combinations of the two nearby
+codewords (det c − c′ ≠ 0), so they are codeword-consistent on a large
+set, and p̂₀(q(X)) + X·p̂₁(q(X)) witnesses the conclusion on the fibers
+above that set. Statement only: proved in the unique-decoding and
+Johnson regimes in the literature, conjectured up to capacity 1 − ρ
+(the proximity-gap conjecture). -/
+theorem fold_correlated_agreement
+    [DecidableEq F]
+    (β : F) (hβ : β ≠ 0) (L : Finset F) (hL : ∀ x ∈ L, x + β ∈ L)
+    (k : ℕ) (δ : ℝ) (w : F → F) (c c' : F) (hcc : c ≠ c')
+    (hc : rsCloseImage L k δ β (foldWord β c w))
+    (hc' : rsCloseImage L k δ β (foldWord β c' w)) :
+    rsClose L (2 * k) (2 * δ) w := sorry
+
+/-- The "except with small probability over cᵢ" of the soundness story:
+if w is 2δ-far from RS[L, 2k], at most one challenge folds it δ-close.
+For a uniform challenge in a finite field this bounds the bad-event
+probability by 1/|F|. -/
+theorem fold_bad_challenge_subsingleton
+    [DecidableEq F]
+    (β : F) (hβ : β ≠ 0) (L : Finset F) (hL : ∀ x ∈ L, x + β ∈ L)
+    (k : ℕ) (δ : ℝ) (w : F → F)
+    (hfar : ¬ rsClose L (2 * k) (2 * δ) w) :
+    {c : F | rsCloseImage L k δ β (foldWord β c w)}.Subsingleton := by
+  intro c hc c' hc'
+  by_contra hne
+  exact hfar (fold_correlated_agreement β hβ L hL k δ w c c' hne hc hc')
+
+end CorrelatedAgreement
 
 #check @rsEncode
 #check @rsEncode_injective
