@@ -131,19 +131,21 @@ example : (![1, 0, 0] : Fin 3 → ZMod 2) ≠ 0 ∧
 example : ¬ ∃ b : Fin 3 → ZMod 2, ![1, 0, 0] * b = 1 := by decide
 
 -- The units are exactly the vectors with no zero coordinate, so (p−1)ⁿ of
--- pⁿ elements. In GF(2)³ that is a single unit out of 8 vectors.
+-- pⁿ elements.
 example : ∀ a : Fin 3 → ZMod 2, (∃ b, a * b = 1) ↔ ∀ i, a i ≠ 0 := by decide
+
+-- In GF(2)³ that is a single unit out of 8 vectors: the unit set is
+-- exactly {111}, and that unit is its own inverse.
+example : (Finset.univ.filter fun a : Fin 3 → ZMod 2 => ∃ b, a * b = 1) = {![1, 1, 1]} := by decide
+example : (![1, 1, 1] : Fin 3 → ZMod 2) * ![1, 1, 1] = 1 := by decide
 
 -- ============================================================================
 -- Section 3: GF(pⁿ), a field of the same size
 -- ============================================================================
 --
--- Mathlib's GF(pⁿ) is GaloisField p n, a splitting field whose Field
--- instance is noncomputable (BinaryFields.lean §3). Its structural facts
--- are not repeated here: characteristic p, cyclic unit group, uniqueness
--- up to isomorphism (Galois.lean §5, BinaryFields.lean §3), and a^(pⁿ) = a,
--- Fermat's little theorem lifted from GF(p) (Galois.lean §3) to GF(pⁿ)
--- (BinaryFields.lean §3). What the comparison needs is the size.
+-- Mathlib's GF(pⁿ) is GaloisField p n, whose Field instance is
+-- noncomputable (BinaryFields.lean §3), so the size facts below are
+-- rewritten from GaloisField.card rather than decided.
 --
 -- Same cardinality as GF(2)³.
 example : Nat.card (GaloisField 2 3) = 8 := by
