@@ -27,7 +27,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
     - [RootsOfUnity](Algebra/Field/RootsOfUnity.lean): roots of unity in finite fields, primitive roots, and the connection to cyclic subgroups
     - [BinaryFields](Algebra/Field/BinaryFields.lean): GF(2) and GF(2ⁿ), boolean gates as polynomials, Freshman's dream, Frobenius, and trace map
     - [G8](Algebra/Field/G8.lean): GF(8) hand-rolled as bit triples with schoolbook multiplication, so worked examples can evaluate with decide
-    - [VectorSpaces](Algebra/Field/VectorSpaces.lean): GF(p)ⁿ versus GF(pⁿ): the product ring versus the field; same additive group and dimension, different multiplication
+    - [VectorSpaces](Algebra/Field/VectorSpaces.lean): GF(p)ⁿ versus GF(pⁿ): the product ring versus the field; same additive group and dimension, different multiplication; when a collection of vectors fails to be a basis
 - [Crypto](Crypto/): cryptographic schemes built on the above
   - [DiffieHellman](Crypto/DiffieHellman.lean): key exchange in a cyclic group
   - [Rsa](Crypto/Rsa.lean): RSA correctness from Bézout and Euler's theorem
