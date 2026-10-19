@@ -9,7 +9,7 @@ import Mathlib.Tactic
 -- decide. Mathlib's GaloisField and AdjoinRoot do not evaluate with decide
 -- (their DecidableEq instances are classical).
 --
--- Used by Examples/BinaryFRI.lean.
+-- Used by Examples/BinaryFRI.lean and Examples/G8Bits.lean.
 
 /-- GF(8) = GF(2)[α]/(α³ + α + 1). Elements are triples (b₀, b₁, b₂),
 read as b₀ + b₁α + b₂α². -/
@@ -38,7 +38,6 @@ def mul (x y : G8) : G8 :=
 
 instance : Mul G8 := ⟨mul⟩
 
--- TODO: Justify this odd comment(?)
 /-- Multiplicative inverse: x⁶, since x⁷ = 1 for every x ≠ 0 (the unit
 group has order 7), and 0⁶ = 0 is the usual junk value. -/
 def inv (x : G8) : G8 := x * x * x * x * x * x
