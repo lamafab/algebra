@@ -45,6 +45,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
 - [Examples](Examples/): end-to-end runs that wire the pieces above together
   - [Sumcheck](Examples/Sumcheck.lean): a sumcheck run over ℤ/7ℤ with a quadratic round polynomial, where two values cannot serve as the message and the challenges land outside the interpolation nodes
   - [BinaryFRI](Examples/BinaryFRI.lean): a binary FRI micro-run over GF(8) (Algebra/Field/G8.lean); a real RS [8, 4, 5] codeword of a message polynomial and two fold rounds down to a constant, with the verifier's fiber checks at each round
+  - [G8Bits](Examples/G8Bits.lean): GF(8) in raw bit triples; the basis as 100, 010, 001, addition as XOR, and multiplication as shift-and-fold with the modulus as the fold pattern
 
 ## Build
 
