@@ -38,6 +38,7 @@ A collection of [Lean 4](https://lean-lang.org/) files written as a personal stu
   - [Merkle](Crypto/Merkle.lean): binary hash trees and authentication paths; honest paths verify, plus a concrete tree over GF(8) showing a nonlinear hash is binding where a+b is not
   - [ZK](Crypto/ZK/)
     - [Schnorr](Crypto/ZK/Schnorr.lean): sigma protocol for knowledge of a discrete log; completeness, special soundness, and honest-verifier zero-knowledge
+    - [Bulletproofs](Crypto/ZK/Bulletproofs.lean): Pedersen commitments, the polynomial identity behind range proofs, and logarithmic-size inner-product folding, with a computed four-coordinate proof
     - [Sumcheck](Crypto/ZK/Sumcheck.lean): the sumcheck protocol on the boolean hypercube; the soundness per round is read off the multivariate Schwartz–Zippel bound
     - [BinaryFRI](Crypto/ZK/BinaryFRI.lean): proximity testing over binary fields; additive folding via q(x) = x² + β·x, the fold chain, and the Reed-Solomon distance properties behind the proximity question
     - [EvalOpening](Crypto/ZK/EvalOpening.lean): the evaluation opening p(r) = v at a point outside the committed domain, via the quotient (p − v)/(X − r); a false claim is far from every codeword of the smaller code
